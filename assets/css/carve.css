@@ -31,6 +31,10 @@
 .wp-carve .admonition.tip { border-color: #10b981; background: #ecfdf5; }
 .wp-carve .admonition.warning { border-color: #f59e0b; background: #fffbeb; }
 .wp-carve .admonition.danger { border-color: #ef4444; background: #fef2f2; }
+.wp-carve .admonition.info { border-color: #06b6d4; background: #ecfeff; }
+.wp-carve .admonition.success { border-color: #22c55e; background: #f0fdf4; }
+.wp-carve .admonition.example { border-color: #8b5cf6; background: #f5f3ff; }
+.wp-carve .admonition.quote { border-color: #64748b; background: #f8fafc; }
 
 .wp-carve .admonition-title {
 	margin: 0 0 0.4em;
