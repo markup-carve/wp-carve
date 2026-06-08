@@ -1,0 +1,53 @@
+/* wp-carve front-end + editor styles */
+
+.wp-carve-preview {
+	margin-top: 12px;
+	padding: 12px 16px;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	background: #fff;
+	tab-size: 2;
+	-moz-tab-size: 2;
+}
+
+.wp-carve pre,
+.wp-carve-preview pre {
+	tab-size: 2;
+	-moz-tab-size: 2;
+	overflow-x: auto;
+}
+
+/* Carve admonitions (Tier-1 types render as <aside class="admonition ...">). */
+.wp-carve .admonition,
+.wp-carve-preview .admonition {
+	margin: 1em 0;
+	padding: 0.75em 1em;
+	border-left: 4px solid #6b7280;
+	border-radius: 4px;
+	background: #f3f4f6;
+}
+
+.wp-carve .admonition.note { border-color: #3b82f6; background: #eff6ff; }
+.wp-carve .admonition.tip { border-color: #10b981; background: #ecfdf5; }
+.wp-carve .admonition.warning { border-color: #f59e0b; background: #fffbeb; }
+.wp-carve .admonition.danger { border-color: #ef4444; background: #fef2f2; }
+
+.wp-carve .admonition-title {
+	margin: 0 0 0.4em;
+	font-weight: 600;
+}
+
+/* Heading permalinks (HeadingPermalinksExtension emits .permalink-wrapper > a.permalink). */
+.wp-carve .permalink-wrapper {
+	opacity: 0;
+	margin-left: 0.3em;
+	transition: opacity 0.15s ease;
+}
+
+.wp-carve .permalink {
+	text-decoration: none;
+}
+
+.wp-carve :is(h1, h2, h3, h4, h5, h6):hover .permalink-wrapper {
+	opacity: 0.6;
+}

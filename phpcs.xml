@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<ruleset name="wp-carve">
+    <arg value="nps"/>
+    <arg name="colors"/>
+
+    <file>src/</file>
+    <file>wp-carve.php</file>
+    <file>uninstall.php</file>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+
+    <rule ref="PhpCollective"/>
+
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration"/>
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInClosureUse"/>
+
+    <!-- WordPress plugin entry files have side effects by design. -->
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>wp-carve.php</exclude-pattern>
+        <exclude-pattern>uninstall.php</exclude-pattern>
+    </rule>
+</ruleset>

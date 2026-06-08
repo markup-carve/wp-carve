@@ -1,0 +1,51 @@
+{
+    "name": "markup-carve/wp-carve",
+    "description": "WordPress plugin for the Carve markup language: render Carve in posts, pages and comments, with a live in-browser preview, multi-format paste, frontmatter-to-meta, render caching and a REST API.",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mark Scherer",
+            "homepage": "https://www.dereuromark.de"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "markup-carve/carve-php": "dev-main"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require-dev": {
+        "php-collective/code-sniffer": "dev-master",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^11.4 || ^12.3 || ^13.0",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "wp-cli/wp-cli": "^2.11"
+    },
+    "suggest": {
+        "ezyang/htmlpurifier": "Extra XSS hardening for untrusted comment content (^4.18)"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpCarve\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpCarve\\Test\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "cs-check": "phpcs --colors --parallel=16",
+        "cs-fix": "phpcbf --colors --parallel=16",
+        "stan": "phpstan analyze",
+        "test": "phpunit"
+    }
+}

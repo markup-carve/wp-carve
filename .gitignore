@@ -1,0 +1,6 @@
+/vendor/
+/node_modules/
+/assets/js/vendor/
+composer.lock
+package-lock.json
+.phpunit.result.cache

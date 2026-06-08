@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "carve/markup",
+    "title": "Carve",
+    "category": "text",
+    "icon": "editor-code",
+    "description": "Write Carve markup with a live in-browser preview.",
+    "keywords": ["carve", "markup", "markdown", "djot"],
+    "textdomain": "carve-markup",
+    "supports": {
+        "html": false,
+        "anchor": true,
+        "align": ["wide", "full"]
+    },
+    "attributes": {
+        "carve": {
+            "type": "string",
+            "default": ""
+        }
+    },
+    "editorScript": "wp-carve-editor",
+    "style": "wp-carve"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@markup-carve/wp-carve",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
+    "watch": "npm run build -- --watch"
+  },
+  "dependencies": {
+    "@markup-carve/carve": "^0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}
