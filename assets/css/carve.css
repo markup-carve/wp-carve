@@ -55,3 +55,107 @@
 .wp-carve :is(h1, h2, h3, h4, h5, h6):hover .permalink-wrapper {
 	opacity: 0.6;
 }
+
+/* Tables: borders, padding, header + caption. */
+.wp-carve table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 1em 0;
+}
+
+.wp-carve :is(th, td) {
+	border: 1px solid #d1d5db;
+	padding: 0.4em 0.7em;
+	text-align: left;
+}
+
+.wp-carve thead th {
+	background: #f3f4f6;
+	font-weight: 600;
+}
+
+.wp-carve tbody tr:nth-child(even) {
+	background: #fafafa;
+}
+
+.wp-carve caption {
+	caption-side: top;
+	padding: 0.2em 0;
+	color: #6b7280;
+	font-size: 0.9em;
+	text-align: left;
+}
+
+/* Blockquotes: left rule, muted; attribution small/right. */
+.wp-carve blockquote {
+	margin: 1em 0;
+	padding: 0.4em 1em;
+	border-left: 4px solid #d1d5db;
+	color: #4b5563;
+	font-style: italic;
+}
+
+.wp-carve blockquote > :is(footer, cite, figcaption) {
+	display: block;
+	margin-top: 0.4em;
+	font-style: normal;
+	font-size: 0.9em;
+	color: #6b7280;
+	text-align: right;
+}
+
+/* Figures + captions. */
+.wp-carve figure {
+	margin: 1em 0;
+}
+
+.wp-carve figcaption {
+	margin-top: 0.4em;
+	font-size: 0.9em;
+	color: #6b7280;
+	text-align: center;
+}
+
+/* Task lists: drop the bullet next to the checkbox. */
+.wp-carve li:has(> input[type="checkbox"]) {
+	list-style: none;
+	margin-left: -1.2em;
+}
+
+.wp-carve li > input[type="checkbox"] {
+	margin-right: 0.4em;
+}
+
+/* Table of contents box. */
+.wp-carve .toc {
+	margin: 1em 0;
+	padding: 0.6em 1em;
+	border: 1px solid #e5e7eb;
+	border-radius: 6px;
+	background: #f9fafb;
+	font-size: 0.95em;
+}
+
+.wp-carve .toc > :first-child {
+	margin-top: 0;
+}
+
+/* Math: center display blocks. */
+.wp-carve .math.display {
+	display: block;
+	overflow-x: auto;
+	text-align: center;
+	margin: 1em 0;
+}
+
+/* Mermaid: no code styling; hide the raw source until the SVG is drawn. */
+.wp-carve pre.mermaid {
+	background: none;
+	border: 0;
+	padding: 0;
+	text-align: center;
+}
+
+.wp-carve pre.mermaid:not([data-processed="true"]) {
+	color: transparent;
+}

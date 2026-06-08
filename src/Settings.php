@@ -32,6 +32,7 @@ class Settings
             'post_profile' => 'article',
             'comment_profile' => 'comment',
             'toc_enabled' => false,
+            'toc_position' => 'top',
             'toc_min_level' => 2,
             'toc_max_level' => 4,
             'permalinks_enabled' => false,

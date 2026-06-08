@@ -72,6 +72,7 @@ class Plugin
         if (!empty($settings['mermaid_enabled'])) {
             add_action('wp_footer', [$this, 'mermaidInit']);
         }
+        add_action('wp_footer', [$this, 'mathInit']);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -215,6 +216,38 @@ class Plugin
         printf(
             '<script type="module">import mermaid from %s; mermaid.initialize({ startOnLoad: true });</script>' . "\n",
             wp_json_encode(esc_url_raw($src)),
+        );
+    }
+
+    /**
+     * Render math with KaTeX. carve-php emits `\(…\)` / `\[…\]` delimiters, which
+     * KaTeX auto-render handles by default. Loads only on a singular Carve post
+     * that contains a math span. CDN base is filterable (wp_carve_katex_base).
+     */
+    public function mathInit(): void
+    {
+        if (!is_singular()) {
+            return;
+        }
+        $post = get_post();
+        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+            return;
+        }
+        if (!str_contains((string)$post->post_content, '$`')) {
+            return;
+        }
+
+        $base = rtrim((string)apply_filters('wp_carve_katex_base', 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist'), '/');
+        $css = esc_url_raw($base . '/katex.min.css');
+        $js = esc_url_raw($base . '/katex.min.js');
+        $auto = esc_url_raw($base . '/contrib/auto-render.min.js');
+
+        printf('<link rel="stylesheet" href="%s">' . "\n", esc_url($css));
+        printf('<script defer src="%s"></script>' . "\n", esc_url($js));
+        printf(
+            '<script defer src="%s" onload="document.querySelectorAll(%s).forEach(function(e){renderMathInElement(e,{throwOnError:false});});"></script>' . "\n",
+            esc_url($auto),
+            "'.wp-carve'",
         );
     }
 }
