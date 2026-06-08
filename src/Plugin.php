@@ -69,6 +69,9 @@ class Plugin
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
+        if (!empty($settings['mermaid_enabled'])) {
+            add_action('wp_footer', [$this, 'mermaidInit']);
+        }
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -83,7 +86,16 @@ class Plugin
         // Shortcode content arrives texturized/auto-paragraphed; undo that.
         $raw = html_entity_decode(wp_strip_all_tags($content, false), ENT_QUOTES, 'UTF-8');
 
-        return $this->converter->toHtml($raw, 'post');
+        return $this->wrap($this->converter->toHtml($raw, 'post'));
+    }
+
+    /**
+     * Wrap rendered Carve HTML so the `.wp-carve` stylesheet (admonitions,
+     * permalinks, code) applies on every surface.
+     */
+    private function wrap(string $html): string
+    {
+        return $html === '' ? '' : '<div class="wp-carve">' . $html . '</div>';
     }
 
     public function renderComment(string $text): string
@@ -97,7 +109,7 @@ class Plugin
             return $text;
         }
 
-        return $this->converter->toHtml($raw, 'comment');
+        return $this->wrap($this->converter->toHtml($raw, 'comment'));
     }
 
     /**
@@ -133,7 +145,7 @@ class Plugin
         // Carve already produced block HTML; keep wpautop away from it.
         remove_filter('the_content', 'wpautop');
 
-        return $rendered;
+        return $this->wrap($rendered);
     }
 
     public function enqueueEditorAssets(): void
@@ -175,5 +187,34 @@ class Plugin
     public function enqueueFrontendAssets(): void
     {
         wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], WP_CARVE_VERSION);
+    }
+
+    /**
+     * Initialize Mermaid for Carve `<pre class="mermaid">` diagrams (parity with
+     * djot). Loads only on a singular Carve post that actually contains a
+     * mermaid block. The source is filterable so it can point at a vendored copy
+     * instead of the CDN module.
+     */
+    public function mermaidInit(): void
+    {
+        if (!is_singular()) {
+            return;
+        }
+        $post = get_post();
+        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+            return;
+        }
+        if (!str_contains((string)$post->post_content, 'mermaid')) {
+            return;
+        }
+
+        $src = (string)apply_filters(
+            'wp_carve_mermaid_src',
+            'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs',
+        );
+        printf(
+            '<script type="module">import mermaid from %s; mermaid.initialize({ startOnLoad: true });</script>' . "\n",
+            wp_json_encode(esc_url_raw($src)),
+        );
     }
 }
