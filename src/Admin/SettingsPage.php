@@ -75,21 +75,38 @@ class SettingsPage
         settings_fields('wp_carve');
         echo '<table class="form-table" role="presentation">';
 
-        $this->checkboxRow($s, 'enable_posts', __('Enable Carve in posts/pages', 'carve-markup'));
+        $softBreaks = ['newline', 'space', 'br'];
+
+        $this->checkboxRow($s, 'enable_posts', __('Enable Carve in posts', 'carve-markup'));
+        $this->checkboxRow($s, 'enable_pages', __('Enable Carve in pages', 'carve-markup'));
         $this->checkboxRow($s, 'enable_comments', __('Enable Carve in comments', 'carve-markup'));
         $this->checkboxRow($s, 'enable_shortcode', __('Enable [carve] shortcode', 'carve-markup'));
+        $this->checkboxRow($s, 'enable_excerpts', __('Render excerpts as Carve', 'carve-markup'));
         $this->checkboxRow($s, 'safe_mode', __('Safe mode for posts (XSS hardening)', 'carve-markup'));
+        $this->checkboxRow($s, 'markdown_mode', __('Markdown mode (treat content as Markdown)', 'carve-markup'));
         $this->selectRow($s, 'post_profile', __('Post content profile', 'carve-markup'), $profiles);
         $this->selectRow($s, 'comment_profile', __('Comment content profile', 'carve-markup'), $profiles);
+        $this->selectRow($s, 'post_soft_break', __('Post soft break', 'carve-markup'), $softBreaks);
+        $this->selectRow($s, 'comment_soft_break', __('Comment soft break', 'carve-markup'), $softBreaks);
+        $this->numberRow($s, 'heading_shift', __('Heading level shift (0–5)', 'carve-markup'));
+
+        echo '<tr><th colspan="2"><h2>' . esc_html__('Features', 'carve-markup') . '</h2></th></tr>';
+
         $this->checkboxRow($s, 'toc_enabled', __('Table of contents', 'carve-markup'));
-        $this->checkboxRow($s, 'permalinks_enabled', __('Heading permalinks', 'carve-markup'));
+        $this->selectRow($s, 'toc_position', __('TOC position', 'carve-markup'), ['top', 'bottom', 'none']);
+        $this->selectRow($s, 'toc_list_type', __('TOC list type', 'carve-markup'), ['ul', 'ol']);
+        $this->checkboxRow($s, 'permalinks_enabled', __('Heading permalinks (click to copy)', 'carve-markup'));
         $this->checkboxRow($s, 'smart_quotes', __('Smart quotes', 'carve-markup'));
+        $this->textRow($s, 'smart_quotes_locale', __('Smart quotes locale (en, de, fr, …)', 'carve-markup'));
         $this->checkboxRow($s, 'mermaid_enabled', __('Mermaid diagrams', 'carve-markup'));
+        $this->checkboxRow($s, 'torchlight_enabled', __('Torchlight syntax highlighting', 'carve-markup'));
+        $this->selectRow($s, 'torchlight_theme', __('Torchlight theme', 'carve-markup'), ['github-light', 'github-dark', 'nord', 'dracula', 'monokai']);
         $this->checkboxRow($s, 'normalize_tabs', __('Normalize tabs to spaces in code', 'carve-markup'));
 
         echo '<tr><th colspan="2"><h2>' . esc_html__('Enhancements', 'carve-markup') . '</h2></th></tr>';
 
         $this->checkboxRow($s, 'live_preview', __('Live in-browser preview (carve-js)', 'carve-markup'));
+        $this->checkboxRow($s, 'visual_editor', __('Visual editor (Tiptap, experimental foundation)', 'carve-markup'));
         $this->checkboxRow($s, 'paste_ingest', __('Convert pasted Markdown/Djot/BBCode/HTML', 'carve-markup'));
         $this->checkboxRow($s, 'frontmatter_meta', __('Map frontmatter to post meta/SEO', 'carve-markup'));
         $this->checkboxRow($s, 'render_cache', __('Cache rendered HTML on save', 'carve-markup'));
@@ -113,6 +130,38 @@ class SettingsPage
             esc_attr($name),
             checked(!empty($s[$key]), true, false),
             esc_html__('Enabled', 'carve-markup'),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $s
+     * @param string $key
+     * @param string $label
+     */
+    private function numberRow(array $s, string $key, string $label): void
+    {
+        $name = Settings::OPTION . '[' . $key . ']';
+        printf(
+            '<tr><th scope="row">%s</th><td><input type="number" name="%s" value="%s" class="small-text"></td></tr>',
+            esc_html($label),
+            esc_attr($name),
+            esc_attr((string)($s[$key] ?? 0)),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $s
+     * @param string $key
+     * @param string $label
+     */
+    private function textRow(array $s, string $key, string $label): void
+    {
+        $name = Settings::OPTION . '[' . $key . ']';
+        printf(
+            '<tr><th scope="row">%s</th><td><input type="text" name="%s" value="%s" class="regular-text"></td></tr>',
+            esc_html($label),
+            esc_attr($name),
+            esc_attr((string)($s[$key] ?? '')),
         );
     }
 
