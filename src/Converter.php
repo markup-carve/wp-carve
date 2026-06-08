@@ -105,9 +105,11 @@ class Converter
         $s = $this->settings;
 
         if (!empty($s['toc_enabled'])) {
+            $position = (string)($s['toc_position'] ?? 'top');
             $converter->addExtension(new TableOfContentsExtension(
                 minLevel: (int)($s['toc_min_level'] ?? 2),
                 maxLevel: (int)($s['toc_max_level'] ?? 4),
+                position: $position === 'none' ? null : $position,
             ));
         }
 

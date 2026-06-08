@@ -56,7 +56,10 @@ class RenderCache
         }
 
         $html = $this->converter->toHtml($post->post_content, 'post');
-        update_post_meta($postId, self::META_KEY, $html);
+        // update_post_meta() expects slashed input and unslashes once when
+        // storing; without wp_slash a single backslash (e.g. the `\(` math
+        // delimiters carve-php emits) would be eaten. wp_slash protects them.
+        update_post_meta($postId, self::META_KEY, wp_slash($html));
         update_post_meta($postId, self::VERSION_KEY, WP_CARVE_VERSION);
     }
 
