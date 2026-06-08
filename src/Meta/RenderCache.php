@@ -1,0 +1,79 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpCarve\Meta;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+use WP_Post;
+use WpCarve\Converter;
+use WpCarve\Settings;
+
+/**
+ * Innovation E: render Carve to HTML at save time and cache it in post meta, so
+ * front-end views read pre-rendered HTML instead of parsing on every request.
+ */
+class RenderCache
+{
+    /**
+     * @var string
+     */
+    private const META_KEY = '_wp_carve_html';
+
+    /**
+     * @var string
+     */
+    private const VERSION_KEY = '_wp_carve_html_version';
+
+    public function __construct(private Converter $converter)
+    {
+    }
+
+    public function register(): void
+    {
+        if (!Settings::get('render_cache')) {
+            return;
+        }
+
+        add_action('save_post', [$this, 'onSave'], 20, 2);
+    }
+
+    public function onSave(int $postId, WP_Post $post): void
+    {
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        if (wp_is_post_revision($postId)) {
+            return;
+        }
+        if (!get_post_meta($postId, '_wp_carve_enabled', true)) {
+            delete_post_meta($postId, self::META_KEY);
+
+            return;
+        }
+
+        $html = $this->converter->toHtml($post->post_content, 'post');
+        update_post_meta($postId, self::META_KEY, $html);
+        update_post_meta($postId, self::VERSION_KEY, WP_CARVE_VERSION);
+    }
+
+    /**
+     * Read the cached HTML for a post, or null when no valid cache exists.
+     */
+    public static function read(int $postId): ?string
+    {
+        if (!Settings::get('render_cache')) {
+            return null;
+        }
+        if (get_post_meta($postId, self::VERSION_KEY, true) !== WP_CARVE_VERSION) {
+            // Engine/plugin changed since caching; re-render on the fly.
+            return null;
+        }
+        $html = get_post_meta($postId, self::META_KEY, true);
+
+        return is_string($html) && $html !== '' ? $html : null;
+    }
+}

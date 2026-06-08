@@ -1,0 +1,12 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+        - wp-carve.php
+        - uninstall.php
+    bootstrapFiles:
+        - tests/bootstrap-stan.php
+    treatPhpDocTypesAsCertain: false
