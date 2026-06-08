@@ -201,7 +201,9 @@ class Plugin
             return;
         }
         $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+        // Carve is present either as whole-post mode (meta) or a carve/markup
+        // block; both need the Mermaid/KaTeX assets.
+        if (!$post || (!get_post_meta($post->ID, '_wp_carve_enabled', true) && !has_block('carve/markup', $post))) {
             return;
         }
         $content = (string)$post->post_content;
