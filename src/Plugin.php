@@ -69,10 +69,6 @@ class Plugin
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
-        if (!empty($settings['mermaid_enabled'])) {
-            add_action('wp_footer', [$this, 'mermaidInit']);
-        }
-        add_action('wp_footer', [$this, 'mathInit']);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -188,16 +184,7 @@ class Plugin
     public function enqueueFrontendAssets(): void
     {
         wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], WP_CARVE_VERSION);
-    }
 
-    /**
-     * Initialize Mermaid for Carve `<pre class="mermaid">` diagrams (parity with
-     * djot). Loads only on a singular Carve post that actually contains a
-     * mermaid block. The source is filterable so it can point at a vendored copy
-     * instead of the CDN module.
-     */
-    public function mermaidInit(): void
-    {
         if (!is_singular()) {
             return;
         }
@@ -205,49 +192,32 @@ class Plugin
         if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
             return;
         }
-        if (!str_contains((string)$post->post_content, 'mermaid')) {
-            return;
+        $content = (string)$post->post_content;
+
+        // Mermaid for `<pre class="mermaid">` diagrams (parity with djot). The
+        // single-file vendored UMD build is used -- NOT the CDN ESM, which lazy-
+        // loads dozens of sub-chunks and never settles ("loads forever").
+        if (Settings::get('mermaid_enabled') && str_contains($content, 'mermaid')) {
+            $src = (string)apply_filters('wp_carve_mermaid_src', WP_CARVE_URL . 'assets/js/vendor/mermaid.min.js');
+            wp_enqueue_script('wp-carve-mermaid', esc_url_raw($src), [], '11', true);
+            wp_add_inline_script(
+                'wp-carve-mermaid',
+                'document.addEventListener("DOMContentLoaded",function(){if(typeof mermaid!=="undefined"){mermaid.initialize({startOnLoad:true,theme:"default"});}});',
+            );
         }
 
-        $src = (string)apply_filters(
-            'wp_carve_mermaid_src',
-            'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs',
-        );
-        printf(
-            '<script type="module">import mermaid from %s; mermaid.initialize({ startOnLoad: true });</script>' . "\n",
-            wp_json_encode(esc_url_raw($src)),
-        );
-    }
-
-    /**
-     * Render math with KaTeX. carve-php emits `\(…\)` / `\[…\]` delimiters, which
-     * KaTeX auto-render handles by default. Loads only on a singular Carve post
-     * that contains a math span. CDN base is filterable (wp_carve_katex_base).
-     */
-    public function mathInit(): void
-    {
-        if (!is_singular()) {
-            return;
+        // KaTeX for math. carve-php emits \(…\)/\[…\] delimiters; KaTeX
+        // auto-render handles them. Vendored locally (css + js + fonts) so the
+        // font requests the stylesheet triggers stay on this host.
+        if (str_contains($content, '$`')) {
+            $base = rtrim((string)apply_filters('wp_carve_katex_base', WP_CARVE_URL . 'assets/js/vendor/katex'), '/');
+            wp_enqueue_style('wp-carve-katex', esc_url_raw($base . '/katex.min.css'), [], '0.16.11');
+            wp_enqueue_script('wp-carve-katex', esc_url_raw($base . '/katex.min.js'), [], '0.16.11', true);
+            wp_enqueue_script('wp-carve-katex-auto', esc_url_raw($base . '/contrib/auto-render.min.js'), ['wp-carve-katex'], '0.16.11', true);
+            wp_add_inline_script(
+                'wp-carve-katex-auto',
+                'document.addEventListener("DOMContentLoaded",function(){if(window.renderMathInElement){document.querySelectorAll(".wp-carve").forEach(function(e){renderMathInElement(e,{throwOnError:false});});}});',
+            );
         }
-        $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
-            return;
-        }
-        if (!str_contains((string)$post->post_content, '$`')) {
-            return;
-        }
-
-        $base = rtrim((string)apply_filters('wp_carve_katex_base', 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist'), '/');
-        $css = esc_url_raw($base . '/katex.min.css');
-        $js = esc_url_raw($base . '/katex.min.js');
-        $auto = esc_url_raw($base . '/contrib/auto-render.min.js');
-
-        printf('<link rel="stylesheet" href="%s">' . "\n", esc_url($css));
-        printf('<script defer src="%s"></script>' . "\n", esc_url($js));
-        printf(
-            '<script defer src="%s" onload="document.querySelectorAll(%s).forEach(function(e){renderMathInElement(e,{throwOnError:false});});"></script>' . "\n",
-            esc_url($auto),
-            "'.wp-carve'",
-        );
     }
 }
