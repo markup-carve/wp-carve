@@ -171,7 +171,7 @@ class Plugin
             $ver,
             true,
         );
-        wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], WP_CARVE_VERSION);
+        wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
         wp_localize_script('wp-carve-editor', 'wpCarve', [
             'restRender' => esc_url_raw(rest_url('carve/v1/render')),
             'restIngest' => esc_url_raw(rest_url('carve/v1/ingest')),
@@ -181,9 +181,21 @@ class Plugin
         ]);
     }
 
+    /**
+     * Cache-busting version for a bundled asset: its mtime, so edits show
+     * immediately and a browser never holds a stale copy. Falls back to the
+     * plugin version.
+     */
+    private function assetVersion(string $relPath): string
+    {
+        $mtime = @filemtime(WP_CARVE_DIR . $relPath);
+
+        return $mtime ? (string)$mtime : WP_CARVE_VERSION;
+    }
+
     public function enqueueFrontendAssets(): void
     {
-        wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], WP_CARVE_VERSION);
+        wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
 
         if (!is_singular()) {
             return;
@@ -199,7 +211,7 @@ class Plugin
         // loads dozens of sub-chunks and never settles ("loads forever").
         if (Settings::get('mermaid_enabled') && str_contains($content, 'mermaid')) {
             $src = (string)apply_filters('wp_carve_mermaid_src', WP_CARVE_URL . 'assets/js/vendor/mermaid.min.js');
-            wp_enqueue_script('wp-carve-mermaid', esc_url_raw($src), [], '11', true);
+            wp_enqueue_script('wp-carve-mermaid', esc_url_raw($src), [], WP_CARVE_VERSION, true);
             wp_add_inline_script(
                 'wp-carve-mermaid',
                 'document.addEventListener("DOMContentLoaded",function(){if(typeof mermaid!=="undefined"){mermaid.initialize({startOnLoad:true,theme:"default"});}});',
@@ -211,9 +223,9 @@ class Plugin
         // font requests the stylesheet triggers stay on this host.
         if (str_contains($content, '$`')) {
             $base = rtrim((string)apply_filters('wp_carve_katex_base', WP_CARVE_URL . 'assets/js/vendor/katex'), '/');
-            wp_enqueue_style('wp-carve-katex', esc_url_raw($base . '/katex.min.css'), [], '0.16.11');
-            wp_enqueue_script('wp-carve-katex', esc_url_raw($base . '/katex.min.js'), [], '0.16.11', true);
-            wp_enqueue_script('wp-carve-katex-auto', esc_url_raw($base . '/contrib/auto-render.min.js'), ['wp-carve-katex'], '0.16.11', true);
+            wp_enqueue_style('wp-carve-katex', esc_url_raw($base . '/katex.min.css'), [], WP_CARVE_VERSION);
+            wp_enqueue_script('wp-carve-katex', esc_url_raw($base . '/katex.min.js'), [], WP_CARVE_VERSION, true);
+            wp_enqueue_script('wp-carve-katex-auto', esc_url_raw($base . '/contrib/auto-render.min.js'), ['wp-carve-katex'], WP_CARVE_VERSION, true);
             wp_add_inline_script(
                 'wp-carve-katex-auto',
                 'document.addEventListener("DOMContentLoaded",function(){if(window.renderMathInElement){document.querySelectorAll(".wp-carve").forEach(function(e){renderMathInElement(e,{throwOnError:false});});}});',
