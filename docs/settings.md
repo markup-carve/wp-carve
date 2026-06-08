@@ -1,0 +1,59 @@
+# Settings
+
+All options live in a single `wp_carve_settings` option (see
+`WpCarve\Settings`). Defaults are typed; the stored array is merged over them, so
+reads always get a fully-populated value. Configure under **Settings → Carve
+Markup**.
+
+## Rendering surfaces
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `enable_posts` | `true` | Allow the per-post "Render as Carve" toggle on posts. |
+| `enable_pages` | `true` | Allow the toggle on pages. |
+| `enable_comments` | `false` | Render comments as Carve (always in safe mode) and show the comment toolbar. |
+| `enable_shortcode` | `true` | Register the `[carve]…[/carve]` shortcode. |
+| `enable_excerpts` | `true` | Render `get_the_excerpt()` from Carve source for Carve posts. |
+
+## Engine
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `safe_mode` | `true` | XSS hardening for posts (comments are always safe). |
+| `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. |
+| `comment_profile` | `comment` | Content profile for comments. |
+| `post_soft_break` | `newline` | How a single newline renders in posts: `newline` / `space` / `br`. |
+| `comment_soft_break` | `newline` | Same, for comments. |
+| `markdown_mode` | `false` | Pre-convert Markdown source to Carve before rendering (legacy content). |
+
+See [Profiles & rendering](profiles.md) for what each profile and soft-break
+mode means.
+
+## Extensions
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `heading_shift` | `0` | Shift all heading levels down by N (e.g. `1` turns `#` into `<h2>`). |
+| `toc_enabled` | `false` | Insert a table of contents. |
+| `toc_position` | `top` | `top` / `bottom` / `none` (manual marker). |
+| `toc_min_level` | `2` | Lowest heading level included. |
+| `toc_max_level` | `4` | Highest heading level included. |
+| `toc_list_type` | `ul` | `ul` (bulleted) or `ol` (numbered) TOC. |
+| `permalinks_enabled` | `false` | Add click-to-copy heading anchors. |
+| `smart_quotes` | `false` | Curly quotes / dashes. |
+| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`). |
+| `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams (vendored Mermaid). |
+| `torchlight_enabled` | `false` | Server-side syntax highlighting (requires `torchlight/engine`). |
+| `torchlight_theme` | `github-light` | Torchlight theme name. |
+| `normalize_tabs` | `false` | Convert leading tabs to spaces. |
+| `tab_width` | `2` | Spaces per tab when normalizing. |
+
+## Innovations
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `live_preview` | `true` | In-browser instant block preview (needs the bundled `assets/js/vendor/carve.js`). |
+| `visual_editor` | `false` | Show the experimental Tiptap "Visual" mode toggle in the block. See [Visual editor](visual-editor.md). |
+| `paste_ingest` | `true` | Paste Markdown / Djot / BBCode / HTML and convert to Carve. |
+| `frontmatter_meta` | `true` | Map `---` frontmatter to excerpt / SEO / meta. |
+| `render_cache` | `true` | Cache rendered HTML in post meta on save. |

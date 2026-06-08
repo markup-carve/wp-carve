@@ -9,8 +9,8 @@ Modeled on [`wp-djot`](https://github.com/php-collective/wp-djot), with four thi
 - **Carve rendering** in posts/pages (per-post "Render as Carve" toggle), the `[carve]…[/carve]` shortcode, and comments.
 - **Gutenberg block** with a source editor and preview.
 - **Content profiles** (`full` / `article` / `comment` / `minimal`) + **safe mode** (XSS hardening) via carve-php's `Profile` + `SafeMode`.
-- **Table of contents**, **heading permalinks**, **smart quotes**, **Mermaid**, **tab normalization** — carve-php extensions, toggled in settings.
-- **WP-CLI migration**: `wp carve migrate --from=html|markdown`.
+- **Table of contents**, **heading permalinks**, **smart quotes**, **Mermaid**, **tab normalization**, **Torchlight syntax highlighting** — carve-php extensions, toggled in settings.
+- **WP-CLI migration**: `wp carve migrate` — analyzes each post (skips block-editor / foreign-shortcode content), auto-detects Markdown vs HTML, converts safely (`--dry-run`, `--force`).
 
 ## Beyond wp-djot
 
@@ -49,11 +49,16 @@ Both require the `edit_posts` capability.
 - `wp_carve_rendered_html` (filter): `(string $html, string $carve, string $context)`
 - `wp_carve_converter` (action): `(\Carve\CarveConverter $converter, string $context)` — register further carve-php extensions.
 
+## Documentation
+
+See [`docs/`](docs/README.md): [settings](docs/settings.md),
+[profiles & rendering](docs/profiles.md), [hooks](docs/hooks.md),
+[WP-CLI](docs/wp-cli.md), [Carve syntax](docs/syntax.md).
+
 ## Roadmap
 
-- Full TipTap-style WYSIWYG visual editor (wp-djot has one; v0.1 ships a source+preview block).
+- Visual editor: a Tiptap WYSIWYG **foundation** ships behind the `visual_editor` setting (core constructs round-trip; see [docs/visual-editor.md](docs/visual-editor.md)). Full per-construct parity (footnotes, tables, tabs, code-groups, math) is in progress.
 - Native per-construct blocks (admonition, code-group, table-with-spans).
-- Torchlight syntax highlighting extension.
 - Lossless HTML ↔ Carve round-trip editing.
 
 ## License

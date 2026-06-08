@@ -1,0 +1,56 @@
+/* Carve comment toolbar: insert common Carve syntax into the comment field. */
+( function () {
+	'use strict';
+
+	const BUTTONS = [
+		{ label: 'B', title: 'Strong', wrap: [ '*', '*' ] },
+		{ label: 'I', title: 'Italic', wrap: [ '/', '/' ] },
+		{ label: 'S', title: 'Strike', wrap: [ '~', '~' ] },
+		{ label: '<>', title: 'Code', wrap: [ '`', '`' ] },
+		{ label: 'Link', title: 'Link', wrap: [ '[', '](https://)' ] },
+		{ label: 'Quote', title: 'Quote', line: '> ' },
+		{ label: 'List', title: 'List item', line: '- ' },
+	];
+
+	function surround( ta, before, after ) {
+		const s = ta.selectionStart;
+		const e = ta.selectionEnd;
+		const sel = ta.value.slice( s, e );
+		ta.value = ta.value.slice( 0, s ) + before + sel + after + ta.value.slice( e );
+		ta.focus();
+		ta.selectionStart = s + before.length;
+		ta.selectionEnd = e + before.length;
+	}
+
+	function prefixLine( ta, prefix ) {
+		const s = ta.selectionStart;
+		const lineStart = ta.value.lastIndexOf( '\n', s - 1 ) + 1;
+		ta.value = ta.value.slice( 0, lineStart ) + prefix + ta.value.slice( lineStart );
+		ta.focus();
+		ta.selectionStart = ta.selectionEnd = s + prefix.length;
+	}
+
+	document.addEventListener( 'DOMContentLoaded', function () {
+		const ta = document.getElementById( 'comment' );
+		if ( ! ta || document.querySelector( '.wp-carve-comment-toolbar' ) ) {
+			return;
+		}
+		const bar = document.createElement( 'div' );
+		bar.className = 'wp-carve-comment-toolbar';
+		BUTTONS.forEach( function ( b ) {
+			const btn = document.createElement( 'button' );
+			btn.type = 'button';
+			btn.textContent = b.label;
+			btn.title = b.title;
+			btn.addEventListener( 'click', function () {
+				if ( b.wrap ) {
+					surround( ta, b.wrap[ 0 ], b.wrap[ 1 ] );
+				} else if ( b.line ) {
+					prefixLine( ta, b.line );
+				}
+			} );
+			bar.appendChild( btn );
+		} );
+		ta.parentNode.insertBefore( bar, ta );
+	} );
+} )();

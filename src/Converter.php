@@ -9,18 +9,23 @@ if (!defined('ABSPATH')) {
 }
 
 use Carve\CarveConverter;
+use Carve\Converter\MarkdownToCarve;
+use Carve\Extension\HeadingLevelShiftExtension;
 use Carve\Extension\HeadingPermalinksExtension;
 use Carve\Extension\MermaidExtension;
 use Carve\Extension\SmartQuotesExtension;
 use Carve\Extension\TableOfContentsExtension;
 use Carve\Extension\TabNormalizeExtension;
 use Carve\Profile;
+use Carve\Renderer\SoftBreakMode;
+use WpCarve\Extension\TorchlightExtension;
 
 /**
  * WordPress-facing wrapper around the carve-php CarveConverter.
  *
  * Builds a converter per context (post vs comment) applying the configured
- * content profile, safe mode and feature extensions, and renders Carve to HTML.
+ * content profile, safe mode, soft-break mode and feature extensions, and
+ * renders Carve to HTML.
  */
 class Converter
 {
@@ -50,6 +55,12 @@ class Converter
             return '';
         }
 
+        // Markdown mode: rewrite Markdown into Carve before rendering, so legacy
+        // Markdown content renders correctly.
+        if (!empty($this->settings['markdown_mode'])) {
+            $carve = (new MarkdownToCarve())->convert($carve);
+        }
+
         $html = $this->converterFor($context)->convert($carve);
 
         /**
@@ -71,13 +82,14 @@ class Converter
         $isComment = $context === 'comment';
         $profileName = (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
         $safeMode = $isComment ? true : (bool)($this->settings['safe_mode'] ?? true);
+        $softBreak = $this->softBreak((string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline'));
 
         $converter = new CarveConverter(
             safeMode: $safeMode,
             profile: $this->profile($profileName),
+            softBreakMode: $softBreak,
         );
 
-        $renderer = $converter->getHtmlRenderer();
         // Carve preserves tabs by default; opt into normalization for consistent display.
         if (!empty($this->settings['normalize_tabs'])) {
             $converter->addExtension(new TabNormalizeExtension(width: (int)($this->settings['tab_width'] ?? 2)));
@@ -95,8 +107,6 @@ class Converter
          */
         do_action('wp_carve_converter', $converter, $context);
 
-        unset($renderer);
-
         return $this->cache[$context] = $converter;
     }
 
@@ -104,11 +114,17 @@ class Converter
     {
         $s = $this->settings;
 
+        $shift = (int)($s['heading_shift'] ?? 0);
+        if ($shift > 0) {
+            $converter->addExtension(new HeadingLevelShiftExtension(shift: $shift));
+        }
+
         if (!empty($s['toc_enabled'])) {
             $position = (string)($s['toc_position'] ?? 'top');
             $converter->addExtension(new TableOfContentsExtension(
                 minLevel: (int)($s['toc_min_level'] ?? 2),
                 maxLevel: (int)($s['toc_max_level'] ?? 4),
+                listType: (string)($s['toc_list_type'] ?? 'ul'),
                 position: $position === 'none' ? null : $position,
             ));
         }
@@ -118,12 +134,25 @@ class Converter
         }
 
         if (!empty($s['smart_quotes'])) {
-            $converter->addExtension(new SmartQuotesExtension());
+            $converter->addExtension(new SmartQuotesExtension(locale: (string)($s['smart_quotes_locale'] ?? 'en')));
         }
 
         if (!empty($s['mermaid_enabled'])) {
             $converter->addExtension(new MermaidExtension());
         }
+
+        if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {
+            $converter->addExtension(new TorchlightExtension((string)($s['torchlight_theme'] ?? 'github-light')));
+        }
+    }
+
+    private function softBreak(string $mode): SoftBreakMode
+    {
+        return match ($mode) {
+            'space' => SoftBreakMode::Space,
+            'br' => SoftBreakMode::Break,
+            default => SoftBreakMode::Newline,
+        };
     }
 
     private function profile(string $name): ?Profile
