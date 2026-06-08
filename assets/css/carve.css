@@ -143,8 +143,37 @@
 	margin-left: -1.2em;
 }
 
+/* Disabled task checkboxes are grayed by the UA, so draw our own: red box
+   while open, green box + white check when done. */
 .wp-carve li > input[type="checkbox"] {
-	margin-right: 0.4em;
+	appearance: none;
+	-webkit-appearance: none;
+	margin-right: 0.45em;
+	width: 1em;
+	height: 1em;
+	border: 2px solid #dc2626;
+	border-radius: 3px;
+	vertical-align: -0.15em;
+	position: relative;
+	opacity: 1;
+	cursor: default;
+}
+
+.wp-carve li > input[type="checkbox"]:checked {
+	border-color: #16a34a;
+	background: #16a34a;
+}
+
+.wp-carve li > input[type="checkbox"]:checked::after {
+	content: "";
+	position: absolute;
+	left: 0.28em;
+	top: 0.06em;
+	width: 0.22em;
+	height: 0.48em;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
 }
 
 /* Table of contents box. */
