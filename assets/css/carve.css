@@ -113,7 +113,28 @@
 	margin-top: 0.4em;
 	font-size: 0.9em;
 	color: #6b7280;
+}
+
+/* Image/table captions: centered under the media. */
+.wp-carve figure:has(> img) > figcaption,
+.wp-carve figure:has(> table) > figcaption {
 	text-align: center;
+}
+
+/* Quote attribution: a `^ — name` caption on a blockquote. Aligns right,
+   under the quote, not centered like an image caption. */
+.wp-carve figure:has(> blockquote) {
+	margin: 1em 0;
+}
+
+.wp-carve figure:has(> blockquote) > blockquote {
+	margin-bottom: 0;
+}
+
+.wp-carve figure:has(> blockquote) > figcaption {
+	margin: 0.3em 1em 0 0;
+	text-align: right;
+	font-style: normal;
 }
 
 /* Task lists: drop the bullet next to the checkbox. */
