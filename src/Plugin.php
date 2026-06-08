@@ -45,6 +45,9 @@ class Plugin
         // Whole-post "render as Carve" mode (per-post meta toggle).
         (new PostMode())->register();
         add_filter('the_content', [$this, 'maybeRenderPost'], 9);
+        if (!empty($settings['enable_excerpts'])) {
+            add_filter('get_the_excerpt', [$this, 'maybeRenderExcerpt'], 9);
+        }
 
         // Gutenberg block (raw Carve attribute -> server render). Innovation A
         // (live preview) is wired in the block's editor script.
@@ -125,6 +128,18 @@ class Plugin
         return $commentdata;
     }
 
+    public function maybeRenderExcerpt(string $excerpt): string
+    {
+        $post = get_post();
+        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+            return $excerpt;
+        }
+        $src = trim((string)$post->post_excerpt) !== '' ? $post->post_excerpt : $post->post_content;
+        $html = $this->converter->toHtml($src, 'post');
+
+        return wp_trim_words(wp_strip_all_tags($html), 55);
+    }
+
     public function maybeRenderPost(string $content): string
     {
         $post = get_post();
@@ -178,6 +193,11 @@ class Plugin
             'nonce' => wp_create_nonce('wp_rest'),
             'livePreview' => (bool)Settings::get('live_preview'),
             'pasteIngest' => (bool)Settings::get('paste_ingest'),
+            // Foundation Tiptap visual editor: URL of the lazy-loaded ES module
+            // (empty string disables the Visual mode toggle in the block).
+            'visualEditor' => Settings::get('visual_editor')
+                ? esc_url_raw(WP_CARVE_URL . 'assets/js/tiptap/visual-editor.js')
+                : '',
         ]);
     }
 
@@ -200,6 +220,12 @@ class Plugin
         if (!is_singular()) {
             return;
         }
+
+        // Comment toolbar (independent of whether the post itself is Carve).
+        if (Settings::get('enable_comments') && comments_open()) {
+            wp_enqueue_script('wp-carve-comment-toolbar', WP_CARVE_URL . 'assets/js/comment-toolbar.js', [], $this->assetVersion('assets/js/comment-toolbar.js'), true);
+        }
+
         $post = get_post();
         // Carve is present either as whole-post mode (meta) or a carve/markup
         // block; both need the Mermaid/KaTeX assets.
@@ -207,6 +233,14 @@ class Plugin
             return;
         }
         $content = (string)$post->post_content;
+
+        // Code-block enhancements (copy button, optional line numbers).
+        wp_enqueue_script('wp-carve-code', WP_CARVE_URL . 'assets/js/code-blocks.js', [], $this->assetVersion('assets/js/code-blocks.js'), true);
+
+        // Heading permalink click-to-copy.
+        if (Settings::get('permalinks_enabled')) {
+            wp_enqueue_script('wp-carve-permalink', WP_CARVE_URL . 'assets/js/permalink.js', [], $this->assetVersion('assets/js/permalink.js'), true);
+        }
 
         // Mermaid for `<pre class="mermaid">` diagrams (parity with djot). The
         // single-file vendored UMD build is used -- NOT the CDN ESM, which lazy-
