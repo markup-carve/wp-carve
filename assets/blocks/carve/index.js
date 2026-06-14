@@ -32,14 +32,62 @@
 			.catch( () => done( '' ) );
 	}
 
+	// Foundation: optional Tiptap visual editor. Lazy-loaded as an ES module
+	// (assets/js/tiptap/visual-editor.js) only when the user switches to Visual
+	// mode, so the CDN-backed Tiptap bundle never loads for source-only editing.
+	function VisualMode( { attributes, setAttributes } ) {
+		const hostRef = useRef( null );
+		const ctlRef = useRef( null );
+
+		useEffect( () => {
+			let active = true;
+			let ctl = null;
+			// Seed the editor with HTML rendered from the current Carve source.
+			renderPreview( attributes.carve || '', ( html ) => {
+				if ( ! active || ! hostRef.current ) {
+					return;
+				}
+				import( /* webpackIgnore: true */ cfg.visualEditor )
+					.then( ( mod ) =>
+						mod.initVisualEditor( hostRef.current, html, ( carve ) =>
+							setAttributes( { carve } )
+						)
+					)
+					.then( ( instance ) => {
+						if ( ! active ) {
+							instance.destroy();
+							return;
+						}
+						ctl = instance;
+						ctlRef.current = instance;
+					} )
+					.catch( () => {} );
+			} );
+			return () => {
+				active = false;
+				if ( ctl ) {
+					ctl.destroy();
+				}
+			};
+			// Mount once per Visual-mode entry; edits flow out via onChange.
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [] );
+
+		return el( 'div', { className: 'wp-carve-ve', ref: hostRef } );
+	}
+
 	function Edit( props ) {
 		const { attributes, setAttributes } = props;
 		const blockProps = useBlockProps();
 		const [ html, setHtml ] = useState( '' );
 		const [ ingest, setIngest ] = useState( null );
+		const [ visual, setVisual ] = useState( false );
 		const timer = useRef( null );
 
 		useEffect( () => {
+			if ( visual ) {
+				return undefined;
+			}
 			if ( timer.current ) {
 				clearTimeout( timer.current );
 			}
@@ -47,7 +95,7 @@
 				renderPreview( attributes.carve || '', setHtml );
 			}, 200 );
 			return () => clearTimeout( timer.current );
-		}, [ attributes.carve ] );
+		}, [ attributes.carve, visual ] );
 
 		function onPaste( event ) {
 			if ( ! cfg.pasteIngest ) {
@@ -74,6 +122,21 @@
 				.catch( () => setIngest( null ) );
 		}
 
+		const modeToggle =
+			cfg.visualEditor &&
+			el(
+				Button,
+				{
+					variant: 'secondary',
+					isSmall: true,
+					className: 'wp-carve-mode-toggle',
+					onClick: () => setVisual( ! visual ),
+				},
+				visual
+					? __( 'Source', 'carve-markup' )
+					: __( 'Visual', 'carve-markup' )
+			);
+
 		return el(
 			'div',
 			blockProps,
@@ -89,18 +152,22 @@
 						__( 'Convert to Carve', 'carve-markup' )
 					)
 				),
-			el( TextareaControl, {
-				label: __( 'Carve source', 'carve-markup' ),
-				value: attributes.carve || '',
-				onChange: ( carve ) => setAttributes( { carve } ),
-				rows: 10,
-				onPaste,
-				__nextHasNoMarginBottom: true,
-			} ),
-			el( 'div', {
-				className: 'wp-carve-preview',
-				dangerouslySetInnerHTML: { __html: html },
-			} )
+			modeToggle,
+			visual
+				? el( VisualMode, { attributes, setAttributes } )
+				: el( TextareaControl, {
+						label: __( 'Carve source', 'carve-markup' ),
+						value: attributes.carve || '',
+						onChange: ( carve ) => setAttributes( { carve } ),
+						rows: 10,
+						onPaste,
+						__nextHasNoMarginBottom: true,
+				  } ),
+			! visual &&
+				el( 'div', {
+					className: 'wp-carve wp-carve-preview',
+					dangerouslySetInnerHTML: { __html: html },
+				} )
 		);
 	}
 
