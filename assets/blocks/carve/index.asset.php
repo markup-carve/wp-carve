@@ -12,6 +12,7 @@ return [
         'wp-components',
         'wp-i18n',
         'wp-api-fetch',
+        'wp-server-side-render',
     ],
     'version' => '0.1.0',
 ];

@@ -119,3 +119,17 @@ if (!function_exists('esc_html')) {
         return htmlspecialchars($text, ENT_QUOTES);
     }
 }
+
+if (!function_exists('__')) {
+    function __(string $text, string $domain = 'default'): string
+    {
+        return $text;
+    }
+}
+
+if (!function_exists('esc_attr__')) {
+    function esc_attr__(string $text, string $domain = 'default'): string
+    {
+        return esc_attr($text);
+    }
+}
