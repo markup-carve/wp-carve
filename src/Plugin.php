@@ -12,6 +12,7 @@ use WP_CLI;
 use WpCarve\Admin\PostMode;
 use WpCarve\Admin\SettingsPage;
 use WpCarve\Blocks\CarveBlock;
+use WpCarve\Blocks\SlidesBlock;
 use WpCarve\CLI\MigrateCommand;
 use WpCarve\Ingest\PasteController;
 use WpCarve\Meta\FrontmatterMeta;
@@ -52,6 +53,7 @@ class Plugin
         // Gutenberg block (raw Carve attribute -> server render). Innovation A
         // (live preview) is wired in the block's editor script.
         (new CarveBlock($this->converter))->register();
+        (new SlidesBlock($this->converter))->register();
 
         // --- Innovations ---
         // E: render-on-save caching + REST.
@@ -187,6 +189,7 @@ class Plugin
             true,
         );
         wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
+        wp_enqueue_script('wp-carve-slides', WP_CARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
         wp_localize_script('wp-carve-editor', 'wpCarve', [
             'restRender' => esc_url_raw(rest_url('carve/v1/render')),
             'restIngest' => esc_url_raw(rest_url('carve/v1/ingest')),
@@ -227,9 +230,10 @@ class Plugin
         }
 
         $post = get_post();
-        // Carve is present either as whole-post mode (meta) or a carve/markup
-        // block; both need the Mermaid/KaTeX assets.
-        if (!$post || (!get_post_meta($post->ID, '_wp_carve_enabled', true) && !has_block('carve/markup', $post))) {
+        // Carve is present either as whole-post mode (meta) or a Carve block;
+        // all such surfaces need the shared enhancements.
+        $hasCarveBlock = $post && (has_block('carve/markup', $post) || has_block('carve/slides', $post));
+        if (!$post || (!get_post_meta($post->ID, '_wp_carve_enabled', true) && !$hasCarveBlock)) {
             return;
         }
         $content = (string)$post->post_content;
@@ -240,6 +244,10 @@ class Plugin
         // Heading permalink click-to-copy.
         if (Settings::get('permalinks_enabled')) {
             wp_enqueue_script('wp-carve-permalink', WP_CARVE_URL . 'assets/js/permalink.js', [], $this->assetVersion('assets/js/permalink.js'), true);
+        }
+
+        if (has_block('carve/slides', $post)) {
+            wp_enqueue_script('wp-carve-slides', WP_CARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
         }
 
         // Mermaid for `<pre class="mermaid">` diagrams (parity with djot). The

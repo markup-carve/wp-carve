@@ -1,0 +1,32 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "carve/slides",
+    "title": "Carve Slides",
+    "category": "media",
+    "icon": "slides",
+    "description": "Turn Carve markup into a keyboard-friendly slide deck.",
+    "keywords": ["carve", "slides", "presentation", "deck"],
+    "textdomain": "carve-markup",
+    "supports": {
+        "html": false,
+        "anchor": true,
+        "align": ["wide", "full"]
+    },
+    "attributes": {
+        "carve": {
+            "type": "string",
+            "default": ""
+        },
+        "theme": {
+            "type": "string",
+            "default": "signal"
+        },
+        "layout": {
+            "type": "string",
+            "default": "standard"
+        }
+    },
+    "editorScript": "wp-carve-editor",
+    "style": "wp-carve"
+}

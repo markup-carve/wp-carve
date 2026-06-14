@@ -337,3 +337,220 @@
 	height: 0;
 	pointer-events: none;
 }
+
+/* --- Slides block --- */
+.wp-carve-slides-editor textarea {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.wp-carve-slides-preview-frame {
+	margin-top: 14px;
+}
+
+.wp-carve-slides {
+	--wp-carve-slide-bg: #f8fafc;
+	--wp-carve-slide-panel: #ffffff;
+	--wp-carve-slide-ink: #172033;
+	--wp-carve-slide-muted: #64748b;
+	--wp-carve-slide-accent: #0f766e;
+	--wp-carve-slide-accent-2: #b42318;
+	--wp-carve-slide-border: rgba(23, 32, 51, 0.14);
+	position: relative;
+	overflow: hidden;
+	min-height: min(72vh, 760px);
+	aspect-ratio: 16 / 9;
+	border: 1px solid var(--wp-carve-slide-border);
+	border-radius: 8px;
+	background:
+		linear-gradient(135deg, color-mix(in srgb, var(--wp-carve-slide-accent) 15%, transparent), transparent 34%),
+		linear-gradient(315deg, color-mix(in srgb, var(--wp-carve-slide-accent-2) 14%, transparent), transparent 30%),
+		var(--wp-carve-slide-bg);
+	color: var(--wp-carve-slide-ink);
+	box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
+}
+
+.wp-carve-slides:focus {
+	outline: 2px solid color-mix(in srgb, var(--wp-carve-slide-accent) 70%, #ffffff);
+	outline-offset: 3px;
+}
+
+.wp-carve-slides--paper {
+	--wp-carve-slide-bg: #fbfaf7;
+	--wp-carve-slide-panel: #ffffff;
+	--wp-carve-slide-ink: #24211c;
+	--wp-carve-slide-muted: #706a60;
+	--wp-carve-slide-accent: #006d77;
+	--wp-carve-slide-accent-2: #9b2226;
+	--wp-carve-slide-border: rgba(36, 33, 28, 0.16);
+}
+
+.wp-carve-slides--night {
+	--wp-carve-slide-bg: #111827;
+	--wp-carve-slide-panel: #172033;
+	--wp-carve-slide-ink: #f8fafc;
+	--wp-carve-slide-muted: #cbd5e1;
+	--wp-carve-slide-accent: #38bdf8;
+	--wp-carve-slide-accent-2: #f97316;
+	--wp-carve-slide-border: rgba(248, 250, 252, 0.18);
+}
+
+.wp-carve-slide {
+	position: absolute;
+	inset: 0;
+	display: none;
+	overflow: auto;
+	padding: clamp(28px, 5vw, 72px) clamp(28px, 5vw, 72px) clamp(86px, 8vw, 104px);
+	background:
+		linear-gradient(180deg, color-mix(in srgb, var(--wp-carve-slide-panel) 74%, transparent), transparent),
+		transparent;
+}
+
+.wp-carve-slide.is-active {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.wp-carve-slides--wide .wp-carve-slide {
+	padding-inline: clamp(26px, 4vw, 56px);
+}
+
+.wp-carve-slides--compact .wp-carve-slide {
+	padding: clamp(22px, 4vw, 44px);
+}
+
+.wp-carve-slide > :first-child {
+	margin-top: 0;
+}
+
+.wp-carve-slide > :last-child {
+	margin-bottom: 0;
+}
+
+.wp-carve-slide h1,
+.wp-carve-slide h2 {
+	max-width: 16ch;
+	margin-bottom: 0.35em;
+	font-size: clamp(2rem, 5.2vw, 4.25rem);
+	line-height: 1.02;
+	letter-spacing: 0;
+}
+
+.wp-carve-slide h3 {
+	font-size: clamp(1.55rem, 4vw, 3.2rem);
+	line-height: 1.05;
+	letter-spacing: 0;
+}
+
+.wp-carve-slide p,
+.wp-carve-slide li {
+	max-width: 72ch;
+	font-size: clamp(1rem, 1.55vw, 1.35rem);
+	line-height: 1.45;
+}
+
+.wp-carve-slide > p:first-child {
+	color: var(--wp-carve-slide-muted);
+	font-size: clamp(1.12rem, 2vw, 1.65rem);
+}
+
+.wp-carve-slide a {
+	color: var(--wp-carve-slide-accent);
+}
+
+.wp-carve-slide table {
+	background: color-mix(in srgb, var(--wp-carve-slide-panel) 86%, transparent);
+}
+
+.wp-carve-slide :is(th, td) {
+	border-color: var(--wp-carve-slide-border);
+}
+
+.wp-carve-slide thead th {
+	background: color-mix(in srgb, var(--wp-carve-slide-accent) 14%, var(--wp-carve-slide-panel));
+}
+
+.wp-carve-slide pre {
+	max-width: 100%;
+	padding: 1em;
+	border: 1px solid var(--wp-carve-slide-border);
+	border-radius: 8px;
+	background: color-mix(in srgb, #020617 88%, var(--wp-carve-slide-accent));
+	color: #f8fafc;
+	font-size: clamp(0.82rem, 1.5vw, 1.05rem);
+}
+
+.wp-carve-slide .admonition {
+	border-radius: 8px;
+	background: color-mix(in srgb, var(--wp-carve-slide-panel) 88%, transparent);
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.wp-carve-slides-controls {
+	position: absolute;
+	left: 50%;
+	bottom: 18px;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 7px;
+	border: 1px solid var(--wp-carve-slide-border);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--wp-carve-slide-panel) 88%, transparent);
+	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+	transform: translateX(-50%);
+	backdrop-filter: blur(14px);
+}
+
+.wp-carve-slides-controls button {
+	display: inline-grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	padding: 0;
+	border: 0;
+	border-radius: 999px;
+	background: var(--wp-carve-slide-ink);
+	color: var(--wp-carve-slide-panel);
+	font: inherit;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.wp-carve-slides-controls button:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.wp-carve-slides-count {
+	min-width: 54px;
+	color: var(--wp-carve-slide-muted);
+	font-size: 0.85rem;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+
+.wp-carve-slides:fullscreen {
+	width: 100vw;
+	height: 100vh;
+	aspect-ratio: auto;
+	border: 0;
+	border-radius: 0;
+}
+
+@media (max-width: 700px) {
+	.wp-carve-slides {
+		min-height: 560px;
+		aspect-ratio: 9 / 14;
+	}
+
+	.wp-carve-slide {
+		padding: 26px 20px 78px;
+	}
+
+	.wp-carve-slide h1,
+	.wp-carve-slide h2 {
+		max-width: none;
+	}
+}
