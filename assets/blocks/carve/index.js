@@ -4,8 +4,9 @@
 
 	const { registerBlockType } = wp.blocks;
 	const { createElement: el, useState, useEffect, useRef } = wp.element;
-	const { useBlockProps } = wp.blockEditor;
-	const { TextareaControl, Notice, Button } = wp.components;
+	const { InspectorControls, useBlockProps } = wp.blockEditor;
+	const { TextareaControl, Notice, Button, PanelBody, SelectControl } = wp.components;
+	const ServerSideRender = wp.serverSideRender;
 	const { __ } = wp.i18n;
 
 	cfg = cfg || {};
@@ -174,5 +175,68 @@
 	registerBlockType( 'carve/markup', {
 		edit: Edit,
 		save: () => null, // dynamic (server-rendered)
+	} );
+
+	function SlidesEdit( props ) {
+		const { attributes, setAttributes } = props;
+		const blockProps = useBlockProps( {
+			className: 'wp-carve-slides-editor',
+		} );
+
+		return el(
+			'div',
+			blockProps,
+			el(
+				InspectorControls,
+				null,
+				el(
+					PanelBody,
+					{ title: __( 'Presentation', 'carve-markup' ), initialOpen: true },
+					el( SelectControl, {
+						label: __( 'Theme', 'carve-markup' ),
+						value: attributes.theme || 'signal',
+						options: [
+							{ label: __( 'Signal', 'carve-markup' ), value: 'signal' },
+							{ label: __( 'Paper', 'carve-markup' ), value: 'paper' },
+							{ label: __( 'Night', 'carve-markup' ), value: 'night' },
+						],
+						onChange: ( theme ) => setAttributes( { theme } ),
+						__nextHasNoMarginBottom: true,
+					} ),
+					el( SelectControl, {
+						label: __( 'Layout', 'carve-markup' ),
+						value: attributes.layout || 'standard',
+						options: [
+							{ label: __( 'Standard', 'carve-markup' ), value: 'standard' },
+							{ label: __( 'Wide', 'carve-markup' ), value: 'wide' },
+							{ label: __( 'Compact', 'carve-markup' ), value: 'compact' },
+						],
+						onChange: ( layout ) => setAttributes( { layout } ),
+						__nextHasNoMarginBottom: true,
+					} )
+				)
+			),
+			el( TextareaControl, {
+				label: __( 'Carve slide source', 'carve-markup' ),
+				help: __( 'Separate slides with a standalone --- line.', 'carve-markup' ),
+				value: attributes.carve || '',
+				onChange: ( carve ) => setAttributes( { carve } ),
+				rows: 14,
+				__nextHasNoMarginBottom: true,
+			} ),
+			el(
+				'div',
+				{ className: 'wp-carve-slides-preview-frame' },
+				el( ServerSideRender, {
+					block: 'carve/slides',
+					attributes,
+				} )
+			)
+		);
+	}
+
+	registerBlockType( 'carve/slides', {
+		edit: SlidesEdit,
+		save: () => null,
 	} );
 } )( window.wp, window.wpCarve );
