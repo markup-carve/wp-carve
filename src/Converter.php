@@ -17,15 +17,14 @@ use Carve\Extension\SmartQuotesExtension;
 use Carve\Extension\TableOfContentsExtension;
 use Carve\Extension\TabNormalizeExtension;
 use Carve\Profile;
-use Carve\Renderer\SoftBreakMode;
 use WpCarve\Extension\TorchlightExtension;
 
 /**
  * WordPress-facing wrapper around the carve-php CarveConverter.
  *
  * Builds a converter per context (post vs comment) applying the configured
- * content profile, safe mode, soft-break mode and feature extensions, and
- * renders Carve to HTML.
+ * content profile, safe mode and feature extensions, and renders Carve to
+ * HTML.
  */
 class Converter
 {
@@ -82,12 +81,10 @@ class Converter
         $isComment = $context === 'comment';
         $profileName = (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
         $safeMode = $isComment ? true : (bool)($this->settings['safe_mode'] ?? true);
-        $softBreak = $this->softBreak((string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline'));
 
         $converter = new CarveConverter(
             safeMode: $safeMode,
             profile: $this->profile($profileName),
-            softBreakMode: $softBreak,
         );
 
         // Carve preserves tabs by default; opt into normalization for consistent display.
@@ -144,15 +141,6 @@ class Converter
         if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {
             $converter->addExtension(new TorchlightExtension((string)($s['torchlight_theme'] ?? 'github-light')));
         }
-    }
-
-    private function softBreak(string $mode): SoftBreakMode
-    {
-        return match ($mode) {
-            'space' => SoftBreakMode::Space,
-            'br' => SoftBreakMode::Break,
-            default => SoftBreakMode::Newline,
-        };
     }
 
     private function profile(string $name): ?Profile

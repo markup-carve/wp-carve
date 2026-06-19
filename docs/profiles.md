@@ -22,15 +22,12 @@ A profile is carve-php's allow-list of which constructs are permitted. Set
 sanitization). Posts honor the setting; **comments are always rendered in safe
 mode** regardless, since their source is untrusted.
 
-## Soft-break mode
+## Line breaks
 
-Controls how a single newline inside a paragraph renders:
-
-| Mode | Result |
-| --- | --- |
-| `newline` | Preserved as a newline in the HTML source (default). |
-| `space` | Joined with a space (Markdown-like paragraph flow). |
-| `br` | Hard `<br>` line break. |
+A single source newline inside a paragraph is a soft break: it stays inside the
+paragraph and the browser collapses it to a space. There is no configurable
+soft-break mode. For a visible line break use a trailing backslash `\` (a hard
+break, always renders as `<br>`) or a `::: |` line block (poetry, addresses).
 
 ## Extensions
 
