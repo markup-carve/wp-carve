@@ -22,12 +22,9 @@ Markup**.
 | `safe_mode` | `true` | XSS hardening for posts (comments are always safe). |
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. |
 | `comment_profile` | `comment` | Content profile for comments. |
-| `post_soft_break` | `newline` | How a single newline renders in posts: `newline` / `space` / `br`. |
-| `comment_soft_break` | `newline` | Same, for comments. |
 | `markdown_mode` | `false` | Pre-convert Markdown source to Carve before rendering (legacy content). |
 
-See [Profiles & rendering](profiles.md) for what each profile and soft-break
-mode means.
+See [Profiles & rendering](profiles.md) for what each profile means.
 
 ## Extensions
 

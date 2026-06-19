@@ -27,7 +27,9 @@ or before a closer blocks it (`/ not emphasis /` renders literally).
 # Heading 1
 ## Heading 2  {#custom-id .css-class}
 
-A paragraph. A single newline is a soft break (see soft-break setting).
+A paragraph. A single newline stays inside the paragraph (a soft break). For a
+visible line break use a trailing backslash `\` (hard break) or a `::: |` line
+block.
 
 - Bullet list
 - [ ] Task, unchecked

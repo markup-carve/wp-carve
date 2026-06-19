@@ -9,7 +9,7 @@
     "watch": "npm run build -- --watch"
   },
   "dependencies": {
-    "@markup-carve/carve": "^0.1"
+    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#main"
   },
   "devDependencies": {
     "esbuild": "^0.24.0"

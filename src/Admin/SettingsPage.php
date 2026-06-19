@@ -75,8 +75,6 @@ class SettingsPage
         settings_fields('wp_carve');
         echo '<table class="form-table" role="presentation">';
 
-        $softBreaks = ['newline', 'space', 'br'];
-
         $this->checkboxRow($s, 'enable_posts', __('Enable Carve in posts', 'carve-markup'));
         $this->checkboxRow($s, 'enable_pages', __('Enable Carve in pages', 'carve-markup'));
         $this->checkboxRow($s, 'enable_comments', __('Enable Carve in comments', 'carve-markup'));
@@ -86,8 +84,6 @@ class SettingsPage
         $this->checkboxRow($s, 'markdown_mode', __('Markdown mode (treat content as Markdown)', 'carve-markup'));
         $this->selectRow($s, 'post_profile', __('Post content profile', 'carve-markup'), $profiles);
         $this->selectRow($s, 'comment_profile', __('Comment content profile', 'carve-markup'), $profiles);
-        $this->selectRow($s, 'post_soft_break', __('Post soft break', 'carve-markup'), $softBreaks);
-        $this->selectRow($s, 'comment_soft_break', __('Comment soft break', 'carve-markup'), $softBreaks);
         $this->numberRow($s, 'heading_shift', __('Heading level shift (0–5)', 'carve-markup'));
 
         echo '<tr><th colspan="2"><h2>' . esc_html__('Features', 'carve-markup') . '</h2></th></tr>';
