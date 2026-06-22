@@ -320,18 +320,27 @@ class SettingsPage
             $class = (string)($diagram['class'] ?? $name);
             $weight = $this->libWeight($diagram);
             $preview = $this->previewUrl($name, $diagram);
-            $previewHtml = '';
+            $url = !empty($diagram['url']) && is_string($diagram['url']) ? $diagram['url'] : '';
+            $label = (string)($diagram['label'] ?? $name);
+            $actions = '';
             if ($preview !== '') {
-                $previewHtml = sprintf(
-                    '<button type="button" class="wp-carve-preview-btn" aria-label="%s">%s'
-                    . '<span class="wp-carve-pop"><img src="%s" alt="" loading="lazy">'
-                    . '<code>```%s</code></span></button>',
-                    esc_attr(sprintf(/* translators: %s: renderer name */ __('Preview %s output', 'carve-markup'), (string)($diagram['label'] ?? $name))),
-                    /* eye glyph */ '<span aria-hidden="true">&#128065;</span>',
+                $actions .= sprintf(
+                    '<span class="wp-carve-preview">'
+                    . '<span class="wp-carve-icon dashicons dashicons-visibility" tabindex="0" role="button" aria-label="%s"></span>'
+                    . '<span class="wp-carve-pop"><img src="%s" alt="" loading="lazy"><code>```%s</code></span></span>',
+                    esc_attr(sprintf(/* translators: %s: renderer name */ __('Preview %s output', 'carve-markup'), $label)),
                     esc_url($preview),
                     esc_html($class),
                 );
             }
+            if ($url !== '') {
+                $actions .= sprintf(
+                    '<a class="wp-carve-icon dashicons dashicons-external" href="%s" target="_blank" rel="noopener noreferrer" aria-label="%s"></a>',
+                    esc_url($url),
+                    esc_attr(sprintf(/* translators: %s: renderer name */ __('%s website', 'carve-markup'), $label)),
+                );
+            }
+            $previewHtml = $actions !== '' ? '<span class="wp-carve-actions">' . $actions . '</span>' : '';
             printf(
                 '<div class="wp-carve-card wp-carve-diagram">'
                 . '<label class="wp-carve-toggle">'
