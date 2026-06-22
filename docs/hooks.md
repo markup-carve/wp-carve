@@ -29,6 +29,8 @@ add_filter('wp_carve_diagram_renderers', function (array $renderers): array {
         'libs'   => [],                  // file names under assets/js/vendor/
         'src'    => ['https://example.test/graphre.js', 'https://example.test/nomnoml.js'],
         'init'   => '/* JS that renders .wp-carve .nomnoml elements */',
+        'url'    => 'https://nomnoml.com',          // shown as a link icon on the card
+        'preview'=> 'https://example.test/nomnoml.svg', // popover thumbnail
     ];
     return $renderers;
 });
