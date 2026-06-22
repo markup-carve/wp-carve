@@ -81,6 +81,13 @@ class TorchlightExtension implements ExtensionInterface
             $extraAttrs['data-title'] = (string)$attrs['title'];
         }
 
+        // Expose the language on the <pre> (the engine only sets it on the
+        // scrolling <code>) so the stylesheet can pin a language pill.
+        $language = (string)($block->getLanguage() ?? '');
+        if ($language !== '') {
+            $extraAttrs['data-lang'] = $language;
+        }
+
         foreach ($attrs as $name => $value) {
             if (
                 is_string($name)
