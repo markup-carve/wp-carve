@@ -255,6 +255,8 @@ class Plugin
         // shared diagrams.js initializes whichever libraries are present. Local
         // vendored builds (no CDN) keep requests on this host.
         $needDiagrams = false;
+        /** @var array<string, array<int, string>> $diagramInits */
+        $diagramInits = [];
         foreach (Diagrams::all() as $name => $diagram) {
             if (!Settings::get(Diagrams::settingKey($name))) {
                 continue;
@@ -267,6 +269,7 @@ class Plugin
             }
             $needDiagrams = true;
             $i = 0;
+            $lastHandle = null;
             foreach ((array)($diagram['libs'] ?? []) as $lib) {
                 $handle = 'wp-carve-diagram-' . $name . '-' . $i;
                 $src = (string)apply_filters(
@@ -276,19 +279,28 @@ class Plugin
                     $lib,
                 );
                 wp_enqueue_script($handle, esc_url_raw($src), [], WP_CARVE_VERSION, true);
+                $lastHandle = $handle;
                 $i++;
             }
             foreach ((array)($diagram['src'] ?? []) as $url) {
-                wp_enqueue_script('wp-carve-diagram-' . $name . '-ext-' . $i, esc_url_raw((string)$url), [], WP_CARVE_VERSION, true);
+                $handle = 'wp-carve-diagram-' . $name . '-ext-' . $i;
+                wp_enqueue_script($handle, esc_url_raw((string)$url), [], WP_CARVE_VERSION, true);
+                $lastHandle = $handle;
                 $i++;
             }
+            // A custom renderer's init runs after its own libraries (attached to
+            // the last one); with no libraries it rides the shared diagrams.js.
             if (!empty($diagram['init']) && is_string($diagram['init'])) {
-                wp_enqueue_script('wp-carve-diagram-init-' . $name, '', [], WP_CARVE_VERSION, true);
-                wp_add_inline_script('wp-carve-diagram-init-' . $name, $diagram['init']);
+                $diagramInits[$lastHandle ?? 'wp-carve-diagrams'][] = $diagram['init'];
             }
         }
         if ($needDiagrams) {
             wp_enqueue_script('wp-carve-diagrams', WP_CARVE_URL . 'assets/js/diagrams.js', [], WP_CARVE_VERSION, true);
+            foreach ($diagramInits as $handle => $inits) {
+                foreach ($inits as $init) {
+                    wp_add_inline_script($handle, $init);
+                }
+            }
         }
 
         // KaTeX for math. carve-php emits \(…\)/\[…\] delimiters; KaTeX
