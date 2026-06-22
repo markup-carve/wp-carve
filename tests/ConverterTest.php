@@ -64,4 +64,49 @@ class ConverterTest extends TestCase
 
         $this->assertStringContainsString('toc', $html);
     }
+
+    public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+        ]);
+        $source = <<<'CARVE'
+{.line-numbers .sample data-line-start=42 data-hl="1" title="Example"}
+``` php
+echo 1; // [tl! highlight]
+```
+CARVE;
+
+        $html = $converter->toHtml($source);
+
+        $this->assertStringContainsString('<pre class="sample"', $html);
+        $this->assertStringContainsString('data-title="Example"', $html);
+        $this->assertStringContainsString('data-hl="1"', $html);
+        $this->assertStringContainsString('class="line-number">42</span>', $html);
+        $this->assertStringContainsString('line-highlight', $html);
+        $this->assertStringNotContainsString('[tl! highlight]', $html);
+        $this->assertStringNotContainsString('line-numbers', $html);
+    }
+
+    public function testTorchlightLineNumbersCanBeEnabledGlobally(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+            'torchlight_line_numbers' => true,
+        ]);
+
+        $html = $converter->toHtml("``` php\necho 1;\n```");
+
+        $this->assertStringContainsString('class="line-number">1</span>', $html);
+    }
 }

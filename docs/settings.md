@@ -42,6 +42,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams (vendored Mermaid). |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (requires `torchlight/engine`). |
 | `torchlight_theme` | `github-light` | Torchlight theme name. |
+| `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |
 | `tab_width` | `2` | Spaces per tab when normalizing. |
 
