@@ -53,6 +53,35 @@ echo 'highlighted with Torchlight when enabled';
 ```
 ````
 
+Carve fences accept a single language token only. Djot-style language strings
+such as ```` ``` php # ```` or ```` ``` php #=42 ```` are not Carve fences and
+will not render as code blocks.
+
+Per-block code attributes go on the preceding attribute line:
+
+````text
+{.line-numbers data-line-start=42 title="Example"}
+``` php
+echo 'starts at line 42';
+```
+````
+
+When Torchlight is enabled, `.line-numbers` asks Torchlight to render its
+server-side gutter for that block. The global `torchlight_line_numbers` setting
+shows line numbers for every Torchlight code block by default.
+
+Torchlight annotations live inside the code and are stripped from the rendered
+output while applying highlighting, diff, or focus styles:
+
+````text
+``` php
+$safe = clean($input);   // [tl! highlight]
+$old  = legacy();        // [tl! --]
+$new  = modern();        // [tl! ++]
+$focusMe();              // [tl! focus]
+```
+````
+
 ## Links, images, attributes
 
 ```text

@@ -139,7 +139,10 @@ class Converter
         }
 
         if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {
-            $converter->addExtension(new TorchlightExtension((string)($s['torchlight_theme'] ?? 'github-light')));
+            $converter->addExtension(new TorchlightExtension(
+                (string)($s['torchlight_theme'] ?? 'github-light'),
+                (bool)($s['torchlight_line_numbers'] ?? false),
+            ));
         }
     }
 

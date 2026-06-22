@@ -97,6 +97,7 @@ class SettingsPage
         $this->checkboxRow($s, 'mermaid_enabled', __('Mermaid diagrams', 'carve-markup'));
         $this->checkboxRow($s, 'torchlight_enabled', __('Torchlight syntax highlighting', 'carve-markup'));
         $this->selectRow($s, 'torchlight_theme', __('Torchlight theme', 'carve-markup'), ['github-light', 'github-dark', 'nord', 'dracula', 'monokai']);
+        $this->checkboxRow($s, 'torchlight_line_numbers', __('Show line numbers by default', 'carve-markup'));
         $this->checkboxRow($s, 'normalize_tabs', __('Normalize tabs to spaces in code', 'carve-markup'));
 
         echo '<tr><th colspan="2"><h2>' . esc_html__('Enhancements', 'carve-markup') . '</h2></th></tr>';
