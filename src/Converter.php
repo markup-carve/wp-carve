@@ -10,12 +10,17 @@ if (!defined('ABSPATH')) {
 
 use Carve\CarveConverter;
 use Carve\Converter\MarkdownToCarve;
+use Carve\Extension\CodeGroupExtension;
+use Carve\Extension\DetailsExtension;
 use Carve\Extension\FencedRenderExtension;
 use Carve\Extension\HeadingLevelShiftExtension;
 use Carve\Extension\HeadingPermalinksExtension;
+use Carve\Extension\SemanticSpanExtension;
 use Carve\Extension\SmartQuotesExtension;
+use Carve\Extension\SpoilerExtension;
 use Carve\Extension\TableOfContentsExtension;
 use Carve\Extension\TabNormalizeExtension;
+use Carve\Extension\TabsExtension;
 use Carve\Profile;
 use WpCarve\Extension\TorchlightExtension;
 
@@ -110,6 +115,14 @@ class Converter
     private function addPostExtensions(CarveConverter $converter): void
     {
         $s = $this->settings;
+
+        // Always-on content extensions (parity with wp-djot): tabbed code groups,
+        // generic tabs, details/spoiler disclosures, and semantic inline spans.
+        $converter->addExtension(new CodeGroupExtension());
+        $converter->addExtension(new TabsExtension());
+        $converter->addExtension(new DetailsExtension());
+        $converter->addExtension(new SpoilerExtension());
+        $converter->addExtension(new SemanticSpanExtension());
 
         $shift = (int)($s['heading_shift'] ?? 0);
         if ($shift > 0) {
