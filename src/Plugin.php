@@ -250,16 +250,45 @@ class Plugin
             wp_enqueue_script('wp-carve-slides', WP_CARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
         }
 
-        // Mermaid for `<pre class="mermaid">` diagrams (parity with djot). The
-        // single-file vendored UMD build is used -- NOT the CDN ESM, which lazy-
-        // loads dozens of sub-chunks and never settles ("loads forever").
-        if (Settings::get('mermaid_enabled') && str_contains($content, 'mermaid')) {
-            $src = (string)apply_filters('wp_carve_mermaid_src', WP_CARVE_URL . 'assets/js/vendor/mermaid.min.js');
-            wp_enqueue_script('wp-carve-mermaid', esc_url_raw($src), [], WP_CARVE_VERSION, true);
-            wp_add_inline_script(
-                'wp-carve-mermaid',
-                'document.addEventListener("DOMContentLoaded",function(){if(typeof mermaid!=="undefined"){mermaid.initialize({startOnLoad:true,theme:"default"});}});',
-            );
+        // Diagram renderers (Mermaid, Chart.js, Vega-Lite, ...). Each type's
+        // library loads only when the type is enabled AND the page uses it; the
+        // shared diagrams.js initializes whichever libraries are present. Local
+        // vendored builds (no CDN) keep requests on this host.
+        $needDiagrams = false;
+        foreach (Diagrams::all() as $name => $diagram) {
+            if (!Settings::get(Diagrams::settingKey($name))) {
+                continue;
+            }
+            // $content is the raw Carve source, so match the fence word (which
+            // is also the rendered CSS class), not the rendered markup.
+            $class = (string)($diagram['class'] ?? $name);
+            if (!str_contains($content, $class)) {
+                continue;
+            }
+            $needDiagrams = true;
+            $i = 0;
+            foreach ((array)($diagram['libs'] ?? []) as $lib) {
+                $handle = 'wp-carve-diagram-' . $name . '-' . $i;
+                $src = (string)apply_filters(
+                    'wp_carve_diagram_src',
+                    WP_CARVE_URL . 'assets/js/vendor/' . $lib,
+                    $name,
+                    $lib,
+                );
+                wp_enqueue_script($handle, esc_url_raw($src), [], WP_CARVE_VERSION, true);
+                $i++;
+            }
+            foreach ((array)($diagram['src'] ?? []) as $url) {
+                wp_enqueue_script('wp-carve-diagram-' . $name . '-ext-' . $i, esc_url_raw((string)$url), [], WP_CARVE_VERSION, true);
+                $i++;
+            }
+            if (!empty($diagram['init']) && is_string($diagram['init'])) {
+                wp_enqueue_script('wp-carve-diagram-init-' . $name, '', [], WP_CARVE_VERSION, true);
+                wp_add_inline_script('wp-carve-diagram-init-' . $name, $diagram['init']);
+            }
+        }
+        if ($needDiagrams) {
+            wp_enqueue_script('wp-carve-diagrams', WP_CARVE_URL . 'assets/js/diagrams.js', [], WP_CARVE_VERSION, true);
         }
 
         // KaTeX for math. carve-php emits \(…\)/\[…\] delimiters; KaTeX

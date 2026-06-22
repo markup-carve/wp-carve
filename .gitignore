@@ -3,6 +3,14 @@
 /assets/js/vendor/*
 !/assets/js/vendor/mermaid.min.js
 !/assets/js/vendor/katex/
+!/assets/js/vendor/chart.umd.min.js
+!/assets/js/vendor/vega.min.js
+!/assets/js/vendor/vega-lite.min.js
+!/assets/js/vendor/vega-embed.min.js
+!/assets/js/vendor/viz-standalone.min.js
+!/assets/js/vendor/wavedrom.min.js
+!/assets/js/vendor/wavedrom-skin-default.js
+!/assets/js/vendor/abcjs-basic-min.js
 composer.lock
 package-lock.json
 .phpunit.result.cache

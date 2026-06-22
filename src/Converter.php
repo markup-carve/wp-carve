@@ -147,8 +147,25 @@ class Converter
             $converter->addExtension(new SmartQuotesExtension(locale: (string)($s['smart_quotes_locale'] ?? 'en')));
         }
 
-        if (!empty($s['mermaid_enabled'])) {
-            $converter->addExtension(FencedRenderExtension::mermaid());
+        foreach (Diagrams::all() as $name => $diagram) {
+            if (empty($s[Diagrams::settingKey($name)])) {
+                continue;
+            }
+            $preset = $diagram['preset'] ?? null;
+            if (is_string($preset) && method_exists(FencedRenderExtension::class, $preset)) {
+                $converter->addExtension(FencedRenderExtension::$preset());
+
+                continue;
+            }
+            $class = (string)($diagram['class'] ?? $name);
+            $mode = ($diagram['mode'] ?? 'text') === 'json'
+                ? FencedRenderExtension::MODE_JSON
+                : FencedRenderExtension::MODE_TEXT;
+            $converter->addExtension(new FencedRenderExtension(
+                language: $class,
+                cssClass: $class,
+                contentMode: $mode,
+            ));
         }
 
         if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {
