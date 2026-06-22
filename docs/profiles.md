@@ -39,7 +39,7 @@ normalization applies to both):
 - `HeadingPermalinksExtension` — `permalinks_enabled`
 - `SmartQuotesExtension` — `smart_quotes` + `smart_quotes_locale`
 - `MermaidExtension` — `mermaid_enabled`
-- `TorchlightExtension` — `torchlight_enabled` + `torchlight_theme` (plugin-local; see below)
+- `TorchlightExtension` — `torchlight_enabled` + `torchlight_theme` + `torchlight_line_numbers` (plugin-local; see below)
 - `TabNormalizeExtension` — `normalize_tabs` + `tab_width`
 
 ### Torchlight (server-side highlighting)
@@ -54,6 +54,20 @@ composer require torchlight/engine
 ```
 
 If the package is absent the extension no-ops and code blocks render plain.
+Line numbers come from Torchlight's server-side gutter. Enable them globally
+with `torchlight_line_numbers`, or for one block with a preceding attribute line:
+
+````text
+{.line-numbers data-line-start=10 title="bootstrap.php"}
+``` php
+require __DIR__ . '/vendor/autoload.php';
+```
+````
+
+Torchlight also handles in-code annotations such as `[tl! highlight]`,
+`[tl! ++]`, `[tl! --]`, and `[tl! focus]` for highlighted, added, removed, and
+focused lines. Carve does not support Djot-style language strings like
+```` ``` php # ````; use the preceding attribute line instead.
 
 To register further carve-php extensions of your own, use the
 `wp_carve_converter` action - see [Hooks](hooks.md).
