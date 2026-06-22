@@ -17,6 +17,26 @@
 	overflow-x: auto;
 }
 
+/* Code blocks: readable defaults (mermaid and slides reset these below). */
+.wp-carve pre:not(.mermaid),
+.wp-carve-preview pre:not(.mermaid) {
+	margin: 1em 0;
+	padding: 1em;
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+	font-size: 0.875em;
+	line-height: 1.5;
+	background: #f6f8fa;
+	border-radius: 6px;
+}
+
+.wp-carve pre:not(.mermaid) > code,
+.wp-carve-preview pre:not(.mermaid) > code {
+	padding: 0;
+	font-size: inherit;
+	background: transparent;
+	border-radius: 0;
+}
+
 /* Carve admonitions (Tier-1 types render as <aside class="admonition ...">). */
 .wp-carve .admonition,
 .wp-carve-preview .admonition {
@@ -235,28 +255,83 @@
 	opacity: 0.9;
 }
 
-.wp-carve pre[data-title]::before {
-	display: block;
-	padding: 0.5em 0.75em;
-	margin: -1em -1em 1em;
-	font-size: 0.85em;
-	font-weight: 600;
-	color: #374151;
-	content: attr(data-title);
-	background: #f9fafb;
-	border-bottom: 1px solid #e5e7eb;
+/* Title / filename header bar (data-title from the preceding attribute line). */
+.wp-carve pre[data-title] {
+	padding-top: 2.75em;
 }
 
-/* Optional line numbers (pre.line-numbers). */
+.wp-carve pre[data-title]::before {
+	content: attr(data-title);
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	padding: 0.5em 1em;
+	font-size: 0.85em;
+	font-weight: 600;
+	color: #57606a;
+	background: #e6e8eb;
+	border-bottom: 1px solid #d0d7de;
+	border-radius: 6px 6px 0 0;
+}
+
+/* ---- Torchlight / Phiki highlighted output ---- */
+.wp-carve pre code.torchlight {
+	display: block;
+	min-width: max-content;
+	padding: 0.5rem 0;
+	background: transparent;
+}
+
+/* Every rendered line is a full-width block with its own horizontal padding so
+   highlight/diff backgrounds span the whole block. */
+.wp-carve pre code.torchlight .line {
+	display: block;
+	padding: 0 1rem;
+}
+
+/* Line-number gutter. */
+.wp-carve pre code.torchlight .line-number {
+	display: inline-block;
+	width: 2.5em;
+	margin-right: 1em;
+	color: #6e7681;
+	text-align: right;
+	user-select: none;
+}
+
+/* Highlighted line. The engine emits a near-invisible inline background on a
+   light theme, so override it and add a left accent bar. */
+.wp-carve pre code.torchlight .line-highlight {
+	background: rgba(255, 209, 102, 0.22) !important;
+	box-shadow: inset 3px 0 0 #e0a800;
+}
+
+/* Diff lines: keep the engine's inline green/red wash, add a gutter accent. */
+.wp-carve pre code.torchlight .line-add {
+	box-shadow: inset 3px 0 0 #2ea043;
+}
+
+.wp-carve pre code.torchlight .line-remove {
+	box-shadow: inset 3px 0 0 #cf222e;
+}
+
+/* Focus mode: dim every line except the focused one(s); reveal on hover. */
+.wp-carve pre code.torchlight.has-focus-lines .line:not(.line-focus) {
+	opacity: 0.5;
+	filter: blur(0.03rem);
+	transition: opacity 0.25s, filter 0.25s;
+}
+
+.wp-carve pre code.torchlight.has-focus-lines:hover .line:not(.line-focus) {
+	opacity: 1;
+	filter: none;
+}
+
+/* ---- Plain (non-Torchlight) line-number fallback ---- */
 .wp-carve pre.line-numbers {
 	display: flex;
 	flex-wrap: wrap;
-}
-
-/* A title on a line-numbered block spans the full row above the gutter. */
-.wp-carve pre.line-numbers[data-title]::before {
-	flex: 0 0 100%;
-	order: -1;
 }
 
 .wp-carve-line-numbers {
