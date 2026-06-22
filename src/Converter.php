@@ -10,9 +10,9 @@ if (!defined('ABSPATH')) {
 
 use Carve\CarveConverter;
 use Carve\Converter\MarkdownToCarve;
+use Carve\Extension\FencedRenderExtension;
 use Carve\Extension\HeadingLevelShiftExtension;
 use Carve\Extension\HeadingPermalinksExtension;
-use Carve\Extension\MermaidExtension;
 use Carve\Extension\SmartQuotesExtension;
 use Carve\Extension\TableOfContentsExtension;
 use Carve\Extension\TabNormalizeExtension;
@@ -135,7 +135,7 @@ class Converter
         }
 
         if (!empty($s['mermaid_enabled'])) {
-            $converter->addExtension(new MermaidExtension());
+            $converter->addExtension(FencedRenderExtension::mermaid());
         }
 
         if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {
