@@ -237,22 +237,35 @@
 
 .wp-carve-copy {
 	position: absolute;
-	top: 0.4em;
-	right: 3.4em;
-	padding: 0.15em 0.5em;
-	font-size: 0.75em;
-	line-height: 1.4;
-	border: 1px solid #d1d5db;
-	border-radius: 4px;
-	background: #fff;
-	color: #374151;
+	top: 0.45em;
+	right: 2.9em;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.9em;
+	height: 1.9em;
+	padding: 0;
+	color: #57606a;
+	background: rgba(255, 255, 255, 0.85);
+	border: 1px solid #d0d7de;
+	border-radius: 5px;
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity 0.15s ease;
+	transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
 .wp-carve pre:hover .wp-carve-copy {
-	opacity: 0.9;
+	opacity: 1;
+}
+
+.wp-carve-copy:hover {
+	color: #24292f;
+	background: #fff;
+}
+
+.wp-carve-copy.is-copied {
+	color: #1a7f37;
+	border-color: #1a7f37;
 }
 
 /* Title / filename header bar (data-title from the preceding attribute line). */
@@ -281,16 +294,17 @@
 	position: absolute;
 	top: 0.5em;
 	right: 0.6em;
-	padding: 0.05em 0.55em;
+	display: inline-block;
+	padding: 0.15em 0.5em;
 	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 	font-size: 0.7em;
 	font-weight: 600;
-	letter-spacing: 0.03em;
+	line-height: 1.3;
+	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #57606a;
-	background: rgba(255, 255, 255, 0.75);
-	border: 1px solid #d0d7de;
-	border-radius: 999px;
+	color: #6b7280;
+	background: #eceff2;
+	border-radius: 4px;
 	pointer-events: none;
 }
 
