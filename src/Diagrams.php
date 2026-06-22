@@ -40,42 +40,42 @@ class Diagrams
     {
         $builtin = [
             'mermaid' => [
-                'label' => __('Mermaid diagrams', 'carve-markup'),
+                'label' => 'Mermaid diagrams',
                 'class' => 'mermaid',
                 'preset' => 'mermaid',
                 'mode' => 'text',
                 'libs' => ['mermaid.min.js'],
             ],
             'chart' => [
-                'label' => __('Chart.js charts', 'carve-markup'),
+                'label' => 'Chart.js charts',
                 'class' => 'chart',
                 'preset' => 'chart',
                 'mode' => 'json',
                 'libs' => ['chart.umd.min.js'],
             ],
             'vega' => [
-                'label' => __('Vega-Lite charts', 'carve-markup'),
+                'label' => 'Vega-Lite charts',
                 'class' => 'vega-lite',
                 'preset' => 'vegaLite',
                 'mode' => 'json',
                 'libs' => ['vega.min.js', 'vega-lite.min.js', 'vega-embed.min.js'],
             ],
             'graphviz' => [
-                'label' => __('Graphviz (DOT) diagrams', 'carve-markup'),
+                'label' => 'Graphviz (DOT) diagrams',
                 'class' => 'graphviz',
                 'preset' => 'graphviz',
                 'mode' => 'text',
                 'libs' => ['viz-standalone.min.js'],
             ],
             'wavedrom' => [
-                'label' => __('WaveDrom timing diagrams', 'carve-markup'),
+                'label' => 'WaveDrom timing diagrams',
                 'class' => 'wavedrom',
                 'preset' => 'wavedrom',
                 'mode' => 'text',
                 'libs' => ['wavedrom.min.js', 'wavedrom-skin-default.js'],
             ],
             'abc' => [
-                'label' => __('ABC music notation', 'carve-markup'),
+                'label' => 'ABC music notation',
                 'class' => 'abc',
                 'preset' => 'abc',
                 'mode' => 'text',
