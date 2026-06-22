@@ -235,9 +235,28 @@
 	opacity: 0.9;
 }
 
+.wp-carve pre[data-title]::before {
+	display: block;
+	padding: 0.5em 0.75em;
+	margin: -1em -1em 1em;
+	font-size: 0.85em;
+	font-weight: 600;
+	color: #374151;
+	content: attr(data-title);
+	background: #f9fafb;
+	border-bottom: 1px solid #e5e7eb;
+}
+
 /* Optional line numbers (pre.line-numbers). */
 .wp-carve pre.line-numbers {
 	display: flex;
+	flex-wrap: wrap;
+}
+
+/* A title on a line-numbered block spans the full row above the gutter. */
+.wp-carve pre.line-numbers[data-title]::before {
+	flex: 0 0 100%;
+	order: -1;
 }
 
 .wp-carve-line-numbers {

@@ -46,6 +46,7 @@ class Settings
             'mermaid_enabled' => false,
             'torchlight_enabled' => false,
             'torchlight_theme' => 'github-light',
+            'torchlight_line_numbers' => false,
             'normalize_tabs' => false,
             'tab_width' => 2,
             // Innovation toggles.

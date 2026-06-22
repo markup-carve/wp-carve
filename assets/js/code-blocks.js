@@ -34,8 +34,8 @@
 			} );
 			pre.appendChild( btn );
 
-			// Line numbers when the <pre> opted in (class "line-numbers").
-			if ( pre.classList.contains( 'line-numbers' ) ) {
+			// Plain Carve fallback line numbers; Torchlight renders its own gutter.
+			if ( pre.classList.contains( 'line-numbers' ) && ! code.classList.contains( 'torchlight' ) ) {
 				const lines = code.innerHTML.replace( /\n$/, '' ).split( '\n' ).length;
 				const gutter = document.createElement( 'span' );
 				gutter.className = 'wp-carve-line-numbers';
