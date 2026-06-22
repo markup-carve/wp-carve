@@ -13,13 +13,22 @@ use WpCarve\Settings;
 
 /**
  * Settings screen under Settings -> Carve Markup.
+ *
+ * Renders a tabbed, card-grid layout (not the default form-table) so the wide
+ * admin area is used and the page stays short.
  */
 class SettingsPage
 {
+    /**
+     * @var string
+     */
+    private const MENU_SLUG = 'wp-carve';
+
     public function register(): void
     {
         add_action('admin_menu', [$this, 'menu']);
         add_action('admin_init', [$this, 'settings']);
+        add_action('admin_enqueue_scripts', [$this, 'assets']);
     }
 
     public function menu(): void
@@ -28,9 +37,18 @@ class SettingsPage
             __('Carve Markup', 'carve-markup'),
             __('Carve Markup', 'carve-markup'),
             'manage_options',
-            'wp-carve',
+            self::MENU_SLUG,
             [$this, 'renderPage'],
         );
+    }
+
+    public function assets(string $hook): void
+    {
+        if ($hook !== 'settings_page_' . self::MENU_SLUG) {
+            return;
+        }
+        wp_enqueue_style('wp-carve-admin-settings', WP_CARVE_URL . 'assets/css/admin-settings.css', [], WP_CARVE_VERSION);
+        wp_enqueue_script('wp-carve-admin-settings', WP_CARVE_URL . 'assets/js/admin-settings.js', [], WP_CARVE_VERSION, true);
     }
 
     public function settings(): void
@@ -70,121 +88,279 @@ class SettingsPage
         $s = Settings::all();
         $profiles = ['full', 'article', 'comment', 'minimal'];
 
-        echo '<div class="wrap">';
+        $tabs = [
+            'general' => __('General', 'carve-markup'),
+            'content' => __('Content', 'carve-markup'),
+            'code' => __('Code & diagrams', 'carve-markup'),
+            'advanced' => __('Advanced', 'carve-markup'),
+        ];
+
+        echo '<div class="wrap wp-carve-settings">';
         echo '<h1>' . esc_html__('Carve Markup', 'carve-markup') . '</h1>';
+        echo '<p class="wp-carve-intro">' . esc_html__('A post-Markdown markup language for WordPress. Each feature below is independent; diagram libraries load only on pages that use them.', 'carve-markup') . '</p>';
+
+        echo '<h2 class="nav-tab-wrapper wp-carve-tabs">';
+        $first = true;
+        foreach ($tabs as $id => $label) {
+            printf(
+                '<a href="#%1$s" class="nav-tab%2$s" data-tab="%1$s">%3$s</a>',
+                esc_attr($id),
+                $first ? ' nav-tab-active' : '',
+                esc_html($label),
+            );
+            $first = false;
+        }
+        echo '</h2>';
+
         echo '<form method="post" action="options.php">';
         settings_fields('wp_carve');
-        echo '<table class="form-table" role="presentation">';
 
-        $this->checkboxRow($s, 'enable_posts', __('Enable Carve in posts', 'carve-markup'));
-        $this->checkboxRow($s, 'enable_pages', __('Enable Carve in pages', 'carve-markup'));
-        $this->checkboxRow($s, 'enable_comments', __('Enable Carve in comments', 'carve-markup'));
-        $this->checkboxRow($s, 'enable_shortcode', __('Enable [carve] shortcode', 'carve-markup'));
-        $this->checkboxRow($s, 'enable_excerpts', __('Render excerpts as Carve', 'carve-markup'));
-        $this->checkboxRow($s, 'safe_mode', __('Safe mode for posts (XSS hardening)', 'carve-markup'));
-        $this->checkboxRow($s, 'markdown_mode', __('Markdown mode (treat content as Markdown)', 'carve-markup'));
-        $this->selectRow($s, 'post_profile', __('Post content profile', 'carve-markup'), $profiles);
-        $this->selectRow($s, 'comment_profile', __('Comment content profile', 'carve-markup'), $profiles);
-        $this->numberRow($s, 'heading_shift', __('Heading level shift (0–5)', 'carve-markup'));
+        // General.
+        $this->panelStart('general', true);
+        $this->group(__('Where Carve renders', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'enable_posts', __('Posts', 'carve-markup'), __('Render post content as Carve.', 'carve-markup'));
+        $this->toggle($s, 'enable_pages', __('Pages', 'carve-markup'), __('Render page content as Carve.', 'carve-markup'));
+        $this->toggle($s, 'enable_comments', __('Comments', 'carve-markup'), __('Render comments as Carve (uses the comment profile).', 'carve-markup'));
+        $this->toggle($s, 'enable_shortcode', __('[carve] shortcode', 'carve-markup'), __('Render Carve inside a [carve] shortcode.', 'carve-markup'));
+        $this->toggle($s, 'enable_excerpts', __('Excerpts', 'carve-markup'), __('Render excerpts as Carve.', 'carve-markup'));
+        $this->toggle($s, 'safe_mode', __('Safe mode', 'carve-markup'), __('XSS hardening for post content (always on for comments).', 'carve-markup'));
+        $this->toggle($s, 'markdown_mode', __('Markdown mode', 'carve-markup'), __('Treat stored content as Markdown and convert to Carve first.', 'carve-markup'));
+        $this->gridEnd();
+        $this->group(__('Content profiles', 'carve-markup'));
+        $this->grid();
+        $this->select($s, 'post_profile', __('Post profile', 'carve-markup'), $profiles, __('Feature set allowed in posts and pages.', 'carve-markup'));
+        $this->select($s, 'comment_profile', __('Comment profile', 'carve-markup'), $profiles, __('Feature set allowed in comments.', 'carve-markup'));
+        $this->gridEnd();
+        $this->panelEnd();
 
-        echo '<tr><th colspan="2"><h2>' . esc_html__('Features', 'carve-markup') . '</h2></th></tr>';
+        // Content.
+        $this->panelStart('content');
+        $this->group(__('Structure', 'carve-markup'));
+        $this->grid();
+        $this->number($s, 'heading_shift', __('Heading shift', 'carve-markup'), __('Demote headings by N levels (0-5).', 'carve-markup'));
+        $this->toggle($s, 'permalinks_enabled', __('Heading permalinks', 'carve-markup'), __('Add click-to-copy anchors to headings.', 'carve-markup'));
+        $this->gridEnd();
+        $this->group(__('Table of contents', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'toc_enabled', __('Table of contents', 'carve-markup'), __('Generate a TOC from headings.', 'carve-markup'));
+        $this->select($s, 'toc_position', __('Position', 'carve-markup'), ['top', 'bottom', 'none'], '', 'toc_enabled');
+        $this->select($s, 'toc_list_type', __('List type', 'carve-markup'), ['ul', 'ol'], '', 'toc_enabled');
+        $this->gridEnd();
+        $this->group(__('Typography', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'smart_quotes', __('Smart quotes', 'carve-markup'), __('Curly quotes, dashes, and ellipses.', 'carve-markup'));
+        $this->text($s, 'smart_quotes_locale', __('Locale', 'carve-markup'), __('Quote style, e.g. en, de, fr.', 'carve-markup'), 'smart_quotes');
+        $this->toggle($s, 'normalize_tabs', __('Normalize tabs', 'carve-markup'), __('Convert leading tabs in code to spaces.', 'carve-markup'));
+        $this->gridEnd();
+        $this->panelEnd();
 
-        $this->checkboxRow($s, 'toc_enabled', __('Table of contents', 'carve-markup'));
-        $this->selectRow($s, 'toc_position', __('TOC position', 'carve-markup'), ['top', 'bottom', 'none']);
-        $this->selectRow($s, 'toc_list_type', __('TOC list type', 'carve-markup'), ['ul', 'ol']);
-        $this->checkboxRow($s, 'permalinks_enabled', __('Heading permalinks (click to copy)', 'carve-markup'));
-        $this->checkboxRow($s, 'smart_quotes', __('Smart quotes', 'carve-markup'));
-        $this->textRow($s, 'smart_quotes_locale', __('Smart quotes locale (en, de, fr, …)', 'carve-markup'));
-        $this->checkboxRow($s, 'torchlight_enabled', __('Torchlight syntax highlighting', 'carve-markup'));
-        $this->selectRow($s, 'torchlight_theme', __('Torchlight theme', 'carve-markup'), ['github-light', 'github-dark', 'nord', 'dracula', 'monokai']);
-        $this->checkboxRow($s, 'torchlight_line_numbers', __('Show line numbers by default', 'carve-markup'));
-        $this->checkboxRow($s, 'normalize_tabs', __('Normalize tabs to spaces in code', 'carve-markup'));
+        // Code & diagrams.
+        $this->panelStart('code');
+        $this->group(__('Syntax highlighting', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'torchlight_enabled', __('Torchlight highlighting', 'carve-markup'), __('Server-side highlighting (needs torchlight/engine).', 'carve-markup'));
+        $this->select($s, 'torchlight_theme', __('Theme', 'carve-markup'), ['github-light', 'github-dark', 'nord', 'dracula', 'monokai'], '', 'torchlight_enabled');
+        $this->toggle($s, 'torchlight_line_numbers', __('Line numbers by default', 'carve-markup'), __('Show a gutter on every code block.', 'carve-markup'), 'torchlight_enabled');
+        $this->gridEnd();
+        $this->group(__('Diagrams & charts', 'carve-markup'), __('Off by default. Each library loads only on pages that both enable and use it.', 'carve-markup'));
+        $this->diagramGrid($s);
+        $this->panelEnd();
 
-        echo '<tr><th colspan="2"><h2>' . esc_html__('Diagrams & charts', 'carve-markup') . '</h2></th></tr>';
-        echo '<tr><td colspan="2"><p class="description">' . esc_html__('Each renderer is off by default. When enabled, its JavaScript loads only on pages that use it.', 'carve-markup') . '</p></td></tr>';
+        // Advanced.
+        $this->panelStart('advanced');
+        $this->group(__('Editor & workflow', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'live_preview', __('Live preview', 'carve-markup'), __('In-browser preview while editing (carve-js).', 'carve-markup'));
+        $this->toggle($s, 'visual_editor', __('Visual editor', 'carve-markup'), __('Tiptap visual editor (experimental).', 'carve-markup'));
+        $this->toggle($s, 'paste_ingest', __('Paste ingest', 'carve-markup'), __('Convert pasted Markdown/Djot/BBCode/HTML to Carve.', 'carve-markup'));
+        $this->toggle($s, 'frontmatter_meta', __('Frontmatter to meta', 'carve-markup'), __('Map frontmatter to post meta and SEO fields.', 'carve-markup'));
+        $this->toggle($s, 'render_cache', __('Render cache', 'carve-markup'), __('Cache rendered HTML on save.', 'carve-markup'));
+        $this->gridEnd();
+        $this->panelEnd();
 
-        foreach (Diagrams::all() as $name => $diagram) {
-            $label = (string)($diagram['label'] ?? $name);
-            $this->checkboxRow($s, Diagrams::settingKey($name), $label);
-        }
-
-        echo '<tr><th colspan="2"><h2>' . esc_html__('Enhancements', 'carve-markup') . '</h2></th></tr>';
-
-        $this->checkboxRow($s, 'live_preview', __('Live in-browser preview (carve-js)', 'carve-markup'));
-        $this->checkboxRow($s, 'visual_editor', __('Visual editor (Tiptap, experimental foundation)', 'carve-markup'));
-        $this->checkboxRow($s, 'paste_ingest', __('Convert pasted Markdown/Djot/BBCode/HTML', 'carve-markup'));
-        $this->checkboxRow($s, 'frontmatter_meta', __('Map frontmatter to post meta/SEO', 'carve-markup'));
-        $this->checkboxRow($s, 'render_cache', __('Cache rendered HTML on save', 'carve-markup'));
-
-        echo '</table>';
         submit_button();
         echo '</form></div>';
     }
 
+    private function panelStart(string $id, bool $active = false): void
+    {
+        printf('<div class="wp-carve-panel%s" data-panel="%s">', $active ? ' is-active' : '', esc_attr($id));
+    }
+
+    private function panelEnd(): void
+    {
+        echo '</div>';
+    }
+
+    private function group(string $title, string $desc = ''): void
+    {
+        echo '<h3 class="wp-carve-group">' . esc_html($title) . '</h3>';
+        if ($desc !== '') {
+            echo '<p class="wp-carve-group-desc">' . esc_html($desc) . '</p>';
+        }
+    }
+
+    private function grid(): void
+    {
+        echo '<div class="wp-carve-grid">';
+    }
+
+    private function gridEnd(): void
+    {
+        echo '</div>';
+    }
+
     /**
      * @param array<string, mixed> $s
-     * @param string $key
+     * @param string $depends
+     * @param string $desc
      * @param string $label
+     * @param string $key
      */
-    private function checkboxRow(array $s, string $key, string $label): void
+    private function toggle(array $s, string $key, string $label, string $desc = '', string $depends = ''): void
     {
         $name = Settings::OPTION . '[' . $key . ']';
         printf(
-            '<tr><th scope="row">%s</th><td><label><input type="checkbox" name="%s" value="1" %s> %s</label></td></tr>',
-            esc_html($label),
+            '<div class="wp-carve-card"%s>'
+            . '<label class="wp-carve-toggle">'
+            . '<input type="checkbox" name="%s" value="1" %s>'
+            . '<span class="wp-carve-switch" aria-hidden="true"></span>'
+            . '<span class="wp-carve-card-label">%s</span></label>'
+            . '%s</div>',
+            $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
             esc_attr($name),
             checked(!empty($s[$key]), true, false),
-            esc_html__('Enabled', 'carve-markup'),
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $s
-     * @param string $key
-     * @param string $label
-     */
-    private function numberRow(array $s, string $key, string $label): void
-    {
-        $name = Settings::OPTION . '[' . $key . ']';
-        printf(
-            '<tr><th scope="row">%s</th><td><input type="number" name="%s" value="%s" class="small-text"></td></tr>',
             esc_html($label),
-            esc_attr($name),
-            esc_attr((string)($s[$key] ?? 0)),
+            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
 
     /**
      * @param array<string, mixed> $s
-     * @param string $key
      * @param string $label
-     */
-    private function textRow(array $s, string $key, string $label): void
-    {
-        $name = Settings::OPTION . '[' . $key . ']';
-        printf(
-            '<tr><th scope="row">%s</th><td><input type="text" name="%s" value="%s" class="regular-text"></td></tr>',
-            esc_html($label),
-            esc_attr($name),
-            esc_attr((string)($s[$key] ?? '')),
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $s
      * @param string $key
-     * @param string $label
      * @param array<int, string> $options
+     * @param string $depends
+     * @param string $desc
      */
-    private function selectRow(array $s, string $key, string $label, array $options): void
+    private function select(array $s, string $key, string $label, array $options, string $desc = '', string $depends = ''): void
     {
         $name = Settings::OPTION . '[' . $key . ']';
         $current = (string)($s[$key] ?? '');
-        $html = '<tr><th scope="row">' . esc_html($label) . '</th><td><select name="' . esc_attr($name) . '">';
+        $opts = '';
         foreach ($options as $opt) {
-            $html .= sprintf('<option value="%s" %s>%s</option>', esc_attr($opt), selected($current, $opt, false), esc_html($opt));
+            $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($opt), selected($current, $opt, false), esc_html($opt));
         }
-        $html .= '</select></td></tr>';
-        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from esc_* above
+        printf(
+            '<div class="wp-carve-card wp-carve-field"%s>'
+            . '<span class="wp-carve-card-label">%s</span>'
+            . '<select name="%s">%s</select>%s</div>',
+            $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
+            esc_html($label),
+            esc_attr($name),
+            $opts,
+            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $s
+     * @param string $depends
+     * @param string $desc
+     * @param string $label
+     * @param string $key
+     */
+    private function number(array $s, string $key, string $label, string $desc = '', string $depends = ''): void
+    {
+        $name = Settings::OPTION . '[' . $key . ']';
+        printf(
+            '<div class="wp-carve-card wp-carve-field"%s>'
+            . '<span class="wp-carve-card-label">%s</span>'
+            . '<input type="number" name="%s" value="%s" class="small-text">%s</div>',
+            $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
+            esc_html($label),
+            esc_attr($name),
+            esc_attr((string)($s[$key] ?? 0)),
+            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $s
+     * @param string $depends
+     * @param string $desc
+     * @param string $label
+     * @param string $key
+     */
+    private function text(array $s, string $key, string $label, string $desc = '', string $depends = ''): void
+    {
+        $name = Settings::OPTION . '[' . $key . ']';
+        printf(
+            '<div class="wp-carve-card wp-carve-field"%s>'
+            . '<span class="wp-carve-card-label">%s</span>'
+            . '<input type="text" name="%s" value="%s" class="regular-text">%s</div>',
+            $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
+            esc_html($label),
+            esc_attr($name),
+            esc_attr((string)($s[$key] ?? '')),
+            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $s
+     */
+    private function diagramGrid(array $s): void
+    {
+        echo '<div class="wp-carve-grid wp-carve-diagram-grid">';
+        foreach (Diagrams::all() as $name => $diagram) {
+            $key = Diagrams::settingKey($name);
+            $optName = Settings::OPTION . '[' . $key . ']';
+            $class = (string)($diagram['class'] ?? $name);
+            $weight = $this->libWeight($diagram);
+            printf(
+                '<div class="wp-carve-card wp-carve-diagram">'
+                . '<label class="wp-carve-toggle">'
+                . '<input type="checkbox" name="%s" value="1" %s>'
+                . '<span class="wp-carve-switch" aria-hidden="true"></span>'
+                . '<span class="wp-carve-card-label">%s</span></label>'
+                . '<p class="wp-carve-card-desc"><code>```%s</code></p>'
+                . '<span class="wp-carve-badge">%s</span></div>',
+                esc_attr($optName),
+                checked(!empty($s[$key]), true, false),
+                esc_html((string)($diagram['label'] ?? $name)),
+                esc_html($class),
+                esc_html($weight),
+            );
+        }
+        echo '</div>';
+    }
+
+    /**
+     * Human-readable size of a renderer's vendored libraries.
+     *
+     * @param array<string, mixed> $diagram
+     */
+    private function libWeight(array $diagram): string
+    {
+        if (!empty($diagram['src'])) {
+            return __('external', 'carve-markup');
+        }
+        $bytes = 0;
+        foreach ((array)($diagram['libs'] ?? []) as $lib) {
+            $path = WP_CARVE_DIR . 'assets/js/vendor/' . $lib;
+            if (is_string($lib) && is_file($path)) {
+                $bytes += (int)filesize($path);
+            }
+        }
+        if ($bytes <= 0) {
+            return '';
+        }
+        if ($bytes >= 1048576) {
+            return sprintf('%.1f MB', $bytes / 1048576);
+        }
+
+        return sprintf('%d KB', (int)round($bytes / 1024));
     }
 }
