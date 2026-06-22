@@ -24,7 +24,7 @@ class Settings
      */
     public static function defaults(): array
     {
-        return [
+        $defaults = [
             'enable_posts' => true,
             'enable_pages' => true,
             'enable_comments' => false,
@@ -43,7 +43,6 @@ class Settings
             'permalinks_enabled' => false,
             'smart_quotes' => false,
             'smart_quotes_locale' => 'en',
-            'mermaid_enabled' => false,
             'torchlight_enabled' => false,
             'torchlight_theme' => 'github-light',
             'torchlight_line_numbers' => false,
@@ -56,6 +55,14 @@ class Settings
             'frontmatter_meta' => true,
             'render_cache' => true,
         ];
+
+        // Diagram renderer toggles (default off), derived from the registry so
+        // custom renderers added via the filter also get a persisted setting.
+        foreach (array_keys(Diagrams::all()) as $name) {
+            $defaults[Diagrams::settingKey($name)] = false;
+        }
+
+        return $defaults;
     }
 
     /**

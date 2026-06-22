@@ -39,8 +39,15 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `permalinks_enabled` | `false` | Add click-to-copy heading anchors. |
 | `smart_quotes` | `false` | Curly quotes / dashes. |
 | `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`). |
-| `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams (vendored Mermaid). |
+| `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams. |
+| `chart_enabled` | `false` | Render ` ```chart ` blocks with Chart.js. |
+| `vega_enabled` | `false` | Render ` ```vega-lite ` blocks with Vega-Lite. |
+| `graphviz_enabled` | `false` | Render ` ```graphviz ` (DOT) blocks. |
+| `wavedrom_enabled` | `false` | Render ` ```wavedrom ` timing diagrams. |
+| `abc_enabled` | `false` | Render ` ```abc ` music notation. |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (requires `torchlight/engine`). |
+
+Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wp_carve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 | `torchlight_theme` | `github-light` | Torchlight theme name. |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |

@@ -13,12 +13,39 @@ add_filter('wp_carve_rendered_html', function (string $html, string $carve, stri
 }, 10, 3);
 ```
 
-### `wp_carve_mermaid_src`
+### `wp_carve_diagram_renderers`
 
-Override the Mermaid script URL (default: the vendored single-file UMD build).
+Register a custom diagram renderer (or modify a built-in). Each entry gets a
+`{name}_enabled` setting, conditional script loading, and a `FencedRenderExtension`
+registration automatically - no plugin change.
 
 ```php
-add_filter('wp_carve_mermaid_src', fn (string $url): string => 'https://example.test/mermaid.min.js');
+add_filter('wp_carve_diagram_renderers', function (array $renderers): array {
+    $renderers['nomnoml'] = [
+        'label'  => 'nomnoml UML',
+        'class'  => 'nomnoml',          // fence word + CSS class
+        'preset' => null,                // null => generic FencedRenderExtension
+        'mode'   => 'text',              // 'text' | 'json'
+        'libs'   => [],                  // file names under assets/js/vendor/
+        'src'    => ['https://example.test/graphre.js', 'https://example.test/nomnoml.js'],
+        'init'   => '/* JS that renders .wp-carve .nomnoml elements */',
+    ];
+    return $renderers;
+});
+```
+
+The built-in types (mermaid, chart, vega, graphviz, wavedrom, abc) are the default
+contents of this same array.
+
+### `wp_carve_diagram_src`
+
+Override a diagram library URL (e.g. point a built-in renderer at a CDN). Receives
+the default URL, the renderer name, and the library file name.
+
+```php
+add_filter('wp_carve_diagram_src', function (string $url, string $name, string $lib): string {
+    return $name === 'mermaid' ? 'https://example.test/mermaid.min.js' : $url;
+}, 10, 3);
 ```
 
 ### `wp_carve_katex_base`
