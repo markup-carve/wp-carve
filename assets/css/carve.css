@@ -23,8 +23,8 @@
 	margin: 1em 0;
 	padding: 1em;
 	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-	font-size: 0.875em;
-	line-height: 1.5;
+	font-size: 0.8em;
+	line-height: 1.45;
 	background: #f6f8fa;
 	border-radius: 6px;
 }
@@ -238,7 +238,7 @@
 .wp-carve-copy {
 	position: absolute;
 	top: 0.4em;
-	right: 0.4em;
+	right: 3.4em;
 	padding: 0.15em 0.5em;
 	font-size: 0.75em;
 	line-height: 1.4;
@@ -273,6 +273,25 @@
 	background: #e6e8eb;
 	border-bottom: 1px solid #d0d7de;
 	border-radius: 6px 6px 0 0;
+}
+
+/* Language pill (top-right; sits inside the title bar when one is present). */
+.wp-carve pre[data-lang]::after {
+	content: attr(data-lang);
+	position: absolute;
+	top: 0.5em;
+	right: 0.6em;
+	padding: 0.05em 0.55em;
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+	font-size: 0.7em;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: #57606a;
+	background: rgba(255, 255, 255, 0.75);
+	border: 1px solid #d0d7de;
+	border-radius: 999px;
+	pointer-events: none;
 }
 
 /* ---- Torchlight / Phiki highlighted output ---- */
@@ -349,6 +368,63 @@
 .wp-carve-line-numbers span::before {
 	counter-increment: ln;
 	content: counter(ln);
+}
+
+/* ---- Code groups (tabbed code blocks, CSS-only via radio inputs) ---- */
+.wp-carve .code-group {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 1em 0;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.wp-carve .code-group-radio {
+	display: none;
+}
+
+.wp-carve .code-group-label {
+	padding: 0.5em 1em;
+	font-size: 0.8em;
+	font-weight: 500;
+	color: #57606a;
+	background: #f6f8fa;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.wp-carve .code-group-label:hover {
+	color: #24292f;
+	background: #eef1f4;
+}
+
+.wp-carve .code-group-radio:checked + .code-group-label {
+	color: #24292f;
+	background: #fff;
+	border-bottom-color: #fd8c73;
+}
+
+.wp-carve .code-group-panel {
+	display: none;
+	order: 1;
+	width: 100%;
+}
+
+.wp-carve .code-group-panel pre:not(.mermaid) {
+	margin: 0;
+	border: none;
+	border-top: 1px solid #d0d7de;
+	border-radius: 0;
+}
+
+.wp-carve .code-group-radio:nth-of-type(1):checked ~ .code-group-panel:nth-of-type(1),
+.wp-carve .code-group-radio:nth-of-type(2):checked ~ .code-group-panel:nth-of-type(2),
+.wp-carve .code-group-radio:nth-of-type(3):checked ~ .code-group-panel:nth-of-type(3),
+.wp-carve .code-group-radio:nth-of-type(4):checked ~ .code-group-panel:nth-of-type(4),
+.wp-carve .code-group-radio:nth-of-type(5):checked ~ .code-group-panel:nth-of-type(5) {
+	display: block;
 }
 
 /* Comment toolbar. */
