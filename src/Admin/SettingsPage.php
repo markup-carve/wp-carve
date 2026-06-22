@@ -334,10 +334,11 @@ class SettingsPage
                 );
             }
             if ($url !== '') {
+                $linkLabel = sprintf(/* translators: %s: renderer name */ __('%s website', 'carve-markup'), $label);
                 $actions .= sprintf(
-                    '<a class="wp-carve-icon dashicons dashicons-external" href="%s" target="_blank" rel="noopener noreferrer" aria-label="%s"></a>',
+                    '<a class="wp-carve-icon dashicons dashicons-external" href="%1$s" target="_blank" rel="noopener noreferrer" title="%2$s" aria-label="%2$s"></a>',
                     esc_url($url),
-                    esc_attr(sprintf(/* translators: %s: renderer name */ __('%s website', 'carve-markup'), $label)),
+                    esc_attr($linkLabel),
                 );
             }
             $previewHtml = $actions !== '' ? '<span class="wp-carve-actions">' . $actions . '</span>' : '';
