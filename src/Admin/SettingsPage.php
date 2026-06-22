@@ -319,6 +319,19 @@ class SettingsPage
             $optName = Settings::OPTION . '[' . $key . ']';
             $class = (string)($diagram['class'] ?? $name);
             $weight = $this->libWeight($diagram);
+            $preview = $this->previewUrl($name, $diagram);
+            $previewHtml = '';
+            if ($preview !== '') {
+                $previewHtml = sprintf(
+                    '<button type="button" class="wp-carve-preview-btn" aria-label="%s">%s'
+                    . '<span class="wp-carve-pop"><img src="%s" alt="" loading="lazy">'
+                    . '<code>```%s</code></span></button>',
+                    esc_attr(sprintf(/* translators: %s: renderer name */ __('Preview %s output', 'carve-markup'), (string)($diagram['label'] ?? $name))),
+                    /* eye glyph */ '<span aria-hidden="true">&#128065;</span>',
+                    esc_url($preview),
+                    esc_html($class),
+                );
+            }
             printf(
                 '<div class="wp-carve-card wp-carve-diagram">'
                 . '<label class="wp-carve-toggle">'
@@ -326,15 +339,39 @@ class SettingsPage
                 . '<span class="wp-carve-switch" aria-hidden="true"></span>'
                 . '<span class="wp-carve-card-label">%s</span></label>'
                 . '<p class="wp-carve-card-desc"><code>```%s</code></p>'
-                . '<span class="wp-carve-badge">%s</span></div>',
+                . '<span class="wp-carve-card-foot"><span class="wp-carve-badge">%s</span>%s</span>'
+                . '</div>',
                 esc_attr($optName),
                 checked(!empty($s[$key]), true, false),
                 esc_html((string)($diagram['label'] ?? $name)),
                 esc_html($class),
                 esc_html($weight),
+                $previewHtml,
             );
         }
         echo '</div>';
+    }
+
+    /**
+     * Preview image URL for a renderer: an explicit `preview` entry (custom
+     * renderers), else a bundled thumbnail named after the registry key.
+     *
+     * @param string $name
+     * @param array<string, mixed> $diagram
+     */
+    private function previewUrl(string $name, array $diagram): string
+    {
+        if (!empty($diagram['preview']) && is_string($diagram['preview'])) {
+            return $diagram['preview'];
+        }
+        foreach (['svg', 'png'] as $ext) {
+            $rel = 'assets/img/diagrams/' . $name . '.' . $ext;
+            if (is_file(WP_CARVE_DIR . $rel)) {
+                return WP_CARVE_URL . $rel;
+            }
+        }
+
+        return '';
     }
 
     /**
