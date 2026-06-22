@@ -238,7 +238,8 @@
 .wp-carve-copy {
 	position: absolute;
 	top: 0.45em;
-	right: 2.9em;
+	right: 0.6em;
+	z-index: 1;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -306,6 +307,12 @@
 	background: #eceff2;
 	border-radius: 4px;
 	pointer-events: none;
+	transition: opacity 0.15s ease;
+}
+
+/* On hover the copy icon takes the corner, so fade the language pill out. */
+.wp-carve pre[data-lang]:hover::after {
+	opacity: 0;
 }
 
 /* ---- Torchlight / Phiki highlighted output ---- */
