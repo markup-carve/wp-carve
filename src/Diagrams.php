@@ -42,6 +42,7 @@ class Diagrams
             'mermaid' => [
                 'label' => 'Mermaid diagrams',
                 'class' => 'mermaid',
+                'url' => 'https://mermaid.js.org',
                 'preset' => 'mermaid',
                 'mode' => 'text',
                 'libs' => ['mermaid.min.js'],
@@ -49,6 +50,7 @@ class Diagrams
             'chart' => [
                 'label' => 'Chart.js charts',
                 'class' => 'chart',
+                'url' => 'https://www.chartjs.org',
                 'preset' => 'chart',
                 'mode' => 'json',
                 'libs' => ['chart.umd.min.js'],
@@ -56,6 +58,7 @@ class Diagrams
             'vega' => [
                 'label' => 'Vega-Lite charts',
                 'class' => 'vega-lite',
+                'url' => 'https://vega.github.io/vega-lite/',
                 'preset' => 'vegaLite',
                 'mode' => 'json',
                 'libs' => ['vega.min.js', 'vega-lite.min.js', 'vega-embed.min.js'],
@@ -63,6 +66,7 @@ class Diagrams
             'graphviz' => [
                 'label' => 'Graphviz (DOT) diagrams',
                 'class' => 'graphviz',
+                'url' => 'https://graphviz.org',
                 'preset' => 'graphviz',
                 'mode' => 'text',
                 'libs' => ['viz-standalone.min.js'],
@@ -70,6 +74,7 @@ class Diagrams
             'wavedrom' => [
                 'label' => 'WaveDrom timing diagrams',
                 'class' => 'wavedrom',
+                'url' => 'https://wavedrom.com',
                 'preset' => 'wavedrom',
                 'mode' => 'text',
                 'libs' => ['wavedrom.min.js', 'wavedrom-skin-default.js'],
@@ -77,6 +82,7 @@ class Diagrams
             'abc' => [
                 'label' => 'ABC music notation',
                 'class' => 'abc',
+                'url' => 'https://www.abcjs.net',
                 'preset' => 'abc',
                 'mode' => 'text',
                 'libs' => ['abcjs-basic-min.js'],

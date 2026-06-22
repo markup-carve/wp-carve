@@ -319,6 +319,29 @@ class SettingsPage
             $optName = Settings::OPTION . '[' . $key . ']';
             $class = (string)($diagram['class'] ?? $name);
             $weight = $this->libWeight($diagram);
+            $preview = $this->previewUrl($name, $diagram);
+            $url = !empty($diagram['url']) && is_string($diagram['url']) ? $diagram['url'] : '';
+            $label = (string)($diagram['label'] ?? $name);
+            $actions = '';
+            if ($preview !== '') {
+                $actions .= sprintf(
+                    '<span class="wp-carve-preview">'
+                    . '<span class="wp-carve-icon dashicons dashicons-visibility" tabindex="0" role="button" aria-label="%s"></span>'
+                    . '<span class="wp-carve-pop"><img src="%s" alt="" loading="lazy"><code>```%s</code></span></span>',
+                    esc_attr(sprintf(/* translators: %s: renderer name */ __('Preview %s output', 'carve-markup'), $label)),
+                    esc_url($preview),
+                    esc_html($class),
+                );
+            }
+            if ($url !== '') {
+                $linkLabel = sprintf(/* translators: %s: renderer name */ __('%s website', 'carve-markup'), $label);
+                $actions .= sprintf(
+                    '<a class="wp-carve-icon dashicons dashicons-external" href="%1$s" target="_blank" rel="noopener noreferrer" title="%2$s" aria-label="%2$s"></a>',
+                    esc_url($url),
+                    esc_attr($linkLabel),
+                );
+            }
+            $previewHtml = $actions !== '' ? '<span class="wp-carve-actions">' . $actions . '</span>' : '';
             printf(
                 '<div class="wp-carve-card wp-carve-diagram">'
                 . '<label class="wp-carve-toggle">'
@@ -326,15 +349,39 @@ class SettingsPage
                 . '<span class="wp-carve-switch" aria-hidden="true"></span>'
                 . '<span class="wp-carve-card-label">%s</span></label>'
                 . '<p class="wp-carve-card-desc"><code>```%s</code></p>'
-                . '<span class="wp-carve-badge">%s</span></div>',
+                . '<span class="wp-carve-card-foot"><span class="wp-carve-badge">%s</span>%s</span>'
+                . '</div>',
                 esc_attr($optName),
                 checked(!empty($s[$key]), true, false),
                 esc_html((string)($diagram['label'] ?? $name)),
                 esc_html($class),
                 esc_html($weight),
+                $previewHtml,
             );
         }
         echo '</div>';
+    }
+
+    /**
+     * Preview image URL for a renderer: an explicit `preview` entry (custom
+     * renderers), else a bundled thumbnail named after the registry key.
+     *
+     * @param string $name
+     * @param array<string, mixed> $diagram
+     */
+    private function previewUrl(string $name, array $diagram): string
+    {
+        if (!empty($diagram['preview']) && is_string($diagram['preview'])) {
+            return $diagram['preview'];
+        }
+        foreach (['svg', 'png'] as $ext) {
+            $rel = 'assets/img/diagrams/' . $name . '.' . $ext;
+            if (is_file(WP_CARVE_DIR . $rel)) {
+                return WP_CARVE_URL . $rel;
+            }
+        }
+
+        return '';
     }
 
     /**

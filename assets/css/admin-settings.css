@@ -140,17 +140,107 @@
 	display: none;
 }
 
-/* Diagram cards: toggle + fence hint + size badge. */
+/* Diagram cards: toggle + fence hint + size badge + preview. */
 .wp-carve-diagram {
 	position: relative;
 }
 
+.wp-carve-card-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: auto;
+}
+
 .wp-carve-badge {
-	align-self: flex-start;
 	padding: 1px 7px;
 	font-size: 11px;
 	font-weight: 600;
 	color: #50575e;
 	background: #f0f0f1;
 	border-radius: 999px;
+}
+
+/* Option C: eye + project-link icons; the eye reveals a preview on hover/focus. */
+.wp-carve-actions {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.wp-carve-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	color: #646970;
+	text-decoration: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.wp-carve-icon.dashicons {
+	font-size: 18px;
+}
+
+.wp-carve-icon:hover,
+.wp-carve-preview:focus-within .wp-carve-icon {
+	color: #2271b1;
+	background: #f0f0f1;
+}
+
+.wp-carve-preview {
+	position: relative;
+	display: inline-flex;
+}
+
+.wp-carve-pop {
+	position: absolute;
+	right: 0;
+	bottom: 100%;
+	z-index: 20;
+	display: none;
+	width: 250px;
+	margin-bottom: 6px;
+	padding: 8px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
+/* A transparent bridge so the pointer can cross the gap into the popover. */
+.wp-carve-pop::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	right: 0;
+	left: 0;
+	height: 8px;
+}
+
+.wp-carve-preview:hover .wp-carve-pop,
+.wp-carve-preview:focus-within .wp-carve-pop {
+	display: block;
+}
+
+.wp-carve-pop img {
+	display: block;
+	width: 100%;
+	max-height: 170px;
+	object-fit: contain;
+	background: #fff;
+	border-radius: 4px;
+}
+
+.wp-carve-pop code {
+	display: block;
+	margin-top: 7px;
+	padding: 2px 6px;
+	font-size: 11px;
+	color: #50575e;
+	background: #f6f7f7;
+	border-radius: 3px;
 }
