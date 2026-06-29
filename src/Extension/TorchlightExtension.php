@@ -8,10 +8,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Carve\CarveConverter;
-use Carve\Event\RenderEvent;
-use Carve\Extension\ExtensionInterface;
-use Carve\Node\Block\CodeBlock;
+use MarkupCarve\Carve\CarveConverter;
+use MarkupCarve\Carve\Event\RenderEvent;
+use MarkupCarve\Carve\Extension\ExtensionInterface;
+use MarkupCarve\Carve\Node\Block\CodeBlock;
 use Throwable;
 use Torchlight\Engine\Engine;
 use Torchlight\Engine\Options;

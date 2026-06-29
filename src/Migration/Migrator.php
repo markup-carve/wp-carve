@@ -8,8 +8,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Carve\Converter\HtmlToCarve;
-use Carve\Converter\MarkdownToCarve;
+use MarkupCarve\Carve\Converter\HtmlToCarve;
+use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_Post;
 
 /**

@@ -8,20 +8,20 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Carve\CarveConverter;
-use Carve\Converter\MarkdownToCarve;
-use Carve\Extension\CodeGroupExtension;
-use Carve\Extension\DetailsExtension;
-use Carve\Extension\FencedRenderExtension;
-use Carve\Extension\HeadingLevelShiftExtension;
-use Carve\Extension\HeadingPermalinksExtension;
-use Carve\Extension\SemanticSpanExtension;
-use Carve\Extension\SmartQuotesExtension;
-use Carve\Extension\SpoilerExtension;
-use Carve\Extension\TableOfContentsExtension;
-use Carve\Extension\TabNormalizeExtension;
-use Carve\Extension\TabsExtension;
-use Carve\Profile;
+use MarkupCarve\Carve\CarveConverter;
+use MarkupCarve\Carve\Converter\MarkdownToCarve;
+use MarkupCarve\Carve\Extension\CodeGroupExtension;
+use MarkupCarve\Carve\Extension\DetailsExtension;
+use MarkupCarve\Carve\Extension\FencedRenderExtension;
+use MarkupCarve\Carve\Extension\HeadingLevelShiftExtension;
+use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
+use MarkupCarve\Carve\Extension\SemanticSpanExtension;
+use MarkupCarve\Carve\Extension\SmartQuotesExtension;
+use MarkupCarve\Carve\Extension\SpoilerExtension;
+use MarkupCarve\Carve\Extension\TableOfContentsExtension;
+use MarkupCarve\Carve\Extension\TabNormalizeExtension;
+use MarkupCarve\Carve\Extension\TabsExtension;
+use MarkupCarve\Carve\Profile;
 use WpCarve\Extension\TorchlightExtension;
 
 /**
@@ -34,7 +34,7 @@ use WpCarve\Extension\TorchlightExtension;
 class Converter
 {
     /**
-     * @var array<string, \Carve\CarveConverter>
+     * @var array<string, \MarkupCarve\Carve\CarveConverter>
      */
     private array $cache = [];
 
@@ -104,7 +104,7 @@ class Converter
         /**
          * Allow add-ons to register further carve-php extensions on the converter.
          *
-         * @param \Carve\CarveConverter $converter
+         * @param \MarkupCarve\Carve\CarveConverter $converter
          * @param string $context
          */
         do_action('wp_carve_converter', $converter, $context);

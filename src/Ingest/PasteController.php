@@ -8,10 +8,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use Carve\Converter\BbcodeToCarve;
-use Carve\Converter\DjotToCarve;
-use Carve\Converter\HtmlToCarve;
-use Carve\Converter\MarkdownToCarve;
+use MarkupCarve\Carve\Converter\BbcodeToCarve;
+use MarkupCarve\Carve\Converter\DjotToCarve;
+use MarkupCarve\Carve\Converter\HtmlToCarve;
+use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_REST_Request;
 use WP_REST_Response;
 
