@@ -22,7 +22,6 @@ Markup**.
 | `safe_mode` | `true` | XSS hardening for posts (comments are always safe). |
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. |
 | `comment_profile` | `comment` | Content profile for comments. |
-| `markdown_mode` | `false` | Pre-convert Markdown source to Carve before rendering (legacy content). |
 
 See [Profiles & rendering](profiles.md) for what each profile means.
 
@@ -45,10 +44,11 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `graphviz_enabled` | `false` | Render ` ```graphviz ` (DOT) blocks. |
 | `wavedrom_enabled` | `false` | Render ` ```wavedrom ` timing diagrams. |
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
-| `torchlight_enabled` | `false` | Server-side syntax highlighting (requires `torchlight/engine`). |
+| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (safe `<a>` link under safe mode). |
+| `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wp_carve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
-| `torchlight_theme` | `github-light` | Torchlight theme name. |
+| `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |
 | `tab_width` | `2` | Spaces per tab when normalizing. |

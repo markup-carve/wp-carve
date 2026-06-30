@@ -125,7 +125,6 @@ class SettingsPage
         $this->toggle($s, 'enable_shortcode', __('[carve] shortcode', 'carve-markup'), __('Render Carve inside a [carve] shortcode.', 'carve-markup'));
         $this->toggle($s, 'enable_excerpts', __('Excerpts', 'carve-markup'), __('Render excerpts as Carve.', 'carve-markup'));
         $this->toggle($s, 'safe_mode', __('Safe mode', 'carve-markup'), __('XSS hardening for post content (always on for comments).', 'carve-markup'));
-        $this->toggle($s, 'markdown_mode', __('Markdown mode', 'carve-markup'), __('Treat stored content as Markdown and convert to Carve first.', 'carve-markup'));
         $this->gridEnd();
         $this->group(__('Content profiles', 'carve-markup'));
         $this->grid();
@@ -163,7 +162,7 @@ class SettingsPage
         $this->panelStart('code');
         $this->group(__('Syntax highlighting', 'carve-markup'));
         $this->grid();
-        $this->toggle($s, 'torchlight_enabled', __('Torchlight highlighting', 'carve-markup'), __('Server-side highlighting (needs torchlight/engine).', 'carve-markup'));
+        $this->toggle($s, 'torchlight_enabled', __('Torchlight highlighting', 'carve-markup'), __('Server-side syntax highlighting (offline TextMate grammars, no API token).', 'carve-markup'));
         $this->select($s, 'torchlight_theme', __('Theme', 'carve-markup'), ['github-light', 'github-dark', 'nord', 'dracula', 'monokai'], '', 'torchlight_enabled');
         $this->toggle($s, 'torchlight_line_numbers', __('Line numbers by default', 'carve-markup'), __('Show a gutter on every code block.', 'carve-markup'), 'torchlight_enabled');
         $this->gridEnd();

@@ -33,7 +33,6 @@ class Settings
             'safe_mode' => true,
             'post_profile' => 'article',
             'comment_profile' => 'comment',
-            'markdown_mode' => false,
             'heading_shift' => 0,
             'toc_enabled' => false,
             'toc_position' => 'top',

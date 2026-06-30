@@ -45,15 +45,9 @@ normalization applies to both):
 ### Torchlight (server-side highlighting)
 
 `WpCarve\Extension\TorchlightExtension` hooks carve-php's `render.code_block`
-event and replaces each fenced block with themed, highlighted HTML. It uses
-`torchlight/engine`, which highlights locally with TextMate grammars - no API
-token, no network. Install the suggested package:
-
-```bash
-composer require torchlight/engine
-```
-
-If the package is absent the extension no-ops and code blocks render plain.
+event and replaces each fenced block with themed, highlighted HTML. It uses `torchlight/engine`, which highlights locally with TextMate grammars -
+no API token, no network. The package is bundled with the plugin; enable it with
+the `torchlight_enabled` setting.
 Line numbers come from Torchlight's server-side gutter. Enable them globally
 with `torchlight_line_numbers`, or for one block with a preceding attribute line:
 
@@ -63,6 +57,20 @@ with `torchlight_line_numbers`, or for one block with a preceding attribute line
 require __DIR__ . '/vendor/autoload.php';
 ```
 ````
+
+The global `torchlight_theme` can be overridden per block with a `theme`
+attribute on the preceding attribute line - handy for a dark sample on an
+otherwise light page:
+
+````text
+{theme=dracula}
+``` php
+require __DIR__ . '/vendor/autoload.php';
+```
+````
+
+An unknown theme name falls back to carve-php's plain (un-highlighted) output
+for that block.
 
 Torchlight also handles in-code annotations such as `[tl! highlight]`,
 `[tl! ++]`, `[tl! --]`, and `[tl! focus]` for highlighted, added, removed, and

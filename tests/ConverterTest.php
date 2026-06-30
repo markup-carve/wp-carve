@@ -30,17 +30,6 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('<strong>strong</strong>', $html);
     }
 
-    public function testMarkdownModeConvertsMarkdownEmphasis(): void
-    {
-        // In Markdown *word* is strong-equivalent; Carve uses underscores for
-        // emphasis. With markdown_mode on, Markdown syntax must still render.
-        $converter = new Converter(['markdown_mode' => true]);
-
-        $html = $converter->toHtml('A **bold** word.');
-
-        $this->assertStringContainsString('<strong>bold</strong>', $html);
-    }
-
     public function testCommentContextForcesSafeMode(): void
     {
         // Even with safe_mode disabled in settings, the comment context must not
@@ -108,5 +97,29 @@ CARVE;
         $html = $converter->toHtml("``` php\necho 1;\n```");
 
         $this->assertStringContainsString('class="line-number">1</span>', $html);
+    }
+
+    public function testTorchlightPerBlockThemeOverridesGlobalSetting(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+        ]);
+        $source = <<<'CARVE'
+{theme=dracula}
+``` php
+echo 1;
+```
+CARVE;
+
+        $html = $converter->toHtml($source);
+
+        // The per-block theme wins; the global github-light theme is not applied.
+        $this->assertStringContainsString('dracula', $html);
+        $this->assertStringNotContainsString('github', $html);
     }
 }

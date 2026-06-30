@@ -9,7 +9,6 @@ if (!defined('ABSPATH')) {
 }
 
 use MarkupCarve\Carve\CarveConverter;
-use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use MarkupCarve\Carve\Extension\CodeGroupExtension;
 use MarkupCarve\Carve\Extension\DetailsExtension;
 use MarkupCarve\Carve\Extension\FencedRenderExtension;
@@ -18,11 +17,11 @@ use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
 use MarkupCarve\Carve\Extension\SemanticSpanExtension;
 use MarkupCarve\Carve\Extension\SmartQuotesExtension;
 use MarkupCarve\Carve\Extension\SpoilerExtension;
-use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use MarkupCarve\Carve\Extension\TableOfContentsExtension;
 use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Profile;
+use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use WpCarve\Extension\TorchlightExtension;
 
 /**
@@ -58,12 +57,6 @@ class Converter
     {
         if (trim($carve) === '') {
             return '';
-        }
-
-        // Markdown mode: rewrite Markdown into Carve before rendering, so legacy
-        // Markdown content renders correctly.
-        if (!empty($this->settings['markdown_mode'])) {
-            $carve = (new MarkdownToCarve())->convert($carve);
         }
 
         $html = $this->converterFor($context)->convert($carve);

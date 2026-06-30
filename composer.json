@@ -12,7 +12,8 @@
     "require": {
         "php": ">=8.2",
         "markup-carve/carve-php": "dev-main",
-        "markup-carve/carve-php-media-embed": "dev-main"
+        "markup-carve/carve-php-media-embed": "dev-main",
+        "torchlight/engine": "^1.0"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -21,12 +22,10 @@
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^11.4 || ^12.3 || ^13.0",
         "szepeviktor/phpstan-wordpress": "^2.0",
-        "torchlight/engine": "^1.0",
         "wp-cli/wp-cli": "^2.11"
     },
     "suggest": {
-        "ezyang/htmlpurifier": "Extra XSS hardening for untrusted comment content (^4.18)",
-        "torchlight/engine": "Server-side syntax highlighting (^1.0); offline TextMate grammars, no API token"
+        "ezyang/htmlpurifier": "Extra XSS hardening for untrusted comment content (^4.18)"
     },
     "autoload": {
         "psr-4": {

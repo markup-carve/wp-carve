@@ -58,9 +58,15 @@ class TorchlightExtension implements ExtensionInterface
                 $overrides['lineNumbersStart'] = $start;
             }
 
+            // Per-block theme override: `{theme=dracula}` on the fence wins over
+            // the global setting. An unknown theme throws and falls back below.
+            $theme = isset($attrs['theme']) && is_string($attrs['theme']) && $attrs['theme'] !== ''
+                ? $attrs['theme']
+                : $this->theme;
+
             try {
                 $this->engine->setTorchlightOptions(Options::default()->mergeWith($overrides));
-                $html = $this->engine->codeToHtml($code, $language, $this->theme);
+                $html = $this->engine->codeToHtml($code, $language, $theme);
                 $event->setHtml($this->reapplyPreAttributes($html, $block));
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.
