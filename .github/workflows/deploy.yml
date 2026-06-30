@@ -1,0 +1,152 @@
+name: Deploy to WordPress.org
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy to WordPress.org
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Validate version consistency
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          HEADER_VERSION=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' wp-carve.php)
+          CONSTANT_VERSION=$(grep -oP "define\('WP_CARVE_VERSION',\s*'\K[0-9]+\.[0-9]+\.[0-9]+" wp-carve.php)
+          STABLE_TAG=$(grep -oP '^Stable tag:\s*\K[0-9]+\.[0-9]+\.[0-9]+' readme.txt)
+
+          echo "Release tag:      $TAG"
+          echo "Header version:   $HEADER_VERSION"
+          echo "Constant version: $CONSTANT_VERSION"
+          echo "Stable tag:       $STABLE_TAG"
+
+          ERRORS=0
+          if [ "$HEADER_VERSION" != "$CONSTANT_VERSION" ]; then
+            echo "::error::Plugin header version ($HEADER_VERSION) does not match WP_CARVE_VERSION constant ($CONSTANT_VERSION)"
+            ERRORS=1
+          fi
+          if [ "$HEADER_VERSION" != "$STABLE_TAG" ]; then
+            echo "::error::Plugin header version ($HEADER_VERSION) does not match readme.txt stable tag ($STABLE_TAG)"
+            ERRORS=1
+          fi
+          if [ "$HEADER_VERSION" != "$TAG" ]; then
+            echo "::error::Plugin header version ($HEADER_VERSION) does not match release tag ($TAG)"
+            ERRORS=1
+          fi
+          if [ "$ERRORS" -ne 0 ]; then
+            echo "::error::Version mismatch detected. Run ./scripts/version.sh $TAG to fix."
+            exit 1
+          fi
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      - name: Update dependencies
+        run: composer update --prefer-dist --no-progress
+
+      - name: Check PHP syntax
+        run: |
+          find src -name "*.php" -exec php -l {} \;
+          php -l wp-carve.php
+          php -l uninstall.php
+
+      - name: Run PHPStan
+        run: composer stan
+
+      - name: Downgrade PHP 8.2 syntax for WordPress.org
+        run: |
+          # Rector is already installed (in require-dev)
+          # Run rector with bootstrap to define ABSPATH (prevents exit in WP plugin files)
+          # Paths are configured in rector.php - only targets packages needing downgrade
+          php -d auto_prepend_file=rector-bootstrap.php vendor/bin/rector process --no-diffs || true
+
+          # Manually fix trait constants (PHP 8.2 feature not handled by Rector)
+          # Move constants from trait to a separate class
+          TRAIT_FILE="vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php"
+          if [ -f "$TRAIT_FILE" ]; then
+            # Extract constants and create a helper class
+            php << 'PHPSCRIPT'
+          <?php
+          $file = 'vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php';
+          $content = file_get_contents($file);
+
+          // Find all const declarations in the trait
+          if (preg_match_all('/^\s*const\s+(\w+)\s*=\s*([^;]+);/m', $content, $matches, PREG_SET_ORDER)) {
+              // Build the helper class
+              $helperClass = "<?php\n\nnamespace Torchlight\\Engine\\Generators\\Concerns;\n\nclass ProcessesFileLanguageConstants\n{\n";
+              foreach ($matches as $match) {
+                  $helperClass .= "    public const {$match[1]} = {$match[2]};\n";
+              }
+              $helperClass .= "}\n";
+
+              // Write helper class
+              file_put_contents('vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguageConstants.php', $helperClass);
+
+              // Remove const declarations from trait
+              $content = preg_replace('/^\s*const\s+\w+\s*=\s*[^;]+;\s*\/\/[^\n]*\n?/m', '', $content);
+              $content = preg_replace('/^\s*const\s+\w+\s*=\s*[^;]+;\s*\n?/m', '', $content);
+
+              // Replace self::CONST_NAME with ProcessesFileLanguageConstants::CONST_NAME
+              foreach ($matches as $match) {
+                  $content = str_replace("self::{$match[1]}", "ProcessesFileLanguageConstants::{$match[1]}", $content);
+              }
+
+              file_put_contents($file, $content);
+              echo "Fixed trait constants in ProcessesFileLanguage.php\n";
+          }
+          PHPSCRIPT
+          fi
+
+          # Patch phiki AnnotationsTransformer: replace enum ->value in const array with literal strings.
+          # WordPress.org's SVN pre-commit PHP lint runs on an older PHP that rejects enum ->value in constant expressions.
+          PHIKI_FILE="vendor/phiki/phiki/src/Adapters/CommonMark/Transformers/AnnotationsTransformer.php"
+          if [ -f "$PHIKI_FILE" ]; then
+            php << 'PHPSCRIPT'
+          <?php
+          $file = 'vendor/phiki/phiki/src/Adapters/CommonMark/Transformers/AnnotationsTransformer.php';
+          $grammarFile = 'vendor/phiki/phiki/src/Grammar/Grammar.php';
+          $grammar = file_get_contents($grammarFile);
+          preg_match_all('/case\s+(\w+)\s*=\s*\'([^\']+)\'/', $grammar, $m, PREG_SET_ORDER);
+          $map = [];
+          foreach ($m as $match) {
+              $map["Grammar::{$match[1]}->value"] = "'{$match[2]}'";
+          }
+          $content = file_get_contents($file);
+          $content = strtr($content, $map);
+          file_put_contents($file, $content);
+          echo "Patched phiki AnnotationsTransformer enum const expressions\n";
+          PHPSCRIPT
+          fi
+
+          # Remove dev dependencies manually (don't use composer which would re-download packages)
+          rm -rf vendor/rector vendor/phpunit vendor/phpstan vendor/sebastian vendor/php-collective/code-sniffer vendor/squizlabs vendor/dealerdirect vendor/slevomat vendor/phpcsstandards vendor/phar-io vendor/myclabs vendor/nikic vendor/theseer vendor/bin
+          # Regenerate autoloader without dev dependencies
+          composer dump-autoload --no-dev --optimize
+
+      - name: WordPress Plugin Deploy
+        id: deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: carve-markup
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ steps.deploy.outputs.zip-path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

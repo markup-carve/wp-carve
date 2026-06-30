@@ -9,3 +9,4 @@ Reference docs for the Carve Markup WordPress plugin. Start with the project
 - [WP-CLI](wp-cli.md) — the `wp carve migrate` command (analysis + safe conversion).
 - [Visual editor](visual-editor.md) — the experimental Tiptap WYSIWYG foundation.
 - [Carve syntax](syntax.md) — a quick reference for the markup itself.
+- [Releasing](releasing.md) — how releases deploy to WordPress.org, and the submission checklist.

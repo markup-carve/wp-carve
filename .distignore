@@ -1,13 +1,70 @@
+# Git
 /.git
-/.github
+/.gitattributes
 /.gitignore
+/.github
+
+# Development
+/.idea
+/.vscode
+/.ddev
+/.phpunit.cache
 /.distignore
 /node_modules
 /tests
+/build
+/docs
 /assets/js/src
+/screenshots
+
+# Build tools
+/scripts
 /composer.lock
 /package-lock.json
 /phpcs.xml
 /phpstan.neon
 /phpunit.xml.dist
 /rector.php
+/rector-bootstrap.php
+/renovate.json
+/.editorconfig
+
+# Documentation (keep readme.txt and composer.json)
+/*.md
+CHANGELOG.md
+README.md
+
+# Temporary files
+/_*
+*.log
+*.tmp
+*.zip
+
+# Vendor non-permitted files
+vendor/bin
+vendor/*/tests
+vendor/*/*/tests
+vendor/*/*/*/tests
+vendor/*/docs
+vendor/*/*/docs
+vendor/*/.github
+vendor/*/*/.github
+vendor/*/bin
+vendor/*/*/bin
+vendor/*/fuzz
+vendor/*/*/fuzz
+vendor/*/*.md
+vendor/*/*/*.md
+vendor/*/*.xml
+vendor/*/*/*.xml
+vendor/*/*.neon
+vendor/*/*/*.neon
+vendor/*/composer.json
+vendor/*/*/composer.json
+vendor/*/*/*/composer.json
+vendor/*/phpunit.xml
+vendor/*/*/phpunit.xml
+vendor/*/package.json
+vendor/*/*/package.json
+vendor/*/package-lock.json
+vendor/*/*/package-lock.json
