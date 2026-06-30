@@ -47,6 +47,7 @@ class Settings
             'torchlight_theme' => 'github-light',
             'torchlight_line_numbers' => false,
             'normalize_tabs' => false,
+            'media_embed_enabled' => false,
             'tab_width' => 2,
             // Innovation toggles.
             'live_preview' => true,

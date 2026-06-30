@@ -18,6 +18,7 @@ use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
 use MarkupCarve\Carve\Extension\SemanticSpanExtension;
 use MarkupCarve\Carve\Extension\SmartQuotesExtension;
 use MarkupCarve\Carve\Extension\SpoilerExtension;
+use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use MarkupCarve\Carve\Extension\TableOfContentsExtension;
 use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
@@ -166,6 +167,10 @@ class Converter
                 cssClass: $class,
                 contentMode: $mode,
             ));
+        }
+
+        if (!empty($s['media_embed_enabled']) && class_exists(MediaEmbedExtension::class)) {
+            $converter->addExtension(new MediaEmbedExtension());
         }
 
         if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {

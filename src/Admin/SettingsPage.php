@@ -153,6 +153,10 @@ class SettingsPage
         $this->text($s, 'smart_quotes_locale', __('Locale', 'carve-markup'), __('Quote style, e.g. en, de, fr.', 'carve-markup'), 'smart_quotes');
         $this->toggle($s, 'normalize_tabs', __('Normalize tabs', 'carve-markup'), __('Convert leading tabs in code to spaces.', 'carve-markup'));
         $this->gridEnd();
+        $this->group(__('Media embeds', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'media_embed_enabled', __('Media embeds', 'carve-markup'), __('Embed YouTube, Vimeo, Spotify and 30+ providers via :youtube[ID] / :media[URL].', 'carve-markup'));
+        $this->gridEnd();
         $this->panelEnd();
 
         // Code & diagrams.

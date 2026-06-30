@@ -11,7 +11,8 @@
     ],
     "require": {
         "php": ">=8.2",
-        "markup-carve/carve-php": "dev-main"
+        "markup-carve/carve-php": "dev-main",
+        "markup-carve/carve-php-media-embed": "dev-main"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
