@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use WP_CLI;
+use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
 use WpCarve\Admin\SettingsPage;
 use WpCarve\Blocks\CarveBlock;
@@ -71,6 +72,9 @@ class Plugin
         // --- Admin + assets + CLI ---
         if (is_admin()) {
             (new SettingsPage())->register();
+            // Whole-post Carve mode gets a plain code editor + live preview
+            // instead of the rich-text/block editor.
+            (new PostEditor($this->converter))->register();
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);

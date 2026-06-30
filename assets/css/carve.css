@@ -1,5 +1,21 @@
 /* wp-carve front-end + editor styles */
 
+/* Whole-post Carve mode: live preview under the classic code editor. */
+.wp-carve-live-preview-wrap {
+	margin-top: 16px;
+}
+
+.wp-carve-live-preview-wrap > .description {
+	margin: 0 0 6px;
+}
+
+#wp-carve-live-preview {
+	padding: 12px 16px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+
 .wp-carve-preview {
 	margin-top: 12px;
 	padding: 12px 16px;

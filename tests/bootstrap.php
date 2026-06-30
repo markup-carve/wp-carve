@@ -71,6 +71,17 @@ if (!function_exists('has_blocks')) {
     }
 }
 
+if (!function_exists('wp_slash')) {
+    function wp_slash(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map('wp_slash', $value);
+        }
+
+        return is_string($value) ? addslashes($value) : $value;
+    }
+}
+
 if (!function_exists('wp_update_post')) {
     function wp_update_post(array $data): int
     {

@@ -78,7 +78,9 @@ class Migrator
             ? $this->markdown->convert($post->post_content)
             : $this->html->convert($post->post_content);
 
-        wp_update_post(['ID' => $postId, 'post_content' => $carve]);
+        // wp_update_post unslashes its input; slash so Carve backslash escapes
+        // (e.g. \* or math \(...\)) survive instead of being stripped.
+        wp_update_post(['ID' => $postId, 'post_content' => wp_slash($carve)]);
         update_post_meta($postId, '_wp_carve_enabled', 1);
 
         return strlen($carve);
