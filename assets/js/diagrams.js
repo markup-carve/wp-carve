@@ -96,9 +96,43 @@
 		}
 	}
 
+	// Lazy: defer the (heavy) render until a diagram scrolls near the viewport.
+	// run() is idempotent, so a single trigger renders everything present.
+	function lazyRun() {
+		var targets = document.querySelectorAll(
+			'.wp-carve .mermaid, .wp-carve .chart, .wp-carve .vega-lite, .wp-carve .graphviz, .wp-carve .wavedrom, .wp-carve .abc'
+		);
+		if ( ! targets.length ) {
+			return;
+		}
+		if ( ! ( 'IntersectionObserver' in window ) ) {
+			run();
+			return;
+		}
+		var ran = false;
+		var io = new IntersectionObserver(
+			function ( entries ) {
+				for ( var i = 0; i < entries.length; i++ ) {
+					if ( entries[ i ].isIntersecting ) {
+						if ( ! ran ) {
+							ran = true;
+							run();
+						}
+						io.disconnect();
+						break;
+					}
+				}
+			},
+			{ rootMargin: '200px' }
+		);
+		targets.forEach( function ( t ) {
+			io.observe( t );
+		} );
+	}
+
 	if ( document.readyState !== 'loading' ) {
-		run();
+		lazyRun();
 	} else {
-		document.addEventListener( 'DOMContentLoaded', run );
+		document.addEventListener( 'DOMContentLoaded', lazyRun );
 	}
 } )();

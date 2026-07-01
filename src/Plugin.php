@@ -284,8 +284,11 @@ class Plugin
         }
         $content = (string)$post->post_content;
 
-        // Code-block enhancements (copy button, optional line numbers).
-        wp_enqueue_script('wp-carve-code', WP_CARVE_URL . 'assets/js/code-blocks.js', [], $this->assetVersion('assets/js/code-blocks.js'), true);
+        // Code-block enhancements (copy button, optional line numbers) - only
+        // when the content actually has a fenced block.
+        if (str_contains($content, '```') || str_contains($content, '~~~')) {
+            wp_enqueue_script('wp-carve-code', WP_CARVE_URL . 'assets/js/code-blocks.js', [], $this->assetVersion('assets/js/code-blocks.js'), true);
+        }
 
         // Heading permalink click-to-copy.
         if (Settings::get('permalinks_enabled')) {
