@@ -150,6 +150,39 @@
 	margin-bottom: 0;
 }
 
+/* Footnotes (carve-php emits <section role="doc-endnotes"> + doc-noteref /
+   doc-backlink links). */
+.wp-carve [role="doc-noteref"] {
+	text-decoration: none;
+	font-weight: 600;
+	padding: 0 0.15em;
+}
+
+.wp-carve [role="doc-endnotes"] {
+	margin-top: 2em;
+	font-size: 0.9em;
+	color: #4b5563;
+}
+
+.wp-carve [role="doc-endnotes"] hr {
+	margin: 0 0 1em;
+	border: none;
+	border-top: 1px solid #e5e7eb;
+}
+
+.wp-carve [role="doc-endnotes"] ol {
+	padding-left: 1.2em;
+}
+
+.wp-carve [role="doc-backlink"] {
+	text-decoration: none;
+	margin-left: 0.3em;
+}
+
+.wp-carve [role="doc-endnotes"] li:target {
+	background: #fffbeb;
+}
+
 /* Heading permalinks (HeadingPermalinksExtension emits .permalink-wrapper > a.permalink). */
 .wp-carve .permalink-wrapper {
 	opacity: 0;
@@ -591,6 +624,31 @@
 
 .wp-carve-ve-toolbar button:hover {
 	background: #f0f0f1;
+}
+
+.wp-carve-ve-sep {
+	width: 1px;
+	align-self: stretch;
+	margin: 0 2px;
+	background: #dcdcde;
+}
+
+.wp-carve-ve-lossy .wp-carve-ve-diff {
+	margin: 0.5em 0 0;
+	max-height: 12em;
+	overflow: auto;
+	font-size: 12px;
+	line-height: 1.5;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.wp-carve-diff-del {
+	color: #cf222e;
+}
+
+.wp-carve-diff-add {
+	color: #1a7f37;
 }
 
 .wp-carve-ve-surface {

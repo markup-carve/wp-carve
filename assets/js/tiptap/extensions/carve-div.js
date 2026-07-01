@@ -22,10 +22,19 @@ export const CarveDiv = Node.create( {
 		return {
 			class: {
 				default: null,
-				parseHTML: ( element ) =>
-					element.getAttribute( 'data-carve-class' ) ||
-					element.className.replace( 'carve-div', '' ).trim() ||
-					null,
+				parseHTML: ( element ) => {
+					const explicit = element.getAttribute( 'data-carve-class' );
+					if ( explicit ) {
+						return explicit;
+					}
+					// carve-php renders admonitions as
+					// <aside class="admonition TYPE">; keep the type, drop the
+					// structural tokens.
+					const rest = ( element.className || '' )
+						.split( /\s+/ )
+						.filter( ( c ) => c && c !== 'carve-div' && c !== 'admonition' );
+					return rest[ 0 ] || null;
+				},
 				renderHTML: ( attributes ) => {
 					if ( ! attributes.class ) {
 						return {};
@@ -39,6 +48,9 @@ export const CarveDiv = Node.create( {
 	parseHTML() {
 		return [
 			{ tag: 'div.carve-div' },
+			// carve-php's canonical admonition output.
+			{ tag: 'aside.admonition' },
+			// Authored/legacy generic-div forms.
 			{ tag: 'div.note' },
 			{ tag: 'div.tip' },
 			{ tag: 'div.info' },

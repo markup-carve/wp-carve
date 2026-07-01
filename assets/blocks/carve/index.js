@@ -65,9 +65,34 @@
 	// Foundation: optional Tiptap visual editor. Lazy-loaded as an ES module
 	// (assets/js/tiptap/visual-editor.js) only when the user switches to Visual
 	// mode, so the CDN-backed Tiptap bundle never loads for source-only editing.
+	// Normalize Carve to comparable non-empty, whitespace-collapsed lines so a
+	// round-trip diff ignores cosmetic reflow.
+	function normalizeLines( carve ) {
+		return ( carve || '' )
+			.split( '\n' )
+			.map( ( l ) => l.replace( /\s+/g, ' ' ).trim() )
+			.filter( Boolean );
+	}
+
+	// Lines present in `a` but not `b` (multiset-aware), capped.
+	function missingFrom( a, b ) {
+		const pool = b.slice();
+		const out = [];
+		a.forEach( ( line ) => {
+			const i = pool.indexOf( line );
+			if ( i === -1 ) {
+				out.push( line );
+			} else {
+				pool.splice( i, 1 );
+			}
+		} );
+		return out;
+	}
+
 	function VisualMode( { attributes, setAttributes } ) {
 		const hostRef = useRef( null );
 		const ctlRef = useRef( null );
+		const [ lossy, setLossy ] = useState( null );
 
 		useEffect( () => {
 			let active = true;
@@ -90,6 +115,15 @@
 						}
 						ctl = instance;
 						ctlRef.current = instance;
+						// Round-trip check: seed -> serialize back, warn on drift so
+						// the user knows Visual mode may not preserve everything.
+						const original = normalizeLines( attributes.carve );
+						const roundtrip = normalizeLines( instance.getCarve() );
+						const removed = missingFrom( original, roundtrip );
+						const added = missingFrom( roundtrip, original );
+						if ( removed.length || added.length ) {
+							setLossy( { removed, added } );
+						}
 					} )
 					.catch( () => {} );
 			} );
@@ -103,7 +137,23 @@
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [] );
 
-		return el( 'div', { className: 'wp-carve-ve', ref: hostRef } );
+		const warning =
+			lossy &&
+			el(
+				Notice,
+				{ status: 'warning', isDismissible: true, onRemove: () => setLossy( null ), className: 'wp-carve-ve-lossy' },
+				el( 'strong', null, __( 'Visual mode may not preserve everything.', 'carve-markup' ) ),
+				' ',
+				__( 'These lines change when the source is rebuilt from the visual editor; switch to Write mode to keep them exact.', 'carve-markup' ),
+				el(
+					'pre',
+					{ className: 'wp-carve-ve-diff' },
+					lossy.removed.slice( 0, 12 ).map( ( l, i ) => el( 'div', { key: 'r' + i, className: 'wp-carve-diff-del' }, '- ' + l ) ),
+					lossy.added.slice( 0, 12 ).map( ( l, i ) => el( 'div', { key: 'a' + i, className: 'wp-carve-diff-add' }, '+ ' + l ) )
+				)
+			);
+
+		return el( 'div', { className: 'wp-carve-ve-wrap' }, warning, el( 'div', { className: 'wp-carve-ve', ref: hostRef } ) );
 	}
 
 	function Edit( props ) {

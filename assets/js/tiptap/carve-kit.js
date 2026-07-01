@@ -24,6 +24,7 @@ export async function buildCarveExtensions( options = {} ) {
 		{ default: Subscript },
 		{ default: Superscript },
 		{ default: Link },
+		{ default: Image },
 		{ default: Placeholder },
 	] = await Promise.all( [
 		import( 'https://esm.sh/@tiptap/starter-kit@2' ),
@@ -32,6 +33,7 @@ export async function buildCarveExtensions( options = {} ) {
 		import( 'https://esm.sh/@tiptap/extension-subscript@2' ),
 		import( 'https://esm.sh/@tiptap/extension-superscript@2' ),
 		import( 'https://esm.sh/@tiptap/extension-link@2' ),
+		import( 'https://esm.sh/@tiptap/extension-image@2' ),
 		import( 'https://esm.sh/@tiptap/extension-placeholder@2' ),
 	] );
 
@@ -46,6 +48,7 @@ export async function buildCarveExtensions( options = {} ) {
 		Subscript,
 		Superscript,
 		Link.configure( { openOnClick: false } ),
+		Image,
 		Placeholder.configure( { placeholder: options.placeholder || 'Start writing Carve…' } ),
 		CarveDiv,
 	];

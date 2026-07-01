@@ -23,6 +23,18 @@ textarea + live preview; Visual mounts the Tiptap editor.
 - On every edit the document is serialized back to **Carve markup**
   (`serializeToCarve()`) and stored as the block's `carve` attribute. Source mode
   always reflects the canonical Carve.
+- The toolbar covers marks (bold/italic/underline/strike/highlight/super/sub/
+  code), headings H1-H3, quote, bullet/ordered lists, code block, divider, link,
+  image, and note/tip/warning/danger admonitions.
+
+## Lossy round-trip warning
+
+Because the editor serializes rendered HTML back to Carve, some constructs don't
+survive exactly. On entering Visual mode the block round-trips the current
+source (seed -> serialize) and, if it differs, shows a **dismissible warning
+with a line diff** of what would change - so you can drop back to Write mode to
+keep those parts exact. Constructs known not to round-trip cleanly today
+(footnotes, math, definition lists, tables) show up here.
 
 ## Architecture
 
