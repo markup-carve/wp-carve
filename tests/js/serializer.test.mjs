@@ -63,6 +63,33 @@ test( 'table becomes a GFM pipe table', () => {
 	assert.equal( out( doc( [ table ] ) ), '| A | B |\n| --- | --- |\n| 1 | 2 |' );
 } );
 
+test( 'nested list indents under its parent item', () => {
+	const li = ( ...content ) => ( { type: 'listItem', content } );
+	const ul = ( ...items ) => ( { type: 'bulletList', content: items } );
+	const nested = ul(
+		li( para( txt( 'one' ) ), ul( li( para( txt( 'a' ) ) ), li( para( txt( 'b' ) ) ) ) ),
+		li( para( txt( 'two' ) ) )
+	);
+	assert.equal( out( doc( [ nested ] ) ), '- one\n  - a\n  - b\n- two' );
+} );
+
+test( 'second paragraph in a list item stays indented', () => {
+	const li = { type: 'listItem', content: [ para( txt( 'first' ) ), para( txt( 'second' ) ) ] };
+	assert.equal( out( doc( [ { type: 'bulletList', content: [ li ] } ] ) ), '- first\n  second' );
+} );
+
+test( 'table cell folds hard breaks to a space (no broken row)', () => {
+	const cell = ( ...inline ) => ( { type: 'tableCell', content: [ para( ...inline ) ] } );
+	const table = {
+		type: 'table',
+		content: [
+			{ type: 'tableRow', content: [ cell( txt( 'A' ) ), cell( txt( 'B' ) ) ] },
+			{ type: 'tableRow', content: [ cell( txt( 'line1' ), { type: 'hardBreak' }, txt( 'line2' ) ), cell( txt( 'x' ) ) ] },
+		],
+	};
+	assert.equal( out( doc( [ table ] ) ), '| A | B |\n| --- | --- |\n| line1 line2 | x |' );
+} );
+
 test( 'admonition div', () => {
 	const div = { type: 'carveDiv', attrs: { class: 'note' }, content: [ para( txt( 'hi' ) ) ] };
 	assert.equal( out( doc( [ div ] ) ), '::: note\nhi\n:::' );

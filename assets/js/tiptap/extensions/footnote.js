@@ -13,6 +13,59 @@ import { Node } from '@tiptap/core';
  * and the footnotes round-trip. Footnote bodies round-trip as plain text;
  * inline formatting inside a body is not preserved.
  */
+// Convert a footnote body's inline HTML back to Carve markup so basic
+// formatting (bold/italic/code/link/...) survives the round-trip instead of
+// flattening to plain text. Block wrappers (p) are transparent.
+function inlineHtmlToCarve( node ) {
+	let out = '';
+	node.childNodes.forEach( ( n ) => {
+		if ( n.nodeType === 3 ) {
+			out += n.textContent;
+			return;
+		}
+		if ( n.nodeType !== 1 ) {
+			return;
+		}
+		const inner = inlineHtmlToCarve( n );
+		switch ( n.tagName ) {
+			case 'STRONG':
+			case 'B':
+				out += '*' + inner + '*';
+				break;
+			case 'EM':
+			case 'I':
+				out += '/' + inner + '/';
+				break;
+			case 'U':
+				out += '_' + inner + '_';
+				break;
+			case 'DEL':
+			case 'S':
+			case 'STRIKE':
+				out += '~' + inner + '~';
+				break;
+			case 'MARK':
+				out += '==' + inner + '==';
+				break;
+			case 'SUP':
+				out += '^' + inner + '^';
+				break;
+			case 'SUB':
+				out += ',,' + inner + ',,';
+				break;
+			case 'CODE':
+				out += '`' + inner + '`';
+				break;
+			case 'A':
+				out += '[' + inner + '](' + ( n.getAttribute( 'href' ) || '' ) + ')';
+				break;
+			default:
+				out += inner;
+		}
+	} );
+	return out;
+}
+
 export const FootnoteRef = Node.create( {
 	name: 'footnoteRef',
 	group: 'inline',
@@ -69,7 +122,7 @@ export const FootnoteSection = Node.create( {
 						if ( backlink ) {
 							backlink.remove();
 						}
-						return { label, body: ( li.textContent || '' ).trim() };
+						return { label, body: inlineHtmlToCarve( li ).trim() };
 					} );
 				},
 			},

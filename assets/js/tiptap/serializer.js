@@ -121,11 +121,17 @@ export function serializeToCarve( doc ) {
 				const rows = node.content || [];
 				const cellsOf = ( row ) =>
 					( row.content || [] ).map( ( cell ) => {
-						const t = ( cell.content || [] )
-							.map( ( b ) => ( b.type === 'paragraph' ? serializeInline( b.content ) : '' ) )
+						return ( cell.content || [] )
+							// Any block with inline content contributes its text
+							// (paragraph, heading, ...), not just paragraphs.
+							.map( ( b ) => ( b.content ? serializeInline( b.content ) : '' ) )
 							.join( ' ' )
+							// A pipe row is single-line: fold hard breaks/newlines to
+							// spaces and escape pipes so the table can't be corrupted.
+							.replace( /\\?\n/g, ' ' )
+							.replace( /\|/g, '\\|' )
+							.replace( /\s+/g, ' ' )
 							.trim();
-						return t.replace( /\|/g, '\\|' );
 					} );
 				rows.forEach( ( row, ri ) => {
 					const cells = cellsOf( row );
@@ -157,17 +163,21 @@ export function serializeToCarve( doc ) {
 
 	function serializeListItem( item, depth ) {
 		const children = item.content || [];
+		// Content column under the marker ("- " / "1. " is ~2 cols).
+		const pad = '  '.repeat( depth + 1 );
 		children.forEach( ( child, i ) => {
-			if ( child.type === 'paragraph' ) {
-				// First paragraph sits on the marker line; later blocks indent.
-				if ( i === 0 ) {
-					output += serializeInline( child.content ) + '\n';
-				} else {
-					serializeNode( child, depth + 1 );
-				}
-			} else {
-				serializeNode( child, depth + 1 );
+			// First paragraph sits on the marker line already emitted by the list.
+			if ( i === 0 && child.type === 'paragraph' ) {
+				output += serializeInline( child.content ) + '\n';
+				return;
 			}
+			// Any other block child (nested list, second paragraph, blockquote,
+			// code) is rendered independently then indented to the content column
+			// so it stays part of the list item on round-trip.
+			const rendered = serializeNodeToString( child ).replace( /\n+$/, '' );
+			rendered.split( '\n' ).forEach( ( line ) => {
+				output += ( line ? pad + line : '' ) + '\n';
+			} );
 		} );
 	}
 
