@@ -286,23 +286,74 @@
 			return head + '\n' + rule + '\n' + body;
 		}
 
+		function outdentLines() {
+			const { value, start, end } = sel();
+			const lineStart = value.lastIndexOf( '\n', start - 1 ) + 1;
+			const seg = value.slice( lineStart, end );
+			const replaced = seg
+				.split( '\n' )
+				.map( ( l ) => l.replace( /^ {1,2}/, '' ) )
+				.join( '\n' );
+			const next = value.slice( 0, lineStart ) + replaced + value.slice( end );
+			setVal( next, lineStart, lineStart + replaced.length );
+		}
+
 		function onKeyDown( e ) {
+			// Tab / Shift+Tab indent-outdent the selected lines.
+			if ( e.key === 'Tab' ) {
+				e.preventDefault();
+				if ( e.shiftKey ) {
+					outdentLines();
+				} else {
+					linePrefix( '  ' );
+				}
+				return;
+			}
 			if ( ! ( e.ctrlKey || e.metaKey ) ) {
 				return;
 			}
 			const k = e.key.toLowerCase();
-			if ( k === 'b' ) {
-				e.preventDefault();
+			const code = e.code;
+			let handled = true;
+			if ( e.shiftKey ) {
+				if ( k === 'x' ) {
+					wrap( '~', '~', 'strike' );
+				} else if ( k === 'h' ) {
+					wrap( '==', '==', 'highlight' );
+				} else if ( k === 'e' ) {
+					blockInsert( '```\n\n```' );
+				} else if ( k === '.' ) {
+					linePrefix( '> ' );
+				} else if ( code === 'Digit8' ) {
+					linePrefix( '- ' );
+				} else if ( code === 'Digit7' ) {
+					linePrefix( '1. ' );
+				} else if ( k === 'i' ) {
+					inlineInsert( '![alt](https://)', 2, 3 );
+				} else {
+					handled = false;
+				}
+			} else if ( k === 'b' ) {
 				wrap( '*', '*', 'bold' );
 			} else if ( k === 'i' ) {
-				e.preventDefault();
 				wrap( '/', '/', 'italic' );
 			} else if ( k === 'u' ) {
-				e.preventDefault();
 				wrap( '_', '_', 'underline' );
+			} else if ( k === 'e' ) {
+				wrap( '`', '`', 'code' );
 			} else if ( k === 'k' ) {
-				e.preventDefault();
 				inlineInsert( '[text](https://)', 1, 4 );
+			} else if ( k === '.' ) {
+				wrap( '^', '^', 'sup' );
+			} else if ( k === ',' ) {
+				wrap( ',,', ',,', 'sub' );
+			} else if ( /^Digit[1-6]$/.test( code ) ) {
+				linePrefix( '#'.repeat( Number( code.slice( 5 ) ) ) + ' ' );
+			} else {
+				handled = false;
+			}
+			if ( handled ) {
+				e.preventDefault();
 			}
 		}
 
@@ -554,7 +605,19 @@
 							[ 'Ctrl/Cmd + B', __( 'Strong', 'carve-markup' ) ],
 							[ 'Ctrl/Cmd + I', __( 'Emphasis', 'carve-markup' ) ],
 							[ 'Ctrl/Cmd + U', __( 'Underline', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + E', __( 'Inline code', 'carve-markup' ) ],
 							[ 'Ctrl/Cmd + K', __( 'Link', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + .', __( 'Superscript', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + ,', __( 'Subscript', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + 1…6', __( 'Heading level', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + X', __( 'Strikethrough', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + H', __( 'Highlight', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + E', __( 'Code block', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + .', __( 'Blockquote', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + 8', __( 'Bullet list', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + 7', __( 'Ordered list', 'carve-markup' ) ],
+							[ 'Ctrl/Cmd + Shift + I', __( 'Image', 'carve-markup' ) ],
+							[ 'Tab / Shift + Tab', __( 'Indent / outdent', 'carve-markup' ) ],
 						].map( ( [ keys, label ], i ) =>
 							el( 'li', { key: i }, el( 'code', null, keys ), ' — ' + label )
 						)
