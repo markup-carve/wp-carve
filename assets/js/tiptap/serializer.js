@@ -103,6 +103,48 @@ export function serializeToCarve( doc ) {
 				break;
 			}
 
+			case 'definitionList':
+				( node.content || [] ).forEach( ( child ) => {
+					if ( child.type === 'definitionTerm' ) {
+						output += ':: ' + serializeInline( child.content ) + '\n';
+					} else if ( child.type === 'definitionDescription' ) {
+						const txt = ( child.content || [] )
+							.map( ( b ) => ( b.type === 'paragraph' ? serializeInline( b.content ) : serializeNodeToString( b ).replace( /\n+$/, '' ) ) )
+							.join( ' ' )
+							.trim();
+						output += ':  ' + txt + '\n';
+					}
+				} );
+				break;
+
+			case 'table': {
+				const rows = node.content || [];
+				const cellsOf = ( row ) =>
+					( row.content || [] ).map( ( cell ) => {
+						const t = ( cell.content || [] )
+							.map( ( b ) => ( b.type === 'paragraph' ? serializeInline( b.content ) : '' ) )
+							.join( ' ' )
+							.trim();
+						return t.replace( /\|/g, '\\|' );
+					} );
+				rows.forEach( ( row, ri ) => {
+					const cells = cellsOf( row );
+					output += '| ' + cells.join( ' | ' ) + ' |\n';
+					if ( ri === 0 ) {
+						output += '| ' + cells.map( () => '---' ).join( ' | ' ) + ' |\n';
+					}
+				} );
+				break;
+			}
+
+			case 'footnoteSection': {
+				const defs = Array.isArray( node.attrs?.defs ) ? node.attrs.defs : [];
+				defs.forEach( ( d ) => {
+					output += '[^' + d.label + ']: ' + ( d.body || '' ) + '\n';
+				} );
+				break;
+			}
+
 			default:
 				// Unknown node: fall back to its round-trip source or plain text.
 				if ( node.attrs?.carveSrc ) {
@@ -169,6 +211,11 @@ export function serializeToCarve( doc ) {
 				result += '\\\n';
 			} else if ( node.type === 'image' ) {
 				result += '![' + ( node.attrs?.alt || '' ) + '](' + ( node.attrs?.src || '' ) + ')';
+			} else if ( node.type === 'carveMath' ) {
+				const tex = node.attrs?.tex || '';
+				result += node.attrs?.display ? '$$`' + tex + '`' : '$`' + tex + '`';
+			} else if ( node.type === 'footnoteRef' ) {
+				result += '[^' + ( node.attrs?.label || '1' ) + ']';
 			}
 		} );
 

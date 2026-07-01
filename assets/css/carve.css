@@ -651,6 +651,31 @@
 	color: #1a7f37;
 }
 
+.wp-carve-ve-modal .wp-carve-ve-diff {
+	max-height: 16em;
+	overflow: auto;
+	padding: 8px 10px;
+	background: #f6f7f7;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.wp-carve-ve-modal-actions {
+	margin-top: 1em;
+	text-align: right;
+}
+
+/* Read-only footnote section inside the visual editor. */
+.wp-carve-ve-footnotes {
+	margin-top: 1.5em;
+	padding-top: 0.5em;
+	font-size: 0.9em;
+	color: #4b5563;
+	opacity: 0.85;
+}
+
 .wp-carve-ve-surface {
 	min-height: 200px;
 	padding: 12px 14px;

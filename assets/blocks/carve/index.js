@@ -89,10 +89,11 @@
 		return out;
 	}
 
-	function VisualMode( { attributes, setAttributes } ) {
+	function VisualMode( { attributes, setAttributes, approved, onApprove, onExit } ) {
 		const hostRef = useRef( null );
 		const ctlRef = useRef( null );
 		const [ lossy, setLossy ] = useState( null );
+		const [ ready, setReady ] = useState( false );
 
 		useEffect( () => {
 			let active = true;
@@ -115,8 +116,9 @@
 						}
 						ctl = instance;
 						ctlRef.current = instance;
-						// Round-trip check: seed -> serialize back, warn on drift so
-						// the user knows Visual mode may not preserve everything.
+						// Round-trip check: seed -> serialize back. Ignore pure
+						// whitespace / reflow (normalizeLines collapses it); only
+						// real content drift gates entry.
 						const original = normalizeLines( attributes.carve );
 						const roundtrip = normalizeLines( instance.getCarve() );
 						const removed = missingFrom( original, roundtrip );
@@ -124,8 +126,9 @@
 						if ( removed.length || added.length ) {
 							setLossy( { removed, added } );
 						}
+						setReady( true );
 					} )
-					.catch( () => {} );
+					.catch( () => setReady( true ) );
 			} );
 			return () => {
 				active = false;
@@ -137,23 +140,51 @@
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [] );
 
-		const warning =
-			lossy &&
+		// Gate: when the round-trip would change content and the user has not yet
+		// approved, block the editor behind a modal.
+		const gated = ready && lossy && ! approved;
+
+		const modal =
+			gated &&
 			el(
-				Notice,
-				{ status: 'warning', isDismissible: true, onRemove: () => setLossy( null ), className: 'wp-carve-ve-lossy' },
-				el( 'strong', null, __( 'Visual mode may not preserve everything.', 'carve-markup' ) ),
-				' ',
-				__( 'These lines change when the source is rebuilt from the visual editor; switch to Write mode to keep them exact.', 'carve-markup' ),
+				Modal,
+				{
+					title: __( 'Visual editing may change this content', 'carve-markup' ),
+					onRequestClose: onExit,
+					className: 'wp-carve-ve-modal',
+				},
+				el(
+					'p',
+					null,
+					__( 'The visual editor rebuilds the source from rendered HTML, so these constructs would not survive a round-trip exactly. Edit in the Visual tab anyway, or go back to the Write tab to keep them intact.', 'carve-markup' )
+				),
 				el(
 					'pre',
 					{ className: 'wp-carve-ve-diff' },
-					lossy.removed.slice( 0, 12 ).map( ( l, i ) => el( 'div', { key: 'r' + i, className: 'wp-carve-diff-del' }, '- ' + l ) ),
-					lossy.added.slice( 0, 12 ).map( ( l, i ) => el( 'div', { key: 'a' + i, className: 'wp-carve-diff-add' }, '+ ' + l ) )
+					lossy.removed.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'r' + i, className: 'wp-carve-diff-del' }, '- ' + l ) ),
+					lossy.added.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'a' + i, className: 'wp-carve-diff-add' }, '+ ' + l ) )
+				),
+				el(
+					'div',
+					{ className: 'wp-carve-ve-modal-actions' },
+					el( Button, { variant: 'secondary', onClick: onExit }, __( 'Back to Write', 'carve-markup' ) ),
+					' ',
+					el( Button, { variant: 'primary', onClick: onApprove }, __( 'Edit in Visual anyway', 'carve-markup' ) )
 				)
 			);
 
-		return el( 'div', { className: 'wp-carve-ve-wrap' }, warning, el( 'div', { className: 'wp-carve-ve', ref: hostRef } ) );
+		return el(
+			'div',
+			{ className: 'wp-carve-ve-wrap' },
+			modal,
+			el( 'div', {
+				className: 'wp-carve-ve',
+				ref: hostRef,
+				// Keep it mounted (needed to compute the round-trip) but hidden
+				// while the approval modal is up.
+				style: gated ? { display: 'none' } : undefined,
+			} )
+		);
 	}
 
 	function Edit( props ) {
@@ -172,6 +203,8 @@
 		const [ importOpen, setImportOpen ] = useState( false );
 		const [ importFrom, setImportFrom ] = useState( 'auto' );
 		const [ importText, setImportText ] = useState( '' );
+		// Approve entering Visual mode once per block session when lossy.
+		const [ visualApproved, setVisualApproved ] = useState( false );
 		const taRef = useRef( null );
 		const timer = useRef( null );
 
@@ -437,7 +470,13 @@
 
 		let body;
 		if ( mode === 'visual' ) {
-			body = el( VisualMode, { attributes, setAttributes } );
+			body = el( VisualMode, {
+				attributes,
+				setAttributes,
+				approved: visualApproved,
+				onApprove: () => setVisualApproved( true ),
+				onExit: () => setMode( 'write' ),
+			} );
 		} else if ( mode === 'preview' ) {
 			body = previewField;
 		} else if ( mode === 'split' ) {

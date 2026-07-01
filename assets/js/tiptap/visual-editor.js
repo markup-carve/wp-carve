@@ -11,10 +11,12 @@
  * containers are covered incrementally by the extensions in ./extensions.
  */
 
-import { buildCarveExtensions } from './carve-kit.js';
-import { serializeToCarve } from './serializer.js';
+// Version query this module was loaded with (e.g. "?ver=123"); forwarded to
+// sibling imports so the whole tiptap ES-module graph busts together.
+const MODULE_VER = new URL( import.meta.url ).search;
 
 let editorInstance = null;
+let serializeToCarve = null;
 
 const TOOLBAR = [
 	{ label: 'B', title: 'Bold', run: ( e ) => e.chain().focus().toggleBold().run() },
@@ -77,7 +79,9 @@ const TOOLBAR = [
  */
 export async function initVisualEditor( container, initialHtml, onChange ) {
 	const { Editor } = await import( 'https://esm.sh/@tiptap/core@2' );
-	const extensions = await buildCarveExtensions( {} );
+	const { buildCarveExtensions } = await import( './carve-kit.js' + MODULE_VER );
+	( { serializeToCarve } = await import( './serializer.js' + MODULE_VER ) );
+	const extensions = await buildCarveExtensions( { ver: MODULE_VER } );
 
 	if ( editorInstance ) {
 		editorInstance.destroy();

@@ -7,7 +7,9 @@
  * Tiptap is required for the editor foundation.
  */
 
-import { CarveDiv } from './extensions/index.js';
+// Version query forwarded from this module's URL so extension files bust with
+// the rest of the tiptap graph.
+const MODULE_VER = new URL( import.meta.url ).search;
 
 /**
  * Build the ordered extension array for a Carve editor.
@@ -26,6 +28,10 @@ export async function buildCarveExtensions( options = {} ) {
 		{ default: Link },
 		{ default: Image },
 		{ default: Placeholder },
+		{ default: Table },
+		{ default: TableRow },
+		{ default: TableHeader },
+		{ default: TableCell },
 	] = await Promise.all( [
 		import( 'https://esm.sh/@tiptap/starter-kit@2' ),
 		import( 'https://esm.sh/@tiptap/extension-underline@2' ),
@@ -35,6 +41,23 @@ export async function buildCarveExtensions( options = {} ) {
 		import( 'https://esm.sh/@tiptap/extension-link@2' ),
 		import( 'https://esm.sh/@tiptap/extension-image@2' ),
 		import( 'https://esm.sh/@tiptap/extension-placeholder@2' ),
+		import( 'https://esm.sh/@tiptap/extension-table@2' ),
+		import( 'https://esm.sh/@tiptap/extension-table-row@2' ),
+		import( 'https://esm.sh/@tiptap/extension-table-header@2' ),
+		import( 'https://esm.sh/@tiptap/extension-table-cell@2' ),
+	] );
+
+	const V = MODULE_VER || options.ver || '';
+	const [
+		{ CarveDiv },
+		{ CarveMath },
+		{ DefinitionList, DefinitionTerm, DefinitionDescription },
+		{ FootnoteRef, FootnoteSection },
+	] = await Promise.all( [
+		import( './extensions/carve-div.js' + V ),
+		import( './extensions/carve-math.js' + V ),
+		import( './extensions/definition-list.js' + V ),
+		import( './extensions/footnote.js' + V ),
 	] );
 
 	return [
@@ -50,7 +73,17 @@ export async function buildCarveExtensions( options = {} ) {
 		Link.configure( { openOnClick: false } ),
 		Image,
 		Placeholder.configure( { placeholder: options.placeholder || 'Start writing Carve…' } ),
+		Table.configure( { resizable: false } ),
+		TableRow,
+		TableHeader,
+		TableCell,
 		CarveDiv,
+		CarveMath,
+		DefinitionList,
+		DefinitionTerm,
+		DefinitionDescription,
+		FootnoteRef,
+		FootnoteSection,
 	];
 }
 

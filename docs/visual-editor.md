@@ -29,12 +29,13 @@ textarea + live preview; Visual mounts the Tiptap editor.
 
 ## Lossy round-trip warning
 
-Because the editor serializes rendered HTML back to Carve, some constructs don't
-survive exactly. On entering Visual mode the block round-trips the current
-source (seed -> serialize) and, if it differs, shows a **dismissible warning
-with a line diff** of what would change - so you can drop back to Write mode to
-keep those parts exact. Constructs known not to round-trip cleanly today
-(footnotes, math, definition lists, tables) show up here.
+Because the editor serializes rendered HTML back to Carve, a few constructs
+still don't survive exactly. On entering Visual mode the block round-trips the
+current source (seed -> serialize). Pure whitespace / reflow is ignored; only
+real content drift counts. If something would change, a **modal blocks entry**
+and shows a line diff of what would be affected - you either **Edit in Visual
+anyway** (approved once for the session) or go **Back to Write** to keep it
+exact. When nothing would change, Visual mode opens straight away.
 
 ## Architecture
 
@@ -50,13 +51,18 @@ keep those parts exact. Constructs known not to round-trip cleanly today
 **Round-trips today:** headings, paragraphs, bold (`*`), italic (`/`), underline
 (`_`), strike (`~`), superscript (`^`), subscript (`,,`), highlight (`==`), inline
 code, links, bullet / ordered / task lists, blockquotes, fenced code blocks,
-horizontal rules, images, and `::: note` admonition divs.
+horizontal rules, images, admonition divs (all 8 types), inline / display math
+(`` $`…` `` / `` $$`…` ``), definition lists, tables, and footnotes (ref +
+definitions; footnote bodies round-trip as plain text).
 
-**Not yet:** footnotes, definition lists, tables, tabs, code-groups, math,
-frontmatter, attributes. These currently round-trip best edited in Source mode.
-Add them by creating a node/mark extension under `extensions/`, a matching
-`case` in `serializeToCarve()`, and an entry in `carve-kit.js` - see `CarveDiv`
-for the pattern.
+**Not yet:** tabs, code-groups, frontmatter, attributes, and formatted footnote
+bodies. Anything that would not survive a round-trip is caught by the warning
+below rather than silently changed. Add support by creating a node/mark
+extension under `extensions/`, a matching `case` in `serializeToCarve()`, and an
+entry in `carve-kit.js` - see `CarveDiv` / `CarveMath` for the pattern.
+
+Every tiptap file carries a `?ver` query threaded through `import.meta.url`, so
+editing any module busts the browser's ES-module cache for the whole graph.
 
 ## Extending
 
