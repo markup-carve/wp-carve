@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use WP_CLI;
+use WP_Post;
 use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
 use WpCarve\Admin\SettingsPage;
@@ -79,6 +80,7 @@ class Plugin
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
         add_filter('script_loader_tag', [$this, 'deferFrontendScripts'], 10, 2);
+        add_action('wp_head', [$this, 'autoOgImage'], 5);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -92,8 +94,9 @@ class Plugin
         }
         // Shortcode content arrives texturized/auto-paragraphed; undo that.
         $raw = html_entity_decode(wp_strip_all_tags($content, false), ENT_QUOTES, 'UTF-8');
+        $safe = self::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
 
-        return $this->wrap($this->converter->toHtml($raw, 'post'));
+        return $this->wrap($this->converter->toHtml($raw, 'post', null, $safe));
     }
 
     /**
@@ -158,7 +161,7 @@ class Plugin
         if ($cached !== null) {
             $rendered = $cached;
         } else {
-            $rendered = $this->converter->toHtml($post->post_content, 'post');
+            $rendered = $this->converter->toHtml($post->post_content, 'post', null, self::safeForAuthor((int)$post->post_author));
         }
 
         // Carve already produced block HTML; keep wpautop away from it.
@@ -234,6 +237,51 @@ class Plugin
         }
 
         return str_replace('<script ', '<script defer ', $tag);
+    }
+
+    /**
+     * Fallback OG image for Carve posts without a featured image: the first
+     * `![](url)` in the source. Skipped if a featured image exists or the
+     * `wp_carve_auto_og_image` filter returns false.
+     */
+    public function autoOgImage(): void
+    {
+        if (!is_singular() || has_post_thumbnail()) {
+            return;
+        }
+        if (!apply_filters('wp_carve_auto_og_image', true)) {
+            return;
+        }
+        $post = get_post();
+        if (!$post instanceof WP_Post) {
+            return;
+        }
+        $isCarve = get_post_meta($post->ID, '_wp_carve_enabled', true)
+            || has_block('carve/markup', $post)
+            || has_block('carve/slides', $post);
+        if (!$isCarve) {
+            return;
+        }
+        if (!preg_match('/!\[[^\]]*\]\(\s*([^)\s]+)/', (string)$post->post_content, $m)) {
+            return;
+        }
+
+        printf('<meta property="og:image" content="%s">' . "\n", esc_url($m[1]));
+    }
+
+    /**
+     * Effective safe mode for content by a given author. Safe mode stays forced
+     * on unless the site setting is off AND the author may post unfiltered HTML
+     * - so a low-privilege author can never get raw-HTML passthrough even when
+     * an admin disabled safe mode globally.
+     */
+    public static function safeForAuthor(?int $authorId): bool
+    {
+        if ((bool)Settings::get('safe_mode')) {
+            return true;
+        }
+
+        return !($authorId && user_can($authorId, 'unfiltered_html'));
     }
 
     private function assetVersion(string $relPath): string

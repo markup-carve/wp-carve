@@ -64,6 +64,7 @@ class SlidesBlock
                 '<section class="wp-carve-slide%s" data-slide="%d" aria-label="%s">%s</section>',
                 $index === 0 ? ' is-active' : '',
                 $index + 1,
+                /* translators: 1: current slide number, 2: total slides. */
                 esc_attr(sprintf(__('Slide %1$d of %2$d', 'carve-markup'), $index + 1, $count)),
                 $html,
             );

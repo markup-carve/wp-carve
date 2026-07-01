@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use WpCarve\Converter;
+use WpCarve\Plugin;
 
 /**
  * The `carve/markup` Gutenberg block. Stores raw Carve in a `carve` attribute
@@ -44,7 +45,8 @@ class CarveBlock
         }
 
         $profile = (string)($attributes['profile'] ?? '');
-        $html = $this->converter->toHtml($carve, 'post', $profile !== '' ? $profile : null);
+        $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
+        $html = $this->converter->toHtml($carve, 'post', $profile !== '' ? $profile : null, $safe);
 
         return sprintf('<div class="wp-carve">%s</div>', $html);
     }

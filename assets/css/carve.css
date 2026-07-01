@@ -976,6 +976,35 @@
 	}
 }
 
+/* High-contrast preference: strengthen admonition edges + de-mute text. */
+@media (prefers-contrast: more) {
+	.wp-carve .admonition {
+		border-left-width: 6px;
+	}
+
+	.wp-carve .admonition-title,
+	.wp-carve .admonition:not(:has(.admonition-title))::before {
+		color: inherit;
+	}
+
+	.wp-carve blockquote,
+	.wp-carve [role="doc-endnotes"],
+	.wp-carve caption {
+		color: inherit;
+	}
+
+	.wp-carve :is(th, td) {
+		border-color: currentColor;
+	}
+}
+
+/* Reduced motion: no diagram/permalink transitions. */
+@media (prefers-reduced-motion: reduce) {
+	.wp-carve * {
+		transition: none !important;
+	}
+}
+
 /* Dark mode: adapt Carve's own surfaces (boxes, code, tables, editor panels)
    when the OS prefers dark. Body text stays under the theme's control; only
    constructs that carry their own background are recolored. Per-type admonition

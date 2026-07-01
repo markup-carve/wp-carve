@@ -1,0 +1,768 @@
+# Copyright (C) 2026 Mark Scherer
+# This file is distributed under the MIT.
+msgid ""
+msgstr ""
+"Project-Id-Version: Carve Markup 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wpc\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-07-01T20:27:36+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: carve-markup\n"
+
+#. Plugin Name of the plugin
+#: wp-carve.php
+#: src/Admin/SettingsPage.php:37
+#: src/Admin/SettingsPage.php:38
+#: src/Admin/SettingsPage.php:99
+msgid "Carve Markup"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: wp-carve.php
+msgid "https://github.com/markup-carve/wp-carve"
+msgstr ""
+
+#. Description of the plugin
+#: wp-carve.php
+msgid "Write posts, pages and comments in the Carve markup language. Live in-browser preview, multi-format paste, frontmatter-to-meta, render caching and a REST API."
+msgstr ""
+
+#. Author of the plugin
+#: wp-carve.php
+msgid "Mark Scherer"
+msgstr ""
+
+#. Author URI of the plugin
+#: wp-carve.php
+msgid "https://www.dereuromark.de"
+msgstr ""
+
+#: src/Admin/PostEditor.php:119
+msgid "Live Carve preview"
+msgstr ""
+
+#: src/Admin/PostEditor.php:121
+msgid "Move into a Carve block"
+msgstr ""
+
+#: src/Admin/PostEditor.php:138
+msgid "You are not allowed to edit this post."
+msgstr ""
+
+#: src/Admin/PostMode.php:46
+msgid "Carve"
+msgstr ""
+
+#: src/Admin/PostMode.php:61
+msgid "Render this post as Carve markup"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:92
+msgid "General"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:93
+msgid "Content"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:94
+msgid "Code & diagrams"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:95
+msgid "Advanced"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:100
+msgid "A post-Markdown markup language for WordPress. Each feature below is independent; diagram libraries load only on pages that use them."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:120
+msgid "Where Carve renders"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:122
+msgid "Posts"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:122
+msgid "Render post content as Carve."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:123
+msgid "Pages"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:123
+msgid "Render page content as Carve."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:124
+msgid "Comments"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:124
+msgid "Render comments as Carve (uses the comment profile)."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:125
+msgid "[carve] shortcode"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:125
+msgid "Render Carve inside a [carve] shortcode."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:126
+msgid "Excerpts"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:126
+msgid "Render excerpts as Carve."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:127
+msgid "Safe mode"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:127
+msgid "XSS hardening for post content (always on for comments)."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:129
+msgid "Content profiles"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:131
+msgid "Post profile"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:131
+msgid "Feature set allowed in posts and pages."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:132
+msgid "Comment profile"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:132
+msgid "Feature set allowed in comments."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:134
+msgid "Preserve newline"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:135
+msgid "Space (join lines)"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:136
+msgid "Line break (<br>)"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:138
+msgid "Post soft breaks"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:138
+msgid "How a single newline inside a paragraph renders."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:139
+msgid "Comment soft breaks"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:139
+msgid "Often set to line break so comment newlines show."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:145
+msgid "Structure"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:147
+msgid "Heading shift"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:147
+msgid "Demote headings by N levels (0-5)."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:148
+msgid "Heading permalinks"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:148
+msgid "Add click-to-copy anchors to headings."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:150
+#: src/Admin/SettingsPage.php:152
+msgid "Table of contents"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:152
+msgid "Generate a TOC from headings."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:153
+msgid "Position"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:154
+msgid "List type"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:156
+msgid "Typography"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:158
+msgid "Smart quotes"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:158
+msgid "Curly quotes, dashes, and ellipses."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:159
+msgid "Locale"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:159
+msgid "Quote style, e.g. en, de, fr."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:160
+msgid "Normalize tabs"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:160
+msgid "Convert leading tabs in code to spaces."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:162
+msgid "Abbreviations"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:163
+msgid "Site-wide abbreviations"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:163
+msgid "One per line as KEY: expansion (e.g. HTML: HyperText Markup Language). Matching words get an <abbr> tooltip everywhere."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:164
+#: src/Admin/SettingsPage.php:166
+msgid "Media embeds"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:166
+msgid "Embed YouTube, Vimeo, Spotify and 30+ providers via :youtube[ID] / :media[URL]."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:172
+msgid "Syntax highlighting"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:174
+msgid "Torchlight highlighting"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:174
+msgid "Server-side syntax highlighting (offline TextMate grammars, no API token)."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:175
+#: assets/blocks/carve/index.js:755
+msgid "Theme"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:176
+msgid "Line numbers by default"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:176
+msgid "Show a gutter on every code block."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:178
+msgid "Diagrams & charts"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:178
+msgid "Off by default. Each library loads only on pages that both enable and use it."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:184
+msgid "Editor & workflow"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:186
+msgid "Live preview"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:186
+msgid "In-browser preview while editing (carve-js)."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:190
+msgid "Visual editor"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:192
+msgid "Disabled"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:193
+msgid "Visual tab available"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:194
+msgid "Visual tab, open by default"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:196
+msgid "Adds a Tiptap WYSIWYG tab to the Carve block (experimental)."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:198
+msgid "Paste ingest"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:198
+msgid "Convert pasted Markdown/Djot/BBCode/HTML to Carve."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:199
+msgid "Frontmatter to meta"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:199
+msgid "Map frontmatter to post meta and SEO fields."
+msgstr ""
+
+#: src/Admin/SettingsPage.php:200
+msgid "Render cache"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:200
+msgid "Cache rendered HTML on save."
+msgstr ""
+
+#. translators: %s: renderer name
+#: src/Admin/SettingsPage.php:376
+#, php-format
+msgid "Preview %s output"
+msgstr ""
+
+#. translators: %s: renderer name
+#: src/Admin/SettingsPage.php:382
+#, php-format
+msgid "%s website"
+msgstr ""
+
+#: src/Admin/SettingsPage.php:440
+msgid "external"
+msgstr ""
+
+#: src/Blocks/SlidesBlock.php:67
+#, php-format
+msgid "Slide %1$d of %2$d"
+msgstr ""
+
+#: src/Blocks/SlidesBlock.php:85
+msgid "Slide controls"
+msgstr ""
+
+#: src/Blocks/SlidesBlock.php:86
+msgid "Previous slide"
+msgstr ""
+
+#: src/Blocks/SlidesBlock.php:88
+msgid "Next slide"
+msgstr ""
+
+#: src/Blocks/SlidesBlock.php:89
+msgid "Toggle fullscreen"
+msgstr ""
+
+#: wp-carve.php:39
+msgid "Carve Markup: run \"composer install\" in the plugin directory (the carve-php engine is missing)."
+msgstr ""
+
+#: assets/blocks/carve/index.js:152
+msgid "Visual editing may change this content"
+msgstr ""
+
+#: assets/blocks/carve/index.js:159
+msgid "The visual editor rebuilds the source from rendered HTML, so these constructs would not survive a round-trip exactly. Edit in the Visual tab anyway, or go back to the Write tab to keep them intact."
+msgstr ""
+
+#: assets/blocks/carve/index.js:170
+msgid "Back to Write"
+msgstr ""
+
+#: assets/blocks/carve/index.js:172
+msgid "Edit in Visual anyway"
+msgstr ""
+
+#: assets/blocks/carve/index.js:462
+msgid "Heading"
+msgstr ""
+
+#: assets/blocks/carve/index.js:468
+msgid "Strong (bold)"
+msgstr ""
+
+#: assets/blocks/carve/index.js:469
+msgid "Emphasis (italic)"
+msgstr ""
+
+#: assets/blocks/carve/index.js:470
+#: assets/blocks/carve/index.js:659
+msgid "Underline"
+msgstr ""
+
+#: assets/blocks/carve/index.js:471
+#: assets/blocks/carve/index.js:660
+msgid "Inline code"
+msgstr ""
+
+#: assets/blocks/carve/index.js:472
+#: assets/blocks/carve/index.js:661
+msgid "Link"
+msgstr ""
+
+#: assets/blocks/carve/index.js:473
+#: assets/blocks/carve/index.js:671
+msgid "Image"
+msgstr ""
+
+#: assets/blocks/carve/index.js:480
+msgid "List"
+msgstr ""
+
+#: assets/blocks/carve/index.js:482
+#: assets/blocks/carve/index.js:669
+msgid "Bullet list"
+msgstr ""
+
+#: assets/blocks/carve/index.js:483
+#: assets/blocks/carve/index.js:670
+msgid "Ordered list"
+msgstr ""
+
+#: assets/blocks/carve/index.js:484
+msgid "Task list"
+msgstr ""
+
+#: assets/blocks/carve/index.js:487
+#: assets/blocks/carve/index.js:668
+msgid "Blockquote"
+msgstr ""
+
+#: assets/blocks/carve/index.js:488
+msgid "Table"
+msgstr ""
+
+#: assets/blocks/carve/index.js:489
+#: assets/blocks/carve/index.js:667
+msgid "Code block"
+msgstr ""
+
+#: assets/blocks/carve/index.js:492
+msgid "Admonition"
+msgstr ""
+
+#: assets/blocks/carve/index.js:500
+msgid "Media embed"
+msgstr ""
+
+#: assets/blocks/carve/index.js:504
+msgid "Auto (URL)"
+msgstr ""
+
+#: assets/blocks/carve/index.js:507
+msgid "Divider"
+msgstr ""
+
+#: assets/blocks/carve/index.js:509
+#: assets/blocks/carve/index.js:704
+msgid "Import & convert"
+msgstr ""
+
+#: assets/blocks/carve/index.js:514
+msgid "Footnote"
+msgstr ""
+
+#: assets/blocks/carve/index.js:517
+msgid "Math"
+msgstr ""
+
+#: assets/blocks/carve/index.js:519
+msgid "Inline math"
+msgstr ""
+
+#: assets/blocks/carve/index.js:520
+msgid "Display math"
+msgstr ""
+
+#: assets/blocks/carve/index.js:523
+msgid "Citation"
+msgstr ""
+
+#: assets/blocks/carve/index.js:524
+msgid "Definition list"
+msgstr ""
+
+#: assets/blocks/carve/index.js:529
+msgid "Write"
+msgstr ""
+
+#: assets/blocks/carve/index.js:529
+msgid "Split"
+msgstr ""
+
+#: assets/blocks/carve/index.js:531
+msgid "Visual"
+msgstr ""
+
+#: assets/blocks/carve/index.js:533
+msgid "Preview"
+msgstr ""
+
+#: assets/blocks/carve/index.js:560
+msgid "Carve source"
+msgstr ""
+
+#: assets/blocks/carve/index.js:602
+msgid "Tools"
+msgstr ""
+
+#: assets/blocks/carve/index.js:604
+msgid "Content profile"
+msgstr ""
+
+#: assets/blocks/carve/index.js:605
+msgid "Override the site default for this block."
+msgstr ""
+
+#: assets/blocks/carve/index.js:608
+msgid "Default (site setting)"
+msgstr ""
+
+#: assets/blocks/carve/index.js:609
+msgid "Full"
+msgstr ""
+
+#: assets/blocks/carve/index.js:610
+msgid "Article"
+msgstr ""
+
+#: assets/blocks/carve/index.js:611
+msgid "Comment"
+msgstr ""
+
+#: assets/blocks/carve/index.js:612
+msgid "Minimal"
+msgstr ""
+
+#: assets/blocks/carve/index.js:613
+msgid "None"
+msgstr ""
+
+#: assets/blocks/carve/index.js:618
+msgid "words"
+msgstr ""
+
+#: assets/blocks/carve/index.js:623
+msgid "Import & convert…"
+msgstr ""
+
+#: assets/blocks/carve/index.js:629
+msgid "Clear"
+msgstr ""
+
+#: assets/blocks/carve/index.js:634
+msgid "Carve syntax"
+msgstr ""
+
+#: assets/blocks/carve/index.js:652
+msgid "Keyboard shortcuts"
+msgstr ""
+
+#: assets/blocks/carve/index.js:657
+msgid "Strong"
+msgstr ""
+
+#: assets/blocks/carve/index.js:658
+msgid "Emphasis"
+msgstr ""
+
+#: assets/blocks/carve/index.js:662
+msgid "Superscript"
+msgstr ""
+
+#: assets/blocks/carve/index.js:663
+msgid "Subscript"
+msgstr ""
+
+#: assets/blocks/carve/index.js:664
+msgid "Heading level"
+msgstr ""
+
+#: assets/blocks/carve/index.js:665
+msgid "Strikethrough"
+msgstr ""
+
+#: assets/blocks/carve/index.js:666
+msgid "Highlight"
+msgstr ""
+
+#: assets/blocks/carve/index.js:672
+msgid "Indent / outdent"
+msgstr ""
+
+#: assets/blocks/carve/index.js:684
+msgid "Pasted content looks like Markdown/Djot/HTML/BBCode."
+msgstr ""
+
+#: assets/blocks/carve/index.js:686
+msgid "Convert to Carve"
+msgstr ""
+
+#: assets/blocks/carve/index.js:692
+msgid "Insert table"
+msgstr ""
+
+#: assets/blocks/carve/index.js:693
+msgid "Columns"
+msgstr ""
+
+#: assets/blocks/carve/index.js:694
+msgid "Rows"
+msgstr ""
+
+#: assets/blocks/carve/index.js:698
+msgid "Insert"
+msgstr ""
+
+#: assets/blocks/carve/index.js:706
+msgid "Source format"
+msgstr ""
+
+#: assets/blocks/carve/index.js:709
+msgid "Auto-detect"
+msgstr ""
+
+#: assets/blocks/carve/index.js:719
+msgid "Paste source to convert"
+msgstr ""
+
+#: assets/blocks/carve/index.js:728
+msgid "Convert & insert"
+msgstr ""
+
+#: assets/blocks/carve/index.js:753
+msgid "Presentation"
+msgstr ""
+
+#: assets/blocks/carve/index.js:758
+msgid "Signal"
+msgstr ""
+
+#: assets/blocks/carve/index.js:759
+msgid "Paper"
+msgstr ""
+
+#: assets/blocks/carve/index.js:760
+msgid "Night"
+msgstr ""
+
+#: assets/blocks/carve/index.js:766
+msgid "Layout"
+msgstr ""
+
+#: assets/blocks/carve/index.js:769
+msgid "Standard"
+msgstr ""
+
+#: assets/blocks/carve/index.js:770
+msgid "Wide"
+msgstr ""
+
+#: assets/blocks/carve/index.js:771
+msgid "Compact"
+msgstr ""
+
+#: assets/blocks/carve/index.js:779
+msgid "Carve slide source"
+msgstr ""
+
+#: assets/blocks/carve/index.js:780
+msgid "Separate slides with a standalone --- line."
+msgstr ""
+
+#: assets/blocks/carve/block.json
+msgctxt "block title"
+msgid "Carve"
+msgstr ""
+
+#: assets/blocks/carve/block.json
+msgctxt "block description"
+msgid "Write Carve markup with a live in-browser preview."
+msgstr ""
+
+#: assets/blocks/carve/block.json
+#: assets/blocks/slides/block.json
+msgctxt "block keyword"
+msgid "carve"
+msgstr ""
+
+#: assets/blocks/carve/block.json
+msgctxt "block keyword"
+msgid "markup"
+msgstr ""
+
+#: assets/blocks/carve/block.json
+msgctxt "block keyword"
+msgid "markdown"
+msgstr ""
+
+#: assets/blocks/carve/block.json
+msgctxt "block keyword"
+msgid "djot"
+msgstr ""
+
+#: assets/blocks/slides/block.json
+msgctxt "block title"
+msgid "Carve Slides"
+msgstr ""
+
+#: assets/blocks/slides/block.json
+msgctxt "block description"
+msgid "Turn Carve markup into a keyboard-friendly slide deck."
+msgstr ""
+
+#: assets/blocks/slides/block.json
+msgctxt "block keyword"
+msgid "slides"
+msgstr ""
+
+#: assets/blocks/slides/block.json
+msgctxt "block keyword"
+msgid "presentation"
+msgstr ""
+
+#: assets/blocks/slides/block.json
+msgctxt "block keyword"
+msgid "deck"
+msgstr ""

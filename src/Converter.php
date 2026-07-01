@@ -58,13 +58,13 @@ class Converter
      * comment / minimal / none) regardless of the context default - used by the
      * Carve block's per-block profile attribute.
      */
-    public function toHtml(string $carve, string $context = 'post', ?string $profileOverride = null): string
+    public function toHtml(string $carve, string $context = 'post', ?string $profileOverride = null, ?bool $safe = null): string
     {
         if (trim($carve) === '') {
             return '';
         }
 
-        $html = $this->converterFor($context, $profileOverride)->convert($this->abbreviationDefs() . $carve);
+        $html = $this->converterFor($context, $profileOverride, $safe)->convert($this->abbreviationDefs() . $carve);
 
         /**
          * Filter the rendered HTML before it is returned to WordPress.
@@ -103,11 +103,11 @@ class Converter
         return $defs !== [] ? implode("\n", $defs) . "\n\n" : '';
     }
 
-    private function converterFor(string $context, ?string $profileOverride = null): CarveConverter
+    private function converterFor(string $context, ?string $profileOverride = null, ?bool $safe = null): CarveConverter
     {
-        $cacheKey = $profileOverride !== null && $profileOverride !== ''
-            ? $context . ':' . $profileOverride
-            : $context;
+        $cacheKey = $context
+            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '')
+            . ($safe !== null ? ($safe ? ':safe' : ':unsafe') : '');
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -116,7 +116,7 @@ class Converter
         $profileName = $profileOverride !== null && $profileOverride !== ''
             ? $profileOverride
             : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
-        $safeMode = $isComment ? true : (bool)($this->settings['safe_mode'] ?? true);
+        $safeMode = $isComment ? true : ($safe ?? (bool)($this->settings['safe_mode'] ?? true));
         $softBreak = (string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline');
 
         $converter = new CarveConverter(
