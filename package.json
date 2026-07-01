@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "build": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
-    "watch": "npm run build -- --watch"
+    "watch": "npm run build -- --watch",
+    "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
     "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#main"

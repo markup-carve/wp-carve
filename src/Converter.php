@@ -64,6 +64,14 @@ class Converter
             return '';
         }
 
+        /**
+         * Filter the raw Carve source before it is converted.
+         *
+         * @param string $carve The Carve source.
+         * @param string $context 'post' or 'comment'.
+         */
+        $carve = (string)apply_filters('wp_carve_source', $carve, $context);
+
         $html = $this->converterFor($context, $profileOverride, $safe)->convert($this->abbreviationDefs() . $carve);
 
         /**

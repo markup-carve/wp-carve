@@ -2,6 +2,17 @@
 
 ## Filters
 
+### `wp_carve_source`
+
+Filter the raw Carve source **before** conversion (e.g. inject snippets, expand
+tokens). Runs before abbreviation defs are prepended.
+
+```php
+add_filter('wp_carve_source', function (string $carve, string $context): string {
+    return str_replace('{{year}}', gmdate('Y'), $carve);
+}, 10, 2);
+```
+
 ### `wp_carve_rendered_html`
 
 Filter the rendered HTML before it is returned to WordPress.
@@ -11,6 +22,24 @@ add_filter('wp_carve_rendered_html', function (string $html, string $carve, stri
     // $context is 'post' or 'comment'.
     return $html;
 }, 10, 3);
+```
+
+### `wp_carve_media_oembed`
+
+Return `false` to disable the WordPress oEmbed fallback for standalone
+`:youtube[…]` / `:vimeo[…]` / `:media[…]` when the media-embed extension is off.
+
+```php
+add_filter('wp_carve_media_oembed', '__return_false');
+```
+
+### `wp_carve_auto_og_image`
+
+Return `false` to suppress the automatic `og:image` (first `![](url)` in a Carve
+post without a featured image).
+
+```php
+add_filter('wp_carve_auto_og_image', '__return_false');
 ```
 
 ### `wp_carve_diagram_renderers`
@@ -66,7 +95,7 @@ Register additional carve-php extensions on the converter as it is built (once
 per context).
 
 ```php
-use Carve\CarveConverter;
+use MarkupCarve\Carve\CarveConverter;
 
 add_action('wp_carve_converter', function (CarveConverter $converter, string $context): void {
     if ($context === 'post') {

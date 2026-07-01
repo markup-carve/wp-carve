@@ -49,7 +49,10 @@ Both require the `edit_posts` capability.
 ## Hooks
 
 - `wp_carve_rendered_html` (filter): `(string $html, string $carve, string $context)`
-- `wp_carve_converter` (action): `(\Carve\CarveConverter $converter, string $context)` — register further carve-php extensions.
+- `wp_carve_converter` (action): `(\MarkupCarve\Carve\CarveConverter $converter, string $context)` — register further carve-php extensions.
+- `wp_carve_source` (filter): `(string $carve, string $context)` — modify source before conversion.
+
+See [docs/hooks.md](docs/hooks.md) for the full list (oEmbed, OG image, diagram renderer API, KaTeX base).
 
 ## Documentation
 
