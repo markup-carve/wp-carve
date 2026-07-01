@@ -15,6 +15,7 @@
 /build
 /docs
 /assets/js/src
+/assets/js/tiptap
 /screenshots
 
 # Build tools

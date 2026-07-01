@@ -5,14 +5,29 @@
   "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
   "license": "MIT",
   "scripts": {
-    "build": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
-    "watch": "npm run build -- --watch",
+    "build": "npm run build:engine && npm run build:editor",
+    "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
+    "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
+    "watch": "npm run build:engine -- --watch",
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
     "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#main"
   },
   "devDependencies": {
+    "@tiptap/core": "^2.11.0",
+    "@tiptap/extension-highlight": "^2.11.0",
+    "@tiptap/extension-image": "^2.11.0",
+    "@tiptap/extension-link": "^2.11.0",
+    "@tiptap/extension-placeholder": "^2.11.0",
+    "@tiptap/extension-subscript": "^2.11.0",
+    "@tiptap/extension-superscript": "^2.11.0",
+    "@tiptap/extension-table": "^2.11.0",
+    "@tiptap/extension-table-cell": "^2.11.0",
+    "@tiptap/extension-table-header": "^2.11.0",
+    "@tiptap/extension-table-row": "^2.11.0",
+    "@tiptap/extension-underline": "^2.11.0",
+    "@tiptap/starter-kit": "^2.11.0",
     "esbuild": "^0.24.0"
   }
 }

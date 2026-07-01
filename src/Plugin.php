@@ -208,12 +208,11 @@ class Plugin
             'nonce' => wp_create_nonce('wp_rest'),
             'livePreview' => (bool)Settings::get('live_preview'),
             'pasteIngest' => (bool)Settings::get('paste_ingest'),
-            // Foundation Tiptap visual editor: URL of the lazy-loaded ES module
-            // (empty string hides the Visual tab in the block). The ?ver query
-            // is threaded through the whole module graph (via import.meta.url)
-            // so edits to any tiptap file bust the browser's ES-module cache.
+            // Tiptap visual editor: the locally-bundled ES module (esbuild;
+            // no CDN). Empty string hides the Visual tab. Lazy-loaded via
+            // dynamic import() from the block only when Visual mode is used.
             'visualEditor' => Settings::get('visual_editor_mode') !== 'disabled'
-                ? esc_url_raw(WP_CARVE_URL . 'assets/js/tiptap/visual-editor.js') . '?ver=' . $this->tiptapVersion()
+                ? esc_url_raw(WP_CARVE_URL . 'assets/js/vendor/carve-editor.js') . '?ver=' . $this->assetVersion('assets/js/vendor/carve-editor.js')
                 : '',
             // Default mode when a Carve block is opened.
             'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
@@ -338,25 +337,6 @@ class Plugin
         $mtime = @filemtime(WP_CARVE_DIR . $relPath);
 
         return $mtime ? (string)$mtime : WP_CARVE_VERSION;
-    }
-
-    /**
-     * Cache-busting version for the whole tiptap ES-module graph: the newest
-     * mtime across its files, so editing any one busts the browser cache for
-     * all of them (the query is forwarded through import.meta.url).
-     */
-    private function tiptapVersion(): string
-    {
-        $newest = 0;
-        $dir = WP_CARVE_DIR . 'assets/js/tiptap';
-        // Two levels (tiptap/*.js + tiptap/extensions/*.js) without GLOB_BRACE,
-        // which is missing on some PHP builds (musl/Alpine).
-        $files = array_merge(glob($dir . '/*.js') ?: [], glob($dir . '/*/*.js') ?: []);
-        foreach ($files as $file) {
-            $newest = max($newest, (int)@filemtime($file));
-        }
-
-        return $newest > 0 ? (string)$newest : WP_CARVE_VERSION;
     }
 
     public function enqueueFrontendAssets(): void

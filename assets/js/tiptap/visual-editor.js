@@ -2,8 +2,8 @@
  * Carve visual (WYSIWYG) editor - foundation.
  *
  * A Tiptap-based editor that edits rendered Carve HTML and serializes back to
- * Carve markup on every change. Tiptap is imported from the esm.sh CDN at
- * runtime, so the editor works without bundling Tiptap locally.
+ * Carve markup on every change. This module + its imports are bundled locally
+ * with esbuild (assets/js/vendor/carve-editor.js) - no CDN at runtime.
  *
  * Round-trip note: the editor is seeded with HTML (rendered from Carve by the
  * server/JS engine) and serializes the edited document back to Carve via
@@ -11,13 +11,9 @@
  * containers are covered incrementally by the extensions in ./extensions.
  */
 
-// Version query this module was loaded with (e.g. "?ver=123"); forwarded to
-// sibling imports so the whole tiptap ES-module graph busts together.
-const MODULE_VER = new URL( import.meta.url ).search;
-
-// serializeToCarve is a pure function shared across mounts; the editor instance
-// is per-mount (local) so multiple Carve blocks don't clobber each other.
-let serializeToCarve = null;
+import { Editor } from '@tiptap/core';
+import { buildCarveExtensions } from './carve-kit.js';
+import { serializeToCarve } from './serializer.js';
 
 /**
  * Mount a Carve visual editor inside a container.
@@ -32,10 +28,7 @@ let serializeToCarve = null;
  * @return {Promise<Object>} Control object: { getCarve, setHtml, destroy, editor }.
  */
 export async function initVisualEditor( container, initialHtml, onChange ) {
-	const { Editor } = await import( 'https://esm.sh/@tiptap/core@2' );
-	const { buildCarveExtensions } = await import( './carve-kit.js' + MODULE_VER );
-	( { serializeToCarve } = await import( './serializer.js' + MODULE_VER ) );
-	const extensions = await buildCarveExtensions( { ver: MODULE_VER } );
+	const extensions = buildCarveExtensions( {} );
 
 	container.innerHTML = '';
 

@@ -14,10 +14,12 @@ textarea + live preview; Visual mounts the Tiptap editor.
 
 ## How it works
 
-- Tiptap loads from the [esm.sh](https://esm.sh) CDN at runtime, so no local
-  Tiptap build is required. The editor module
-  (`assets/js/tiptap/visual-editor.js`) is **lazy-loaded** only when the user
-  switches to Visual mode.
+- Tiptap is **bundled locally** with esbuild into
+  `assets/js/vendor/carve-editor.js` (run `npm run build:editor`; `npm run build`
+  builds both the engine and the editor). No CDN at runtime. The bundle is
+  **lazy-loaded** via dynamic `import()` only when the user switches to Visual
+  mode. Sources live under `assets/js/tiptap/` (build inputs, excluded from the
+  dist).
 - The editor is seeded with HTML rendered from the current Carve source (via the
   JS engine or the REST render endpoint).
 - On every edit the document is serialized back to **Carve markup**
@@ -73,7 +75,7 @@ editing any module busts the browser's ES-module cache for the whole graph.
 
 ```js
 // assets/js/tiptap/extensions/carve-kbd.js
-import { Mark } from 'https://esm.sh/@tiptap/core@2';
+import { Mark } from '@tiptap/core';
 
 export const CarveKbd = Mark.create( {
 	name: 'carveKbd',
