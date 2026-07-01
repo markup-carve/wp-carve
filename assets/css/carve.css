@@ -103,28 +103,51 @@
 	border-radius: 0;
 }
 
-/* Carve admonitions (Tier-1 types render as <aside class="admonition ...">). */
-.wp-carve .admonition,
-.wp-carve-preview .admonition {
+/* Carve admonitions: the 8 canonical types render as <aside class="admonition
+   TYPE">. carve-php emits no title unless the author sets {title=...}, so an
+   icon + type label is generated in CSS for the untitled default. */
+.wp-carve .admonition {
+	--carve-accent: #6b7280;
 	margin: 1em 0;
 	padding: 0.75em 1em;
-	border-left: 4px solid #6b7280;
+	border-left: 4px solid var(--carve-accent);
 	border-radius: 4px;
 	background: #f3f4f6;
 }
 
-.wp-carve .admonition.note { border-color: #3b82f6; background: #eff6ff; }
-.wp-carve .admonition.tip { border-color: #10b981; background: #ecfdf5; }
-.wp-carve .admonition.warning { border-color: #f59e0b; background: #fffbeb; }
-.wp-carve .admonition.danger { border-color: #ef4444; background: #fef2f2; }
-.wp-carve .admonition.info { border-color: #06b6d4; background: #ecfeff; }
-.wp-carve .admonition.success { border-color: #22c55e; background: #f0fdf4; }
-.wp-carve .admonition.example { border-color: #8b5cf6; background: #f5f3ff; }
-.wp-carve .admonition.quote { border-color: #64748b; background: #f8fafc; }
+.wp-carve .admonition.note    { --carve-accent: #3b82f6; background: #eff6ff; }
+.wp-carve .admonition.tip     { --carve-accent: #10b981; background: #ecfdf5; }
+.wp-carve .admonition.warning { --carve-accent: #d97706; background: #fffbeb; }
+.wp-carve .admonition.danger  { --carve-accent: #ef4444; background: #fef2f2; }
+.wp-carve .admonition.info    { --carve-accent: #0891b2; background: #ecfeff; }
+.wp-carve .admonition.success { --carve-accent: #16a34a; background: #f0fdf4; }
+.wp-carve .admonition.example { --carve-accent: #8b5cf6; background: #f5f3ff; }
+.wp-carve .admonition.quote   { --carve-accent: #64748b; background: #f8fafc; }
+
+/* Auto title (icon + type name) - only when there is no explicit title. */
+.wp-carve .admonition:not(:has(.admonition-title))::before {
+	display: block;
+	margin-bottom: 0.4em;
+	font-weight: 600;
+	color: var(--carve-accent);
+}
+.wp-carve .admonition.note:not(:has(.admonition-title))::before    { content: "\1F4DD  Note"; }
+.wp-carve .admonition.tip:not(:has(.admonition-title))::before     { content: "\1F4A1  Tip"; }
+.wp-carve .admonition.warning:not(:has(.admonition-title))::before { content: "\26A0\FE0F  Warning"; }
+.wp-carve .admonition.danger:not(:has(.admonition-title))::before  { content: "\1F6D1  Danger"; }
+.wp-carve .admonition.info:not(:has(.admonition-title))::before    { content: "\2139\FE0F  Info"; }
+.wp-carve .admonition.success:not(:has(.admonition-title))::before { content: "\2705  Success"; }
+.wp-carve .admonition.example:not(:has(.admonition-title))::before { content: "\1F9EA  Example"; }
+.wp-carve .admonition.quote:not(:has(.admonition-title))::before   { content: "\275D  Quote"; }
 
 .wp-carve .admonition-title {
 	margin: 0 0 0.4em;
 	font-weight: 600;
+	color: var(--carve-accent);
+}
+
+.wp-carve .admonition > :last-child {
+	margin-bottom: 0;
 }
 
 /* Heading permalinks (HeadingPermalinksExtension emits .permalink-wrapper > a.permalink). */
