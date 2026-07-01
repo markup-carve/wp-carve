@@ -53,7 +53,9 @@ exact. When nothing would change, Visual mode opens straight away.
 code, links, bullet / ordered / task lists, blockquotes, fenced code blocks,
 horizontal rules, images, admonition divs (all 8 types), inline / display math
 (`` $`…` `` / `` $$`…` ``), definition lists, tables, and footnotes (ref +
-definitions; footnote bodies round-trip as plain text).
+definitions; footnote bodies round-trip as plain text), and media embeds
+(`:youtube[ID]` / `:vimeo[ID]` round-trip exactly; `:media[URL]` canonicalizes to
+the provider form - identical output, but the source text changes).
 
 **Not yet:** tabs, code-groups, frontmatter, attributes, and formatted footnote
 bodies. Anything that would not survive a round-trip is caught by the warning

@@ -216,6 +216,8 @@ export function serializeToCarve( doc ) {
 				result += node.attrs?.display ? '$$`' + tex + '`' : '$`' + tex + '`';
 			} else if ( node.type === 'footnoteRef' ) {
 				result += '[^' + ( node.attrs?.label || '1' ) + ']';
+			} else if ( node.type === 'mediaEmbed' ) {
+				result += ':' + ( node.attrs?.provider || 'media' ) + '[' + ( node.attrs?.mediaId || '' ) + ']';
 			}
 		} );
 

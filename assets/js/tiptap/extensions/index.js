@@ -10,3 +10,4 @@ export { CarveDiv } from './carve-div.js';
 export { CarveMath } from './carve-math.js';
 export { DefinitionList, DefinitionTerm, DefinitionDescription } from './definition-list.js';
 export { FootnoteRef, FootnoteSection } from './footnote.js';
+export { MediaEmbed } from './media-embed.js';
