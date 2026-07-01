@@ -646,7 +646,8 @@
 						],
 					} ),
 					el( ToolbarButton, { icon: 'book', title: __( 'Citation', 'carve-markup' ), onClick: () => inlineInsert( '[@key]', 2, 3 ) } ),
-					el( ToolbarButton, { icon: 'editor-justify', title: __( 'Definition list', 'carve-markup' ), onClick: () => blockInsert( ':: Term\n:  Definition' ) } )
+					el( ToolbarButton, { icon: 'editor-justify', title: __( 'Definition list', 'carve-markup' ), onClick: () => blockInsert( ':: Term\n:  Definition' ) } ),
+					el( ToolbarButton, { icon: 'editor-removeformatting', title: __( 'Clear formatting', 'carve-markup' ), onClick: stripFormatting } )
 				)
 			);
 
