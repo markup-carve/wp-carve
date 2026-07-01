@@ -22,6 +22,8 @@ Markup**.
 | `safe_mode` | `true` | XSS hardening for posts (comments are always safe). |
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. |
 | `comment_profile` | `comment` | Content profile for comments. |
+| `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
+| `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). |
 
 See [Profiles & rendering](profiles.md) for what each profile means.
 

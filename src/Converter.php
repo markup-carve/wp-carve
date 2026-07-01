@@ -21,6 +21,7 @@ use MarkupCarve\Carve\Extension\TableOfContentsExtension;
 use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Profile;
+use MarkupCarve\Carve\Renderer\SoftBreakMode;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use WpCarve\Extension\TorchlightExtension;
 
@@ -89,10 +90,12 @@ class Converter
             ? $profileOverride
             : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
         $safeMode = $isComment ? true : (bool)($this->settings['safe_mode'] ?? true);
+        $softBreak = (string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline');
 
         $converter = new CarveConverter(
             safeMode: $safeMode,
             profile: $this->profile($profileName),
+            softBreakMode: SoftBreakMode::tryFrom($softBreak) ?? SoftBreakMode::Newline,
         );
 
         // Carve preserves tabs by default; opt into normalization for consistent display.

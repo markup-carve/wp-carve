@@ -78,6 +78,7 @@ class Plugin
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
+        add_filter('script_loader_tag', [$this, 'deferFrontendScripts'], 10, 2);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -217,6 +218,24 @@ class Plugin
      * immediately and a browser never holds a stale copy. Falls back to the
      * plugin version.
      */
+
+    /**
+     * Defer the plugin's front-end scripts (they enhance already-rendered
+     * markup, so nothing needs them before paint). Editor scripts are left
+     * untouched. Uses the tag filter so it works on WordPress < 6.3 too.
+     */
+    public function deferFrontendScripts(string $tag, string $handle): string
+    {
+        if (is_admin() || strncmp($handle, 'wp-carve', 8) !== 0) {
+            return $tag;
+        }
+        if (str_contains($tag, ' defer') || str_contains($tag, ' async')) {
+            return $tag;
+        }
+
+        return str_replace('<script ', '<script defer ', $tag);
+    }
+
     private function assetVersion(string $relPath): string
     {
         $mtime = @filemtime(WP_CARVE_DIR . $relPath);

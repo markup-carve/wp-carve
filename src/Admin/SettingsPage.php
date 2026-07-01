@@ -130,6 +130,13 @@ class SettingsPage
         $this->grid();
         $this->select($s, 'post_profile', __('Post profile', 'carve-markup'), $profiles, __('Feature set allowed in posts and pages.', 'carve-markup'));
         $this->select($s, 'comment_profile', __('Comment profile', 'carve-markup'), $profiles, __('Feature set allowed in comments.', 'carve-markup'));
+        $softBreaks = [
+            'newline' => __('Preserve newline', 'carve-markup'),
+            'space' => __('Space (join lines)', 'carve-markup'),
+            'br' => __('Line break (<br>)', 'carve-markup'),
+        ];
+        $this->select($s, 'post_soft_break', __('Post soft breaks', 'carve-markup'), $softBreaks, __('How a single newline inside a paragraph renders.', 'carve-markup'));
+        $this->select($s, 'comment_soft_break', __('Comment soft breaks', 'carve-markup'), $softBreaks, __('Often set to line break so comment newlines show.', 'carve-markup'));
         $this->gridEnd();
         $this->panelEnd();
 

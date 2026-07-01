@@ -917,3 +917,93 @@
 		max-width: none;
 	}
 }
+
+/* Dark mode: adapt Carve's own surfaces (boxes, code, tables, editor panels)
+   when the OS prefers dark. Body text stays under the theme's control; only
+   constructs that carry their own background are recolored. Per-type admonition
+   accents come from --carve-accent and are kept. */
+@media (prefers-color-scheme: dark) {
+	.wp-carve pre:not(.mermaid),
+	.wp-carve-preview pre:not(.mermaid) {
+		background: #161b22;
+		color: #c9d1d9;
+	}
+
+	.wp-carve :not(pre) > code {
+		background: #262b33;
+		color: #c9d1d9;
+		border-radius: 3px;
+	}
+
+	.wp-carve .admonition {
+		background: #161b22;
+		color: #c9d1d9;
+	}
+
+	.wp-carve :is(th, td) {
+		border-color: #30363d;
+	}
+
+	.wp-carve thead th {
+		background: #161b22;
+	}
+
+	.wp-carve tbody tr:nth-child(even) {
+		background: #12161c;
+	}
+
+	.wp-carve caption {
+		color: #8b949e;
+	}
+
+	.wp-carve blockquote {
+		border-color: #30363d;
+		color: #adbac7;
+	}
+
+	.wp-carve .toc {
+		background: #161b22;
+		border-color: #30363d;
+	}
+
+	.wp-carve [role="doc-endnotes"] {
+		color: #8b949e;
+	}
+
+	.wp-carve [role="doc-endnotes"] hr {
+		border-color: #30363d;
+	}
+
+	.wp-carve [role="doc-endnotes"] li:target {
+		background: #2d2a16;
+	}
+
+	/* Editor surfaces (block source, previews, visual editor). */
+	.wp-carve-source,
+	.wp-carve-preview,
+	#wp-carve-live-preview,
+	.wp-carve-ve-surface {
+		background: #0d1117;
+		color: #c9d1d9;
+		border-color: #30363d;
+	}
+
+	.wp-carve-ve-toolbar {
+		background: #161b22;
+		border-color: #30363d;
+	}
+
+	.wp-carve-ve-toolbar button {
+		background: #21262d;
+		color: #c9d1d9;
+		border-color: #30363d;
+	}
+
+	.wp-carve-ve-toolbar button:hover {
+		background: #30363d;
+	}
+
+	.wp-carve-ve-sep {
+		background: #30363d;
+	}
+}

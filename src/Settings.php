@@ -33,6 +33,8 @@ class Settings
             'safe_mode' => true,
             'post_profile' => 'article',
             'comment_profile' => 'comment',
+            'post_soft_break' => 'newline',
+            'comment_soft_break' => 'newline',
             'heading_shift' => 0,
             'toc_enabled' => false,
             'toc_position' => 'top',
