@@ -24,6 +24,7 @@ Markup**.
 | `comment_profile` | `comment` | Content profile for comments. |
 | `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
 | `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). |
+| `abbreviations` | `''` | Site-wide abbreviations, one `KEY: expansion` per line; matching words get an `<abbr>` tooltip everywhere. |
 
 See [Profiles & rendering](profiles.md) for what each profile means.
 

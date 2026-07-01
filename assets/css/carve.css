@@ -684,6 +684,64 @@
 	background: #fff;
 }
 
+/* Editor-surface typography. The admin flattens headings (weight 400, near
+   body size), so give them an explicit hierarchy inside our editor panels.
+   Front-end headings inherit the theme and are left alone. */
+.wp-carve-ve-surface .ProseMirror,
+.wp-carve-preview,
+#wp-carve-live-preview {
+	font-size: 15px;
+	line-height: 1.6;
+}
+
+.wp-carve-ve-surface .ProseMirror :is(h1, h2, h3, h4, h5, h6),
+.wp-carve-preview :is(h1, h2, h3, h4, h5, h6),
+#wp-carve-live-preview :is(h1, h2, h3, h4, h5, h6) {
+	font-weight: 700;
+	line-height: 1.25;
+	margin: 1.1em 0 0.4em;
+}
+
+.wp-carve-ve-surface .ProseMirror h1,
+.wp-carve-preview h1,
+#wp-carve-live-preview h1 {
+	font-size: 2em;
+}
+
+.wp-carve-ve-surface .ProseMirror h2,
+.wp-carve-preview h2,
+#wp-carve-live-preview h2 {
+	font-size: 1.6em;
+}
+
+.wp-carve-ve-surface .ProseMirror h3,
+.wp-carve-preview h3,
+#wp-carve-live-preview h3 {
+	font-size: 1.3em;
+}
+
+.wp-carve-ve-surface .ProseMirror h4,
+.wp-carve-preview h4,
+#wp-carve-live-preview h4 {
+	font-size: 1.1em;
+}
+
+.wp-carve-ve-surface .ProseMirror h5,
+.wp-carve-preview h5,
+#wp-carve-live-preview h5 {
+	font-size: 1em;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #57606a;
+}
+
+.wp-carve-ve-surface .ProseMirror h6,
+.wp-carve-preview h6,
+#wp-carve-live-preview h6 {
+	font-size: 0.9em;
+	color: #57606a;
+}
+
 .wp-carve-ve-surface:focus-within {
 	border-color: #3858e9;
 	box-shadow: 0 0 0 1px #3858e9;

@@ -64,7 +64,7 @@ class Converter
             return '';
         }
 
-        $html = $this->converterFor($context, $profileOverride)->convert($carve);
+        $html = $this->converterFor($context, $profileOverride)->convert($this->abbreviationDefs() . $carve);
 
         /**
          * Filter the rendered HTML before it is returned to WordPress.
@@ -74,6 +74,33 @@ class Converter
          * @param string $context 'post' or 'comment'.
          */
         return (string)apply_filters('wp_carve_rendered_html', $html, $carve, $context);
+    }
+
+    /**
+     * Site-wide abbreviation definitions, from a `KEY: expansion` per line
+     * setting, emitted as Carve `*[KEY]: expansion` definition lines that render
+     * nothing themselves but turn matching words into <abbr> across all content.
+     */
+    private function abbreviationDefs(): string
+    {
+        $raw = (string)($this->settings['abbreviations'] ?? '');
+        if (trim($raw) === '') {
+            return '';
+        }
+        $defs = [];
+        foreach (preg_split('/\r\n|\r|\n/', $raw) ?: [] as $line) {
+            $line = trim($line);
+            if ($line === '' || !str_contains($line, ':')) {
+                continue;
+            }
+            [$key, $value] = array_map('trim', explode(':', $line, 2));
+            if ($key === '' || $value === '') {
+                continue;
+            }
+            $defs[] = '*[' . $key . ']: ' . $value;
+        }
+
+        return $defs !== [] ? implode("\n", $defs) . "\n\n" : '';
     }
 
     private function converterFor(string $context, ?string $profileOverride = null): CarveConverter

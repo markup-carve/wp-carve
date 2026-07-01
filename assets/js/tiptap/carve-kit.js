@@ -54,12 +54,14 @@ export async function buildCarveExtensions( options = {} ) {
 		{ DefinitionList, DefinitionTerm, DefinitionDescription },
 		{ FootnoteRef, FootnoteSection },
 		{ MediaEmbed },
+		{ CarveKeymap },
 	] = await Promise.all( [
 		import( './extensions/carve-div.js' + V ),
 		import( './extensions/carve-math.js' + V ),
 		import( './extensions/definition-list.js' + V ),
 		import( './extensions/footnote.js' + V ),
 		import( './extensions/media-embed.js' + V ),
+		import( './extensions/carve-keymap.js' + V ),
 	] );
 
 	return [
@@ -87,6 +89,7 @@ export async function buildCarveExtensions( options = {} ) {
 		FootnoteRef,
 		FootnoteSection,
 		MediaEmbed,
+		CarveKeymap,
 	];
 }
 

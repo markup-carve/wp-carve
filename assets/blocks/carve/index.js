@@ -277,6 +277,56 @@
 			setVal( next, pos, pos );
 		}
 
+		// Set (or toggle off) the heading level of the selected lines, replacing
+		// any existing #-markers instead of stacking more.
+		function setHeadingLine( level ) {
+			const { value, start, end } = sel();
+			const lineStart = value.lastIndexOf( '\n', start - 1 ) + 1;
+			const seg = value.slice( lineStart, end );
+			const lines = seg.split( '\n' );
+			const marker = '#'.repeat( level ) + ' ';
+			const exact = new RegExp( '^#{' + level + '} ' );
+			const allSame = lines.every( ( l ) => exact.test( l ) );
+			const replaced = lines
+				.map( ( l ) => {
+					const stripped = l.replace( /^#{1,6}\s+/, '' );
+					return allSame ? stripped : marker + stripped;
+				} )
+				.join( '\n' );
+			const next = value.slice( 0, lineStart ) + replaced + value.slice( end );
+			setVal( next, lineStart, lineStart + replaced.length );
+		}
+
+		// Strip Carve inline + line markers from the selection ("clear formatting").
+		function stripFormatting() {
+			const { value, start, end } = sel();
+			if ( start === end ) {
+				return;
+			}
+			let seg = value.slice( start, end );
+			seg = seg
+				.replace( /\*(.+?)\*/g, '$1' )
+				.replace( /\/(.+?)\//g, '$1' )
+				.replace( /_(.+?)_/g, '$1' )
+				.replace( /~(.+?)~/g, '$1' )
+				.replace( /==(.+?)==/g, '$1' )
+				.replace( /`(.+?)`/g, '$1' )
+				.replace( /\^(.+?)\^/g, '$1' )
+				.replace( /,,(.+?),,/g, '$1' );
+			seg = seg
+				.split( '\n' )
+				.map( ( l ) =>
+					l
+						.replace( /^\s*#{1,6}\s+/, '' )
+						.replace( /^\s*>\s?/, '' )
+						.replace( /^\s*[-*+]\s+(\[[ xX]\]\s+)?/, '' )
+						.replace( /^\s*\d+\.\s+/, '' )
+				)
+				.join( '\n' );
+			const next = value.slice( 0, start ) + seg + value.slice( end );
+			setVal( next, start, start + seg.length );
+		}
+
 		function buildTable( c, r ) {
 			const head = '| ' + Array.from( { length: c }, ( _, i ) => 'Col ' + ( i + 1 ) ).join( ' | ' ) + ' |';
 			const rule = '| ' + Array.from( { length: c }, () => '---' ).join( ' | ' ) + ' |';
@@ -348,7 +398,9 @@
 			} else if ( k === ',' ) {
 				wrap( ',,', ',,', 'sub' );
 			} else if ( /^Digit[1-6]$/.test( code ) ) {
-				linePrefix( '#'.repeat( Number( code.slice( 5 ) ) ) + ' ' );
+				setHeadingLine( Number( code.slice( 5 ) ) );
+			} else if ( k === '\\' ) {
+				stripFormatting();
 			} else {
 				handled = false;
 			}
@@ -410,7 +462,7 @@
 						label: __( 'Heading', 'carve-markup' ),
 						controls: [ 1, 2, 3, 4, 5, 6 ].map( ( n ) => ( {
 							title: 'H' + n,
-							onClick: () => linePrefix( '#'.repeat( n ) + ' ' ),
+							onClick: () => setHeadingLine( n ),
 						} ) ),
 					} ),
 					el( ToolbarButton, { icon: 'editor-bold', title: __( 'Strong (bold)', 'carve-markup' ), onClick: () => wrap( '*', '*', 'bold' ) } ),

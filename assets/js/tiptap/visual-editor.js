@@ -67,6 +67,8 @@ const TOOLBAR = [
 	{ label: 'Tip', title: 'Tip', run: ( e ) => e.chain().focus().toggleCarveDiv( { class: 'tip' } ).run() },
 	{ label: 'Warning', title: 'Warning', run: ( e ) => e.chain().focus().toggleCarveDiv( { class: 'warning' } ).run() },
 	{ label: 'Danger', title: 'Danger', run: ( e ) => e.chain().focus().toggleCarveDiv( { class: 'danger' } ).run() },
+	{ sep: true },
+	{ label: '⨯ Clear', title: 'Clear formatting (Ctrl/Cmd+\\)', run: ( e ) => e.chain().focus().clearNodes().unsetAllMarks().run() },
 ];
 
 /**

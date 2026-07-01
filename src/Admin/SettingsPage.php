@@ -159,6 +159,8 @@ class SettingsPage
         $this->text($s, 'smart_quotes_locale', __('Locale', 'carve-markup'), __('Quote style, e.g. en, de, fr.', 'carve-markup'), 'smart_quotes');
         $this->toggle($s, 'normalize_tabs', __('Normalize tabs', 'carve-markup'), __('Convert leading tabs in code to spaces.', 'carve-markup'));
         $this->gridEnd();
+        $this->group(__('Abbreviations', 'carve-markup'));
+        $this->textarea($s, 'abbreviations', __('Site-wide abbreviations', 'carve-markup'), __('One per line as KEY: expansion (e.g. HTML: HyperText Markup Language). Matching words get an <abbr> tooltip everywhere.', 'carve-markup'));
         $this->group(__('Media embeds', 'carve-markup'));
         $this->grid();
         $this->toggle($s, 'media_embed_enabled', __('Media embeds', 'carve-markup'), __('Embed YouTube, Vimeo, Spotify and 30+ providers via :youtube[ID] / :media[URL].', 'carve-markup'));
@@ -327,6 +329,26 @@ class SettingsPage
             esc_html($label),
             esc_attr($name),
             esc_attr((string)($s[$key] ?? '')),
+            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $s
+     * @param string $key
+     * @param string $label
+     * @param string $desc
+     */
+    private function textarea(array $s, string $key, string $label, string $desc = ''): void
+    {
+        $name = Settings::OPTION . '[' . $key . ']';
+        printf(
+            '<div class="wp-carve-card wp-carve-field">'
+            . '<span class="wp-carve-card-label">%s</span>'
+            . '<textarea name="%s" rows="5" class="large-text code">%s</textarea>%s</div>',
+            esc_html($label),
+            esc_attr($name),
+            esc_textarea((string)($s[$key] ?? '')),
             $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
