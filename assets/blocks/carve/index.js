@@ -629,9 +629,7 @@
 							{ title: __( 'Auto (URL)', 'carve-markup' ), onClick: () => inlineInsert( ':media[https://]', 7, 8 ) },
 						],
 					} ),
-					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: () => blockInsert( '---' ) } ),
-					cfg.pasteIngest &&
-						el( ToolbarButton, { icon: 'download', title: __( 'Import & convert', 'carve-markup' ), onClick: () => setImportOpen( true ) } )
+					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: () => blockInsert( '---' ) } )
 				),
 				el(
 					ToolbarGroup,
