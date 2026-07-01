@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
 
 use WP_CLI;
 use WP_Post;
+use WpCarve\Admin\ImportExport;
 use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
 use WpCarve\Admin\SettingsPage;
@@ -76,11 +77,13 @@ class Plugin
             // Whole-post Carve mode gets a plain code editor + live preview
             // instead of the rich-text/block editor.
             (new PostEditor($this->converter))->register();
+            (new ImportExport())->register();
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
         add_filter('script_loader_tag', [$this, 'deferFrontendScripts'], 10, 2);
         add_action('wp_head', [$this, 'autoOgImage'], 5);
+        add_filter('wp_carve_rendered_html', [$this, 'oembedBridge']);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -237,6 +240,38 @@ class Plugin
         }
 
         return str_replace('<script ', '<script defer ', $tag);
+    }
+
+    /**
+     * oEmbed fallback: when the media-embed extension is off, a standalone
+     * `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` renders as an `ext-*` span.
+     * Turn those into WordPress core oEmbeds so any oEmbed provider works even
+     * without carve-php-media-embed. No-op when media-embed produced iframes.
+     */
+    public function oembedBridge(string $html): string
+    {
+        if (!apply_filters('wp_carve_media_oembed', true) || !str_contains($html, 'ext-')) {
+            return $html;
+        }
+
+        $out = preg_replace_callback(
+            '#<p>\s*<span class="ext-(youtube|vimeo|media)">([^<]+)</span>\s*</p>#i',
+            static function (array $m): string {
+                $type = strtolower($m[1]);
+                $arg = html_entity_decode(trim($m[2]), ENT_QUOTES, 'UTF-8');
+                $url = match ($type) {
+                    'youtube' => 'https://www.youtube.com/watch?v=' . $arg,
+                    'vimeo' => 'https://vimeo.com/' . $arg,
+                    default => $arg,
+                };
+                $embed = wp_oembed_get($url);
+
+                return $embed ? '<div class="wp-carve-oembed">' . $embed . '</div>' : $m[0];
+            },
+            $html,
+        );
+
+        return $out ?? $html;
     }
 
     /**
