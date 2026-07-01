@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use WpCarve\Converter;
+use WpCarve\Plugin;
 use function __;
 use function esc_attr;
 use function esc_attr__;
@@ -57,9 +58,10 @@ class SlidesBlock
         $slides = $this->splitSlides($carve);
         $count = count($slides);
         $sections = [];
+        $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
 
         foreach ($slides as $index => $slide) {
-            $html = $this->converter->toHtml($slide, 'post');
+            $html = $this->converter->toHtml($slide, 'post', null, $safe);
             $sections[] = sprintf(
                 '<section class="wp-carve-slide%s" data-slide="%d" aria-label="%s">%s</section>',
                 $index === 0 ? ' is-active' : '',

@@ -113,7 +113,28 @@ if (!function_exists('get_post_meta')) {
 if (!function_exists('get_option')) {
     function get_option(string $name, mixed $default = false): mixed
     {
-        return $default;
+        return $GLOBALS['_wp_carve_test_options'][$name] ?? $default;
+    }
+}
+
+if (!function_exists('get_the_ID')) {
+    function get_the_ID(): int
+    {
+        return (int)($GLOBALS['_wp_carve_test_current_post'] ?? 0);
+    }
+}
+
+if (!function_exists('get_post_field')) {
+    function get_post_field(string $field, int $id = 0): mixed
+    {
+        return $GLOBALS['_wp_carve_test_posts'][$id]->$field ?? '';
+    }
+}
+
+if (!function_exists('user_can')) {
+    function user_can(int $userId, string $capability): bool
+    {
+        return (bool)($GLOBALS['_wp_carve_test_caps'][$userId][$capability] ?? false);
     }
 }
 

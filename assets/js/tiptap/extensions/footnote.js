@@ -64,7 +64,7 @@ export const FootnoteSection = Node.create( {
 					const items = Array.from( el.querySelectorAll( 'li' ) );
 					return items.map( ( li ) => {
 						const id = li.getAttribute( 'id' ) || '';
-						const label = id.replace( /^fn/, '' ) || String( items.indexOf( li ) + 1 );
+						const label = id.replace( /^fn[-:]?/, '' ) || String( items.indexOf( li ) + 1 );
 						const backlink = li.querySelector( '[role="doc-backlink"]' );
 						if ( backlink ) {
 							backlink.remove();

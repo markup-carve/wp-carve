@@ -94,6 +94,7 @@
 		const ctlRef = useRef( null );
 		const [ lossy, setLossy ] = useState( null );
 		const [ ready, setReady ] = useState( false );
+		const [ failed, setFailed ] = useState( false );
 
 		useEffect( () => {
 			let active = true;
@@ -128,7 +129,7 @@
 						}
 						setReady( true );
 					} )
-					.catch( () => setReady( true ) );
+					.catch( () => setFailed( true ) );
 			} );
 			return () => {
 				active = false;
@@ -281,9 +282,20 @@
 				)
 			);
 
+		const failNotice =
+			failed &&
+			el(
+				Notice,
+				{ status: 'warning', isDismissible: false },
+				__( 'The visual editor could not load. Switch to Write mode to keep editing.', 'carve-markup' ),
+				' ',
+				el( Button, { variant: 'secondary', size: 'small', onClick: onExit }, __( 'Back to Write', 'carve-markup' ) )
+			);
+
 		return el(
 			'div',
 			{ className: 'wp-carve-ve-wrap' },
+			failNotice,
 			visualToolbar,
 			modal,
 			el( 'div', {
@@ -417,7 +429,9 @@
 			let seg = value.slice( start, end );
 			seg = seg
 				.replace( /\*(.+?)\*/g, '$1' )
-				.replace( /\/(.+?)\//g, '$1' )
+				// Italic /../: skip `//` and `://` (URLs) - opening slash must not
+				// follow `:` or a slash, and the run must contain no slash.
+				.replace( /(^|[^:/])\/([^/\n]+?)\//g, '$1$2' )
 				.replace( /_(.+?)_/g, '$1' )
 				.replace( /~(.+?)~/g, '$1' )
 				.replace( /==(.+?)==/g, '$1' )

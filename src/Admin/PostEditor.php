@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
 
 use WP_Post;
 use WpCarve\Converter;
+use WpCarve\Plugin;
 use WpCarve\Settings;
 
 /**
@@ -106,7 +107,7 @@ class PostEditor
             return;
         }
 
-        $initial = $this->converter->toHtml((string)$post->post_content, 'post');
+        $initial = $this->converter->toHtml((string)$post->post_content, 'post', null, Plugin::safeForAuthor((int)$post->post_author));
         $toBlock = wp_nonce_url(
             admin_url('admin-post.php?action=wp_carve_to_block&post=' . $post->ID),
             'wp_carve_to_block_' . $post->ID,

@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 use WP_REST_Request;
 use WP_REST_Response;
 use WpCarve\Converter;
+use WpCarve\Plugin;
 
 /**
  * REST API: render Carve to HTML.
@@ -52,8 +53,13 @@ class RenderController
         $context = $request->get_param('context') === 'comment' ? 'comment' : 'post';
         $profile = (string)$request->get_param('profile');
 
+        // Gate raw HTML on the requesting user's capability, not the global
+        // setting, so an edit_posts user without unfiltered_html can't render
+        // raw HTML through the endpoint even when safe mode is globally off.
+        $safe = Plugin::safeForAuthor(get_current_user_id());
+
         return new WP_REST_Response([
-            'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null),
+            'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null, $safe),
         ], 200);
     }
 }

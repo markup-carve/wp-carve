@@ -15,7 +15,8 @@
 // sibling imports so the whole tiptap ES-module graph busts together.
 const MODULE_VER = new URL( import.meta.url ).search;
 
-let editorInstance = null;
+// serializeToCarve is a pure function shared across mounts; the editor instance
+// is per-mount (local) so multiple Carve blocks don't clobber each other.
 let serializeToCarve = null;
 
 /**
@@ -36,38 +37,28 @@ export async function initVisualEditor( container, initialHtml, onChange ) {
 	( { serializeToCarve } = await import( './serializer.js' + MODULE_VER ) );
 	const extensions = await buildCarveExtensions( { ver: MODULE_VER } );
 
-	if ( editorInstance ) {
-		editorInstance.destroy();
-		editorInstance = null;
-	}
-
 	container.innerHTML = '';
 
 	const surfaceEl = document.createElement( 'div' );
 	surfaceEl.className = 'wp-carve wp-carve-ve-surface';
 	container.appendChild( surfaceEl );
 
-	editorInstance = new Editor( {
+	const editor = new Editor( {
 		element: surfaceEl,
 		extensions,
 		content: initialHtml || '<p></p>',
-		onUpdate: ( { editor } ) => {
+		onUpdate: ( { editor: ed } ) => {
 			if ( onChange ) {
-				onChange( serializeToCarve( editor.getJSON() ) );
+				onChange( serializeToCarve( ed.getJSON() ) );
 			}
 		},
 	} );
 
 	return {
-		editor: editorInstance,
-		getCarve: () => serializeToCarve( editorInstance.getJSON() ),
-		setHtml: ( html ) => editorInstance.commands.setContent( html || '<p></p>' ),
-		destroy: () => {
-			if ( editorInstance ) {
-				editorInstance.destroy();
-				editorInstance = null;
-			}
-		},
+		editor,
+		getCarve: () => serializeToCarve( editor.getJSON() ),
+		setHtml: ( html ) => editor.commands.setContent( html || '<p></p>' ),
+		destroy: () => editor.destroy(),
 	};
 }
 

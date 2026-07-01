@@ -113,18 +113,20 @@ class Converter
 
     private function converterFor(string $context, ?string $profileOverride = null, ?bool $safe = null): CarveConverter
     {
+        $isComment = $context === 'comment';
+        $safeMode = $isComment ? true : ($safe ?? (bool)($this->settings['safe_mode'] ?? true));
+        // Key on the RESOLVED safe value (not the nullable input) so the cache
+        // can never return a converter whose safe mode differs from behavior.
         $cacheKey = $context
             . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '')
-            . ($safe !== null ? ($safe ? ':safe' : ':unsafe') : '');
+            . ($safeMode ? ':safe' : ':unsafe');
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
 
-        $isComment = $context === 'comment';
         $profileName = $profileOverride !== null && $profileOverride !== ''
             ? $profileOverride
             : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
-        $safeMode = $isComment ? true : ($safe ?? (bool)($this->settings['safe_mode'] ?? true));
         $softBreak = (string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline');
 
         $converter = new CarveConverter(

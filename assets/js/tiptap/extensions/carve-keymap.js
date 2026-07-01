@@ -46,9 +46,11 @@ export const CarveKeymap = Extension.create( {
 				const parent = $from.parent;
 				const atEnd = $from.parentOffset === parent.content.size;
 				const isPlainTextblock = parent.isTextblock && parent.type.name !== 'codeBlock';
-				const wrapper = $from.depth > 0 ? $from.node( -1 ) : null;
-				const inList = wrapper && ( wrapper.type.name === 'listItem' || wrapper.type.name === 'taskItem' );
-				if ( ! atEnd || ! isPlainTextblock || inList ) {
+				// Only reset for a top-level block (directly under doc). Inside
+				// lists, blockquotes or admonition containers, keep the default
+				// split so the user can't get trapped and nesting stays intact.
+				const topLevel = $from.depth === 1;
+				if ( ! atEnd || ! isPlainTextblock || ! topLevel ) {
 					return false;
 				}
 				return editor

@@ -83,7 +83,7 @@ class Plugin
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
         add_filter('script_loader_tag', [$this, 'deferFrontendScripts'], 10, 2);
         add_action('wp_head', [$this, 'autoOgImage'], 5);
-        add_filter('wp_carve_rendered_html', [$this, 'oembedBridge']);
+        add_filter('wp_carve_rendered_html', [$this, 'oembedBridge'], 10, 3);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -148,7 +148,7 @@ class Plugin
             return $excerpt;
         }
         $src = trim((string)$post->post_excerpt) !== '' ? $post->post_excerpt : $post->post_content;
-        $html = $this->converter->toHtml($src, 'post');
+        $html = $this->converter->toHtml($src, 'post', null, self::safeForAuthor((int)$post->post_author));
 
         return wp_trim_words(wp_strip_all_tags($html), 55);
     }
@@ -160,11 +160,12 @@ class Plugin
             return $content;
         }
 
-        $cached = RenderCache::read($post->ID);
+        $safe = self::safeForAuthor((int)$post->post_author);
+        $cached = RenderCache::read($post->ID, $safe);
         if ($cached !== null) {
             $rendered = $cached;
         } else {
-            $rendered = $this->converter->toHtml($post->post_content, 'post', null, self::safeForAuthor((int)$post->post_author));
+            $rendered = $this->converter->toHtml($post->post_content, 'post', null, $safe);
         }
 
         // Carve already produced block HTML; keep wpautop away from it.
@@ -248,9 +249,10 @@ class Plugin
      * Turn those into WordPress core oEmbeds so any oEmbed provider works even
      * without carve-php-media-embed. No-op when media-embed produced iframes.
      */
-    public function oembedBridge(string $html): string
+    public function oembedBridge(string $html, string $carve = '', string $context = 'post'): string
     {
-        if (!apply_filters('wp_carve_media_oembed', true) || !str_contains($html, 'ext-')) {
+        // Never fetch on behalf of untrusted commenters, and only when enabled.
+        if ($context === 'comment' || !apply_filters('wp_carve_media_oembed', true) || !str_contains($html, 'ext-')) {
             return $html;
         }
 
@@ -259,11 +261,23 @@ class Plugin
             static function (array $m): string {
                 $type = strtolower($m[1]);
                 $arg = html_entity_decode(trim($m[2]), ENT_QUOTES, 'UTF-8');
-                $url = match ($type) {
-                    'youtube' => 'https://www.youtube.com/watch?v=' . $arg,
-                    'vimeo' => 'https://vimeo.com/' . $arg,
-                    default => $arg,
-                };
+                if ($type === 'media') {
+                    // Arbitrary author-supplied URL: require a valid public http(s)
+                    // URL. wp_http_validate_url rejects loopback/private/link-local
+                    // hosts, closing the SSRF vector.
+                    $url = wp_http_validate_url($arg);
+                    if ($url === false) {
+                        return $m[0];
+                    }
+                } else {
+                    // Provider id only - restrict to a safe id charset.
+                    if (!preg_match('/^[A-Za-z0-9_-]+$/', $arg)) {
+                        return $m[0];
+                    }
+                    $url = $type === 'youtube'
+                        ? 'https://www.youtube.com/watch?v=' . $arg
+                        : 'https://vimeo.com/' . $arg;
+                }
                 $embed = wp_oembed_get($url);
 
                 return $embed ? '<div class="wp-carve-oembed">' . $embed . '</div>' : $m[0];
