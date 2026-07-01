@@ -23,9 +23,12 @@ textarea + live preview; Visual mounts the Tiptap editor.
 - On every edit the document is serialized back to **Carve markup**
   (`serializeToCarve()`) and stored as the block's `carve` attribute. Source mode
   always reflects the canonical Carve.
-- The toolbar covers marks (bold/italic/underline/strike/highlight/super/sub/
-  code), headings H1-H3, quote, bullet/ordered lists, code block, divider, link,
-  image, and note/tip/warning/danger admonitions.
+- The toolbar is the **WordPress block toolbar** (same as Write mode, only the
+  actions differ - Tiptap commands here vs source inserts in Write): headings,
+  strong/emphasis/underline/inline-code, link, image, lists, quote, table, code
+  block, admonitions, media embed, footnote, math, and clear formatting.
+- **Distraction-free**: a full-screen toggle in the mode bar expands the editor
+  over the whole viewport (Write/Split).
 
 ## Lossy round-trip warning
 

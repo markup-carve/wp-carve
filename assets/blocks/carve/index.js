@@ -144,6 +144,114 @@
 		// approved, block the editor behind a modal.
 		const gated = ready && lossy && ! approved;
 
+		// Visual-mode toolbar rendered through the SAME WordPress block toolbar as
+		// Write mode, so both look identical - only the actions differ (Tiptap
+		// commands here vs source-text inserts in Write).
+		function cmd( fn ) {
+			return () => {
+				const ed = ctlRef.current && ctlRef.current.editor;
+				if ( ed ) {
+					fn( ed.chain().focus() ).run();
+				}
+			};
+		}
+		function insertNode( node ) {
+			return () => {
+				const ed = ctlRef.current && ctlRef.current.editor;
+				if ( ed ) {
+					ed.chain().focus().insertContent( node ).run();
+				}
+			};
+		}
+		function promptLink() {
+			const ed = ctlRef.current && ctlRef.current.editor;
+			if ( ! ed ) {
+				return;
+			}
+			const url = window.prompt( __( 'Link URL', 'carve-markup' ) );
+			if ( url === null ) {
+				return;
+			}
+			const chain = ed.chain().focus();
+			( url === '' ? chain.unsetLink() : chain.setLink( { href: url } ) ).run();
+		}
+		function promptImage() {
+			const ed = ctlRef.current && ctlRef.current.editor;
+			if ( ! ed ) {
+				return;
+			}
+			const src = window.prompt( __( 'Image URL', 'carve-markup' ) );
+			if ( ! src ) {
+				return;
+			}
+			ed.chain().focus().setImage( { src, alt: window.prompt( __( 'Alt text', 'carve-markup' ), '' ) || '' } ).run();
+		}
+
+		const visualToolbar =
+			ready && ! gated &&
+			el(
+				BlockControls,
+				null,
+				el(
+					ToolbarGroup,
+					null,
+					el( ToolbarDropdownMenu, {
+						icon: 'heading',
+						label: __( 'Heading', 'carve-markup' ),
+						controls: [ 1, 2, 3, 4, 5, 6 ].map( ( n ) => ( { title: 'H' + n, onClick: cmd( ( c ) => c.toggleHeading( { level: n } ) ) } ) ),
+					} ),
+					el( ToolbarButton, { icon: 'editor-bold', title: __( 'Strong (bold)', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleBold() ) } ),
+					el( ToolbarButton, { icon: 'editor-italic', title: __( 'Emphasis (italic)', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleItalic() ) } ),
+					el( ToolbarButton, { icon: 'editor-underline', title: __( 'Underline', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleUnderline() ) } ),
+					el( ToolbarButton, { icon: 'editor-code', title: __( 'Inline code', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleCode() ) } ),
+					el( ToolbarButton, { icon: 'admin-links', title: __( 'Link', 'carve-markup' ), onClick: promptLink } ),
+					el( ToolbarButton, { icon: 'format-image', title: __( 'Image', 'carve-markup' ), onClick: promptImage } )
+				),
+				el(
+					ToolbarGroup,
+					null,
+					el( ToolbarDropdownMenu, {
+						icon: 'editor-ul',
+						label: __( 'List', 'carve-markup' ),
+						controls: [
+							{ title: __( 'Bullet list', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleBulletList() ) },
+							{ title: __( 'Ordered list', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleOrderedList() ) },
+						],
+					} ),
+					el( ToolbarButton, { icon: 'editor-quote', title: __( 'Blockquote', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleBlockquote() ) } ),
+					el( ToolbarButton, { icon: 'editor-table', title: __( 'Table', 'carve-markup' ), onClick: cmd( ( c ) => c.insertTable( { rows: 3, cols: 3, withHeaderRow: true } ) ) } ),
+					el( ToolbarButton, { icon: 'editor-code', title: __( 'Code block', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleCodeBlock() ) } ),
+					el( ToolbarDropdownMenu, {
+						icon: 'info',
+						label: __( 'Admonition', 'carve-markup' ),
+						controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: cmd( ( c ) => c.toggleCarveDiv( { class: t } ) ) } ) ),
+					} ),
+					el( ToolbarDropdownMenu, {
+						icon: 'format-video',
+						label: __( 'Media embed', 'carve-markup' ),
+						controls: [
+							{ title: 'YouTube', onClick: insertNode( { type: 'mediaEmbed', attrs: { provider: 'youtube', mediaId: 'VIDEO_ID' } } ) },
+							{ title: 'Vimeo', onClick: insertNode( { type: 'mediaEmbed', attrs: { provider: 'vimeo', mediaId: 'VIDEO_ID' } } ) },
+						],
+					} ),
+					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: cmd( ( c ) => c.setHorizontalRule() ) } )
+				),
+				el(
+					ToolbarGroup,
+					null,
+					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: insertNode( { type: 'footnoteRef', attrs: { label: '1' } } ) } ),
+					el( ToolbarDropdownMenu, {
+						icon: 'calculator',
+						label: __( 'Math', 'carve-markup' ),
+						controls: [
+							{ title: __( 'Inline math', 'carve-markup' ), onClick: insertNode( { type: 'carveMath', attrs: { tex: 'x', display: false } } ) },
+							{ title: __( 'Display math', 'carve-markup' ), onClick: insertNode( { type: 'carveMath', attrs: { tex: 'x', display: true } } ) },
+						],
+					} ),
+					el( ToolbarButton, { icon: 'editor-removeformatting', title: __( 'Clear formatting', 'carve-markup' ), onClick: cmd( ( c ) => c.clearNodes().unsetAllMarks() ) } )
+				)
+			);
+
 		const modal =
 			gated &&
 			el(
@@ -176,6 +284,7 @@
 		return el(
 			'div',
 			{ className: 'wp-carve-ve-wrap' },
+			visualToolbar,
 			modal,
 			el( 'div', {
 				className: 'wp-carve-ve',
@@ -205,6 +314,7 @@
 		const [ importText, setImportText ] = useState( '' );
 		// Approve entering Visual mode once per block session when lossy.
 		const [ visualApproved, setVisualApproved ] = useState( false );
+		const [ fullscreen, setFullscreen ] = useState( false );
 		const taRef = useRef( null );
 		const timer = useRef( null );
 
@@ -551,6 +661,19 @@
 						label
 					)
 				)
+			),
+			el(
+				Button,
+				{
+					size: 'small',
+					variant: 'tertiary',
+					className: 'wp-carve-fullscreen-toggle',
+					isPressed: fullscreen,
+					onClick: () => setFullscreen( ! fullscreen ),
+					icon: fullscreen ? 'fullscreen-exit-alt' : 'fullscreen-alt',
+					label: fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Distraction-free', 'carve-markup' ),
+					showTooltip: true,
+				}
 			)
 		);
 
@@ -592,7 +715,7 @@
 
 		return el(
 			'div',
-			blockProps,
+			{ ...blockProps, className: ( blockProps.className || '' ) + ( fullscreen ? ' is-carve-fullscreen' : '' ) },
 			toolbar,
 			el(
 				InspectorControls,

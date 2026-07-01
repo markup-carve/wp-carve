@@ -2,7 +2,27 @@
 
 /* Carve block editor: mode tabs, source field, split view, cheat sheet. */
 .wp-carve-modes {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
 	margin-bottom: 8px;
+}
+
+/* Distraction-free / full-screen Write mode. */
+.wp-carve-block.is-carve-fullscreen {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	margin: 0;
+	max-width: none;
+	padding: 24px clamp( 16px, 8vw, 120px );
+	background: #fff;
+	overflow: auto;
+}
+
+.wp-carve-block.is-carve-fullscreen .wp-carve-source {
+	min-height: 70vh;
 }
 
 .wp-carve-source {
@@ -1092,5 +1112,9 @@
 
 	.wp-carve-ve-sep {
 		background: #30363d;
+	}
+
+	.wp-carve-block.is-carve-fullscreen {
+		background: #0d1117;
 	}
 }
