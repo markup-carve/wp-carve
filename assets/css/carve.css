@@ -43,13 +43,25 @@
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 12px;
-	align-items: start;
+	align-items: stretch;
+}
+
+.wp-carve-split .wp-carve-source {
+	min-height: 28em;
+	resize: vertical;
 }
 
 .wp-carve-split .wp-carve-preview {
 	margin-top: 0;
-	max-height: 40em;
+	min-height: 28em;
+	max-height: 70vh;
 	overflow: auto;
+}
+
+.wp-carve-block.is-carve-fullscreen .wp-carve-split .wp-carve-source,
+.wp-carve-block.is-carve-fullscreen .wp-carve-split .wp-carve-preview {
+	min-height: 78vh;
+	max-height: none;
 }
 
 .wp-carve-cheat {

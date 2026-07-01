@@ -24,6 +24,16 @@
 			pre.dataset.carveEnhanced = '1';
 			pre.style.position = pre.style.position || 'relative';
 
+			// Surface the language as data-lang so the pill (pre[data-lang]::after)
+			// shows it. Torchlight already sets data-lang; this covers plain blocks
+			// (<code class="language-php">).
+			if ( ! pre.dataset.lang ) {
+				const langMatch = ( code.className || '' ).match( /language-([\w+#-]+)/ );
+				if ( langMatch && langMatch[ 1 ] !== 'text' ) {
+					pre.dataset.lang = langMatch[ 1 ];
+				}
+			}
+
 			// Copy button (icon).
 			const btn = document.createElement( 'button' );
 			btn.type = 'button';
