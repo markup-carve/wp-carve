@@ -78,7 +78,7 @@ export function serializeToCarve( doc ) {
 				const lang = String( node.attrs?.language || '' );
 				const code = ( node.content || [] ).map( ( c ) => c.text || '' ).join( '' );
 				const fence = findSafeFence( code );
-				output += fence + ( lang ? ' ' + lang : '' ) + '\n' + code + '\n' + fence + '\n';
+				output += fence + lang + '\n' + code + '\n' + fence + '\n';
 				break;
 			}
 

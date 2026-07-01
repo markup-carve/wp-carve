@@ -100,7 +100,7 @@ img.ProseMirror-separator {
 `;break;case"bulletList":case"orderedList":case"taskList":{let d=a.attrs?.start||1;(a.content||[]).forEach(u=>{let f="  ".repeat(c);if(a.type==="bulletList")e+=f+"- ";else if(a.type==="orderedList")e+=f+d+". ",d++;else{let h=u.attrs?.checked?"x":" ";e+=f+"- ["+h+"] "}r(u,c)});break}case"blockquote":(a.content||[]).forEach((d,u)=>{o(d).replace(/\n$/,"").split(`
 `).forEach(f=>{e+="> "+f+`
 `}),u<(a.content||[]).length-1&&(e+=`>
-`)});break;case"codeBlock":{let d=String(a.attrs?.language||""),u=(a.content||[]).map(h=>h.text||"").join(""),f=l(u);e+=f+(d?" "+d:"")+`
+`)});break;case"codeBlock":{let d=String(a.attrs?.language||""),u=(a.content||[]).map(h=>h.text||"").join(""),f=l(u);e+=f+d+`
 `+u+`
 `+f+`
 `;break}case"horizontalRule":e+=`---

@@ -34,6 +34,21 @@
 		'quote',
 	];
 
+	const CODE_LANGS = [
+		{ label: __( 'Plain text', 'carve-markup' ), value: null },
+		{ label: 'PHP', value: 'php' },
+		{ label: 'JavaScript', value: 'javascript' },
+		{ label: 'TypeScript', value: 'typescript' },
+		{ label: 'HTML', value: 'html' },
+		{ label: 'CSS', value: 'css' },
+		{ label: 'JSON', value: 'json' },
+		{ label: 'Bash', value: 'bash' },
+		{ label: 'Python', value: 'python' },
+		{ label: 'SQL', value: 'sql' },
+		{ label: 'YAML', value: 'yaml' },
+		{ label: 'Markdown', value: 'markdown' },
+	];
+
 	function cap( s ) {
 		return s.charAt( 0 ).toUpperCase() + s.slice( 1 );
 	}
@@ -95,6 +110,8 @@
 		const [ lossy, setLossy ] = useState( null );
 		const [ ready, setReady ] = useState( false );
 		const [ failed, setFailed ] = useState( false );
+		// eslint-disable-next-line no-unused-vars
+		const [ tick, setTick ] = useState( 0 );
 
 		useEffect( () => {
 			let active = true;
@@ -117,6 +134,9 @@
 						}
 						ctl = instance;
 						ctlRef.current = instance;
+						// Re-render the toolbar as the cursor moves so context
+						// controls (code language, admonition type) track the node.
+						instance.editor.on( 'selectionUpdate', () => setTick( ( t ) => t + 1 ) );
 						// Round-trip check: seed -> serialize back. Ignore pure
 						// whitespace / reflow (normalizeLines collapses it); only
 						// real content drift gates entry.
@@ -188,6 +208,29 @@
 			ed.chain().focus().setImage( { src, alt: window.prompt( __( 'Alt text', 'carve-markup' ), '' ) || '' } ).run();
 		}
 
+		// Context controls: attribute editors for the node the cursor is in.
+		const ed = ctlRef.current && ctlRef.current.editor;
+		const setAttr = ( name, attrs ) => () => ed && ed.chain().focus().updateAttributes( name, attrs ).run();
+		const contextGroup =
+			ed &&
+			( ed.isActive( 'codeBlock' ) || ed.isActive( 'carveDiv' ) ) &&
+			el(
+				ToolbarGroup,
+				null,
+				ed.isActive( 'codeBlock' ) &&
+					el( ToolbarDropdownMenu, {
+						icon: 'editor-code',
+						label: __( 'Code language', 'carve-markup' ),
+						controls: CODE_LANGS.map( ( l ) => ( { title: l.label, onClick: setAttr( 'codeBlock', { language: l.value } ) } ) ),
+					} ),
+				ed.isActive( 'carveDiv' ) &&
+					el( ToolbarDropdownMenu, {
+						icon: 'info',
+						label: __( 'Admonition type', 'carve-markup' ),
+						controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: setAttr( 'carveDiv', { class: t } ) } ) ),
+					} )
+			);
+
 		const visualToolbar =
 			ready && ! gated &&
 			el(
@@ -250,7 +293,8 @@
 						],
 					} ),
 					el( ToolbarButton, { icon: 'editor-removeformatting', title: __( 'Clear formatting', 'carve-markup' ), onClick: cmd( ( c ) => c.clearNodes().unsetAllMarks() ) } )
-				)
+				),
+				contextGroup
 			);
 
 		const modal =

@@ -90,6 +90,18 @@ test( 'table cell folds hard breaks to a space (no broken row)', () => {
 	assert.equal( out( doc( [ table ] ) ), '| A | B |\n| --- | --- |\n| line1 line2 | x |' );
 } );
 
+test( 'code block carries its language', () => {
+	const cb = { type: 'codeBlock', attrs: { language: 'php' }, content: [ txt( '$x = 1;' ) ] };
+	assert.equal( out( doc( [ cb ] ) ), '```php\n$x = 1;\n```' );
+	const plain = { type: 'codeBlock', attrs: { language: null }, content: [ txt( 'plain' ) ] };
+	assert.equal( out( doc( [ plain ] ) ), '```\nplain\n```' );
+} );
+
+test( 'admonition type comes from the div class', () => {
+	const div = { type: 'carveDiv', attrs: { class: 'tip' }, content: [ para( txt( 'hi' ) ) ] };
+	assert.equal( out( doc( [ div ] ) ), '::: tip\nhi\n:::' );
+} );
+
 test( 'admonition div', () => {
 	const div = { type: 'carveDiv', attrs: { class: 'note' }, content: [ para( txt( 'hi' ) ) ] };
 	assert.equal( out( doc( [ div ] ) ), '::: note\nhi\n:::' );
