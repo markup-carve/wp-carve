@@ -616,43 +616,6 @@
 }
 
 /* --- Visual editor (Tiptap foundation) --- */
-.wp-carve-mode-toggle {
-	margin-bottom: 8px;
-}
-
-.wp-carve-ve-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px;
-	padding: 6px;
-	border: 1px solid #dcdcde;
-	border-bottom: none;
-	border-radius: 4px 4px 0 0;
-	background: #f6f7f7;
-}
-
-.wp-carve-ve-toolbar button {
-	min-width: 30px;
-	padding: 2px 8px;
-	border: 1px solid #c3c4c7;
-	border-radius: 3px;
-	background: #fff;
-	cursor: pointer;
-	font-size: 12px;
-	line-height: 1.6;
-}
-
-.wp-carve-ve-toolbar button:hover {
-	background: #f0f0f1;
-}
-
-.wp-carve-ve-sep {
-	width: 1px;
-	align-self: stretch;
-	margin: 0 2px;
-	background: #dcdcde;
-}
-
 .wp-carve-ve-lossy .wp-carve-ve-diff {
 	margin: 0.5em 0 0;
 	max-height: 12em;
@@ -1093,25 +1056,6 @@
 		background: #0d1117;
 		color: #c9d1d9;
 		border-color: #30363d;
-	}
-
-	.wp-carve-ve-toolbar {
-		background: #161b22;
-		border-color: #30363d;
-	}
-
-	.wp-carve-ve-toolbar button {
-		background: #21262d;
-		color: #c9d1d9;
-		border-color: #30363d;
-	}
-
-	.wp-carve-ve-toolbar button:hover {
-		background: #30363d;
-	}
-
-	.wp-carve-ve-sep {
-		background: #30363d;
 	}
 
 	.wp-carve-block.is-carve-fullscreen {

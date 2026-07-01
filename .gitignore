@@ -1,6 +1,7 @@
 /vendor/
 /node_modules/
 /assets/js/vendor/*
+!/assets/js/vendor/carve.js
 !/assets/js/vendor/mermaid.min.js
 !/assets/js/vendor/katex/
 !/assets/js/vendor/chart.umd.min.js

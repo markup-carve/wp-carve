@@ -316,6 +316,7 @@
 		const [ visualApproved, setVisualApproved ] = useState( false );
 		const [ fullscreen, setFullscreen ] = useState( false );
 		const taRef = useRef( null );
+		const previewRef = useRef( null );
 		const timer = useRef( null );
 
 		const showPreview = mode === 'preview' || mode === 'split';
@@ -677,6 +678,20 @@
 			)
 		);
 
+		// In Split mode, scrolling the source scrolls the preview proportionally.
+		function syncScroll() {
+			if ( mode !== 'split' ) {
+				return;
+			}
+			const ta = taRef.current;
+			const pv = previewRef.current;
+			if ( ! ta || ! pv ) {
+				return;
+			}
+			const ratio = ta.scrollTop / Math.max( 1, ta.scrollHeight - ta.clientHeight );
+			pv.scrollTop = ratio * Math.max( 0, pv.scrollHeight - pv.clientHeight );
+		}
+
 		const sourceField = el( 'textarea', {
 			ref: taRef,
 			className: 'wp-carve-source',
@@ -687,9 +702,11 @@
 			onChange: ( e ) => setAttributes( { carve: e.target.value } ),
 			onKeyDown,
 			onPaste,
+			onScroll: syncScroll,
 		} );
 
 		const previewField = el( 'div', {
+			ref: previewRef,
 			className: 'wp-carve wp-carve-preview',
 			dangerouslySetInnerHTML: { __html: html },
 		} );

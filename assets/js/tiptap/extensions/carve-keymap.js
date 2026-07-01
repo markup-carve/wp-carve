@@ -34,21 +34,35 @@ export const CarveKeymap = Extension.create( {
 			'Mod-Shift-7': () => editor.chain().focus().toggleOrderedList().run(),
 			// Clear formatting: node type back to paragraph + drop all marks.
 			'Mod-\\': () => editor.chain().focus().clearNodes().unsetAllMarks().run(),
-			// Enter at the end of a heading starts a clean paragraph (not another
-			// heading, and with no carried marks).
+			// Enter at the END of any textblock starts a fresh, mark-free
+			// paragraph - so heading, bold, italic, etc. all reset on a new line
+			// instead of carrying over. Mid-block splits and lists keep the
+			// default behavior.
 			Enter: () => {
-				const { selection } = editor.state;
-				const { $from, empty } = selection;
-				if ( ! empty || $from.parent.type.name !== 'heading' ) {
+				const { $from, empty } = editor.state.selection;
+				if ( ! empty ) {
 					return false;
 				}
-				if ( $from.parentOffset !== $from.parent.content.size ) {
+				const parent = $from.parent;
+				const atEnd = $from.parentOffset === parent.content.size;
+				const isPlainTextblock = parent.isTextblock && parent.type.name !== 'codeBlock';
+				const wrapper = $from.depth > 0 ? $from.node( -1 ) : null;
+				const inList = wrapper && ( wrapper.type.name === 'listItem' || wrapper.type.name === 'taskItem' );
+				if ( ! atEnd || ! isPlainTextblock || inList ) {
 					return false;
 				}
 				return editor
 					.chain()
 					.insertContentAt( $from.after(), { type: 'paragraph' } )
 					.setTextSelection( $from.after() + 1 )
+					// Belt-and-suspenders: drop any stored marks so the new line is
+					// not bold/italic/etc. even if the fresh paragraph inherited them.
+					.command( ( { tr, dispatch } ) => {
+						if ( dispatch ) {
+							dispatch( tr.setStoredMarks( [] ) );
+						}
+						return true;
+					} )
 					.run();
 			},
 		};
