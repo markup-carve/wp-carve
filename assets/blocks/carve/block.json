@@ -17,6 +17,10 @@
         "carve": {
             "type": "string",
             "default": ""
+        },
+        "profile": {
+            "type": "string",
+            "default": ""
         }
     },
     "editorScript": "wp-carve-editor",

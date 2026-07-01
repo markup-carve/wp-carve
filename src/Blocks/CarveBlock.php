@@ -43,7 +43,8 @@ class CarveBlock
             return '';
         }
 
-        $html = $this->converter->toHtml($carve, 'post');
+        $profile = (string)($attributes['profile'] ?? '');
+        $html = $this->converter->toHtml($carve, 'post', $profile !== '' ? $profile : null);
 
         return sprintf('<div class="wp-carve">%s</div>', $html);
     }

@@ -57,7 +57,7 @@ See [`docs/`](docs/README.md): [settings](docs/settings.md),
 
 ## Roadmap
 
-- Visual editor: a Tiptap WYSIWYG **foundation** ships behind the `visual_editor` setting (core constructs round-trip; see [docs/visual-editor.md](docs/visual-editor.md)). Full per-construct parity (footnotes, tables, tabs, code-groups, math) is in progress.
+- Visual editor: a Tiptap WYSIWYG **foundation** ships behind the `visual_editor_mode` setting (core constructs round-trip; see [docs/visual-editor.md](docs/visual-editor.md)). Full per-construct parity (footnotes, tables, tabs, code-groups, math) is in progress.
 - Native per-construct blocks (admonition, code-group, table-with-spans).
 - Lossless HTML ↔ Carve round-trip editing.
 

@@ -1,5 +1,55 @@
 /* wp-carve front-end + editor styles */
 
+/* Carve block editor: mode tabs, source field, split view, cheat sheet. */
+.wp-carve-modes {
+	margin-bottom: 8px;
+}
+
+.wp-carve-source {
+	width: 100%;
+	font-family: Menlo, Consolas, monospace;
+	font-size: 13px;
+	line-height: 1.5;
+	tab-size: 2;
+	-moz-tab-size: 2;
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	resize: vertical;
+	box-sizing: border-box;
+}
+
+.wp-carve-split {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	align-items: start;
+}
+
+.wp-carve-split .wp-carve-preview {
+	margin-top: 0;
+	max-height: 40em;
+	overflow: auto;
+}
+
+.wp-carve-cheat {
+	margin: 0;
+	list-style: none;
+}
+
+.wp-carve-cheat li {
+	margin: 0 0 4px;
+}
+
+.wp-carve-cheat code {
+	font-size: 12px;
+}
+
+.wp-carve-count {
+	margin-top: 0;
+	color: #646970;
+}
+
 /* Whole-post Carve mode: live preview under the classic code editor. */
 .wp-carve-live-preview-wrap {
 	margin-top: 16px;

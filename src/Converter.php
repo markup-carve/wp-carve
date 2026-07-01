@@ -52,14 +52,18 @@ class Converter
 
     /**
      * Render Carve source to HTML for a given context ('post' or 'comment').
+     *
+     * $profileOverride forces a specific content profile (full / article /
+     * comment / minimal / none) regardless of the context default - used by the
+     * Carve block's per-block profile attribute.
      */
-    public function toHtml(string $carve, string $context = 'post'): string
+    public function toHtml(string $carve, string $context = 'post', ?string $profileOverride = null): string
     {
         if (trim($carve) === '') {
             return '';
         }
 
-        $html = $this->converterFor($context)->convert($carve);
+        $html = $this->converterFor($context, $profileOverride)->convert($carve);
 
         /**
          * Filter the rendered HTML before it is returned to WordPress.
@@ -71,14 +75,19 @@ class Converter
         return (string)apply_filters('wp_carve_rendered_html', $html, $carve, $context);
     }
 
-    private function converterFor(string $context): CarveConverter
+    private function converterFor(string $context, ?string $profileOverride = null): CarveConverter
     {
-        if (isset($this->cache[$context])) {
-            return $this->cache[$context];
+        $cacheKey = $profileOverride !== null && $profileOverride !== ''
+            ? $context . ':' . $profileOverride
+            : $context;
+        if (isset($this->cache[$cacheKey])) {
+            return $this->cache[$cacheKey];
         }
 
         $isComment = $context === 'comment';
-        $profileName = (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
+        $profileName = $profileOverride !== null && $profileOverride !== ''
+            ? $profileOverride
+            : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
         $safeMode = $isComment ? true : (bool)($this->settings['safe_mode'] ?? true);
 
         $converter = new CarveConverter(
@@ -103,7 +112,7 @@ class Converter
          */
         do_action('wp_carve_converter', $converter, $context);
 
-        return $this->cache[$context] = $converter;
+        return $this->cache[$cacheKey] = $converter;
     }
 
     private function addPostExtensions(CarveConverter $converter): void

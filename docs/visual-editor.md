@@ -1,15 +1,16 @@
 # Visual editor (foundation)
 
 The plugin ships a **foundation** of a Tiptap-based WYSIWYG editor for the Carve
-block. It is opt-in (`visual_editor` setting, off by default) and experimental:
+block. It is opt-in (`visual_editor_mode` setting, off by default) and experimental:
 the core constructs work and round-trip to Carve; the long tail of
 carve-specific constructs is being filled in incrementally.
 
 ## Enabling it
 
-Turn on **Settings → Carve Markup → Visual editor**. The Carve block then shows a
-**Visual / Source** toggle. Source mode is the existing textarea + live preview;
-Visual mode mounts the Tiptap editor.
+Set **Settings → Carve Markup → Visual editor** to `enabled` (or
+`enabled_default` to open blocks in Visual). The Carve block then shows a
+**Visual** tab alongside Write / Split / Preview. Write/Split are the source
+textarea + live preview; Visual mounts the Tiptap editor.
 
 ## How it works
 

@@ -58,7 +58,7 @@ Each diagram renderer is off by default; its JavaScript loads only on pages that
 | Key | Default | What it does |
 | --- | --- | --- |
 | `live_preview` | `true` | In-browser instant block preview (needs the bundled `assets/js/vendor/carve.js`). |
-| `visual_editor` | `false` | Show the experimental Tiptap "Visual" mode toggle in the block. See [Visual editor](visual-editor.md). |
+| `visual_editor_mode` | `disabled` | Tiptap "Visual" tab in the Carve block: `disabled` / `enabled` / `enabled_default` (open in Visual). See [Visual editor](visual-editor.md). |
 | `paste_ingest` | `true` | Paste Markdown / Djot / BBCode / HTML and convert to Carve. |
 | `frontmatter_meta` | `true` | Map `---` frontmatter to excerpt / SEO / meta. |
 | `render_cache` | `true` | Cache rendered HTML in post meta on save. |

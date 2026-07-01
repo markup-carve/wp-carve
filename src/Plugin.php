@@ -201,10 +201,12 @@ class Plugin
             'livePreview' => (bool)Settings::get('live_preview'),
             'pasteIngest' => (bool)Settings::get('paste_ingest'),
             // Foundation Tiptap visual editor: URL of the lazy-loaded ES module
-            // (empty string disables the Visual mode toggle in the block).
-            'visualEditor' => Settings::get('visual_editor')
+            // (empty string hides the Visual tab in the block).
+            'visualEditor' => Settings::get('visual_editor_mode') !== 'disabled'
                 ? esc_url_raw(WP_CARVE_URL . 'assets/js/tiptap/visual-editor.js')
                 : '',
+            // Default mode when a Carve block is opened.
+            'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
         ]);
     }
 

@@ -50,7 +50,7 @@ class Settings
             'tab_width' => 2,
             // Innovation toggles.
             'live_preview' => true,
-            'visual_editor' => false,
+            'visual_editor_mode' => 'disabled',
             'paste_ingest' => true,
             'frontmatter_meta' => true,
             'render_cache' => true,
@@ -74,6 +74,13 @@ class Settings
         if (!is_array($stored)) {
             $stored = [];
         }
+
+        // Back-compat: the boolean `visual_editor` became the 3-way
+        // `visual_editor_mode` (disabled / enabled / enabled_default).
+        if (!isset($stored['visual_editor_mode']) && isset($stored['visual_editor'])) {
+            $stored['visual_editor_mode'] = $stored['visual_editor'] ? 'enabled' : 'disabled';
+        }
+        unset($stored['visual_editor']);
 
         return $stored + self::defaults();
     }

@@ -41,6 +41,7 @@ class RenderController
             'args' => [
                 'carve' => ['type' => 'string', 'required' => true],
                 'context' => ['type' => 'string', 'default' => 'post'],
+                'profile' => ['type' => 'string', 'default' => ''],
             ],
         ]);
     }
@@ -49,9 +50,10 @@ class RenderController
     {
         $carve = (string)$request->get_param('carve');
         $context = $request->get_param('context') === 'comment' ? 'comment' : 'post';
+        $profile = (string)$request->get_param('profile');
 
         return new WP_REST_Response([
-            'html' => $this->converter->toHtml($carve, $context),
+            'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null),
         ], 200);
     }
 }

@@ -175,7 +175,17 @@ class SettingsPage
         $this->group(__('Editor & workflow', 'carve-markup'));
         $this->grid();
         $this->toggle($s, 'live_preview', __('Live preview', 'carve-markup'), __('In-browser preview while editing (carve-js).', 'carve-markup'));
-        $this->toggle($s, 'visual_editor', __('Visual editor', 'carve-markup'), __('Tiptap visual editor (experimental).', 'carve-markup'));
+        $this->select(
+            $s,
+            'visual_editor_mode',
+            __('Visual editor', 'carve-markup'),
+            [
+                'disabled' => __('Disabled', 'carve-markup'),
+                'enabled' => __('Visual tab available', 'carve-markup'),
+                'enabled_default' => __('Visual tab, open by default', 'carve-markup'),
+            ],
+            __('Adds a Tiptap WYSIWYG tab to the Carve block (experimental).', 'carve-markup'),
+        );
         $this->toggle($s, 'paste_ingest', __('Paste ingest', 'carve-markup'), __('Convert pasted Markdown/Djot/BBCode/HTML to Carve.', 'carve-markup'));
         $this->toggle($s, 'frontmatter_meta', __('Frontmatter to meta', 'carve-markup'), __('Map frontmatter to post meta and SEO fields.', 'carve-markup'));
         $this->toggle($s, 'render_cache', __('Render cache', 'carve-markup'), __('Cache rendered HTML on save.', 'carve-markup'));
@@ -243,7 +253,7 @@ class SettingsPage
      * @param array<string, mixed> $s
      * @param string $label
      * @param string $key
-     * @param array<int, string> $options
+     * @param array<int|string, string> $options
      * @param string $depends
      * @param string $desc
      */
@@ -252,8 +262,11 @@ class SettingsPage
         $name = Settings::OPTION . '[' . $key . ']';
         $current = (string)($s[$key] ?? '');
         $opts = '';
-        foreach ($options as $opt) {
-            $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($opt), selected($current, $opt, false), esc_html($opt));
+        // Accept both a flat list (value === label) and a value => label map.
+        $isList = array_is_list($options);
+        foreach ($options as $value => $label) {
+            $value = $isList ? $label : (string)$value;
+            $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($value), selected($current, $value, false), esc_html((string)$label));
         }
         printf(
             '<div class="wp-carve-card wp-carve-field"%s>'
