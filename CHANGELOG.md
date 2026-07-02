@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-06-30
+## [0.1.0] - 2026-07-02
 
 Initial release.
 
@@ -16,6 +16,13 @@ Initial release.
 - Render Carve markup in posts, pages and comments, powered by
   `markup-carve/carve-php`. Per-post "Render as Carve" opt-in, a `[carve]`
   shortcode, and `carve/markup` + `carve/slides` Gutenberg blocks.
+- Visual (WYSIWYG) editor for the Carve block, built on the shared
+  `carve-grammars` Tiptap core: Write / Split / Visual / Preview tabs, a unified
+  block toolbar, an in-block code-language picker, and keyboard shortcuts. Every
+  edit serializes back to canonical Carve; a render-aware guard only warns when
+  visual editing would actually change the rendered output.
+- Import and export: paste or upload Markdown / Djot / BBCode / HTML and convert
+  to Carve, and export any post as a `.carve` file.
 - Live in-browser preview using the Carve JS engine (no server round-trip).
 - Multi-format paste: convert Markdown, Djot, BBCode or HTML to Carve in place.
 - Frontmatter-to-meta mapping (yaml/json/toml) for excerpt, SEO and post meta.
