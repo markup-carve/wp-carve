@@ -54,6 +54,36 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('toc', $html);
     }
 
+    public function testEditorContextOmitsNonRoundTrippableMarkup(): void
+    {
+        // The visual editor seeds from rendered HTML and serializes it back to
+        // Carve on every edit. A generated TOC nav or heading permalink anchor
+        // would be frozen into the source on that round trip (and then a fresh
+        // TOC would stack on top each render). The 'editor' context must render
+        // like a post but omit that generated markup; 'post' keeps it.
+        $converter = new Converter([
+            'toc_enabled' => true,
+            'toc_position' => 'top',
+            'permalinks_enabled' => true,
+        ]);
+        $carve = "# Title\n\n## Getting started\n\ntext\n\n## Configuration\n\nmore";
+
+        $post = $converter->toHtml($carve, 'post');
+        $editor = $converter->toHtml($carve, 'editor');
+
+        // 'post' seeds the frontend: generated TOC + permalink anchors are present.
+        $this->assertStringContainsString('class="toc"', $post);
+        $this->assertStringContainsString('class="permalink"', $post);
+
+        // 'editor' seeds the visual editor: nothing generated to freeze into source.
+        $this->assertStringNotContainsString('class="toc"', $editor);
+        $this->assertStringNotContainsString('class="permalink"', $editor);
+
+        // The authored content itself still renders in the editor context.
+        $this->assertStringContainsString('<h2', $editor);
+        $this->assertStringContainsString('Getting started', $editor);
+    }
+
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {

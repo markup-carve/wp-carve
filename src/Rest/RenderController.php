@@ -51,7 +51,10 @@ class RenderController
     public function render(WP_REST_Request $request): WP_REST_Response
     {
         $carve = (string)$request->get_param('carve');
-        $context = $request->get_param('context') === 'comment' ? 'comment' : 'post';
+        $requestedContext = (string)$request->get_param('context');
+        // 'editor' seeds the visual editor and omits non-round-trippable markup
+        // (TOC, permalinks, ...); anything unrecognized falls back to 'post'.
+        $context = in_array($requestedContext, ['comment', 'editor'], true) ? $requestedContext : 'post';
         $profile = (string)$request->get_param('profile');
 
         // Gate raw HTML on the requesting user's capability, not the global

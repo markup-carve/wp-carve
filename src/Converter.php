@@ -52,7 +52,8 @@ class Converter
     }
 
     /**
-     * Render Carve source to HTML for a given context ('post' or 'comment').
+     * Render Carve source to HTML for a given context ('post', 'comment', or
+     * 'editor' - the visual-editor seed, which omits non-round-trippable markup).
      *
      * $profileOverride forces a specific content profile (full / article /
      * comment / minimal / none) regardless of the context default - used by the
@@ -68,7 +69,7 @@ class Converter
          * Filter the raw Carve source before it is converted.
          *
          * @param string $carve The Carve source.
-         * @param string $context 'post' or 'comment'.
+         * @param string $context 'post', 'comment', or 'editor'.
          */
         $carve = (string)apply_filters('wp_carve_source', $carve, $context);
 
@@ -79,7 +80,7 @@ class Converter
          *
          * @param string $html The rendered HTML.
          * @param string $carve The original Carve source.
-         * @param string $context 'post' or 'comment'.
+         * @param string $context 'post', 'comment', or 'editor'.
          */
         return (string)apply_filters('wp_carve_rendered_html', $html, $carve, $context);
     }
@@ -114,6 +115,12 @@ class Converter
     private function converterFor(string $context, ?string $profileOverride = null, ?bool $safe = null): CarveConverter
     {
         $isComment = $context === 'comment';
+        // The visual editor seeds itself from rendered HTML and serializes it
+        // back to Carve source on every edit. Generated, non-round-trippable
+        // markup (a TOC nav, heading permalink anchors, shifted heading levels)
+        // would be frozen into the source on that round trip, so the 'editor'
+        // context renders like a post but omits those extensions.
+        $isEditor = $context === 'editor';
         $safeMode = $isComment ? true : ($safe ?? (bool)($this->settings['safe_mode'] ?? true));
         // Key on the RESOLVED safe value (not the nullable input) so the cache
         // can never return a converter whose safe mode differs from behavior.
@@ -141,21 +148,32 @@ class Converter
         }
 
         if (!$isComment) {
-            $this->addPostExtensions($converter);
+            $this->addPostExtensions($converter, $isEditor);
         }
 
         /**
          * Allow add-ons to register further carve-php extensions on the converter.
          *
+         * The 'editor' context is the visual-editor seed: add-ons should apply
+         * round-trippable content extensions for 'post' and 'editor' alike, but
+         * generated markup (TOC-like) for 'post' only. See docs/hooks.md.
+         *
          * @param \MarkupCarve\Carve\CarveConverter $converter
-         * @param string $context
+         * @param string $context 'post', 'comment', or 'editor'.
          */
         do_action('wp_carve_converter', $converter, $context);
 
         return $this->cache[$cacheKey] = $converter;
     }
 
-    private function addPostExtensions(CarveConverter $converter): void
+    /**
+     * @param \MarkupCarve\Carve\CarveConverter $converter
+     * @param bool $forEditor Rendering to seed the visual editor. Skips generated
+     *   markup that cannot survive the HTML -> Carve round trip (TOC, heading
+     *   permalinks, heading level shift), mirroring wp-djot's editor render path.
+     *   All content-authoring extensions stay enabled.
+     */
+    private function addPostExtensions(CarveConverter $converter, bool $forEditor = false): void
     {
         $s = $this->settings;
 
@@ -168,11 +186,11 @@ class Converter
         $converter->addExtension(new SemanticSpanExtension());
 
         $shift = (int)($s['heading_shift'] ?? 0);
-        if ($shift > 0) {
+        if ($shift > 0 && !$forEditor) {
             $converter->addExtension(new HeadingLevelShiftExtension(shift: $shift));
         }
 
-        if (!empty($s['toc_enabled'])) {
+        if (!empty($s['toc_enabled']) && !$forEditor) {
             $position = (string)($s['toc_position'] ?? 'top');
             $converter->addExtension(new TableOfContentsExtension(
                 minLevel: (int)($s['toc_min_level'] ?? 2),
@@ -182,7 +200,7 @@ class Converter
             ));
         }
 
-        if (!empty($s['permalinks_enabled'])) {
+        if (!empty($s['permalinks_enabled']) && !$forEditor) {
             $converter->addExtension(new HeadingPermalinksExtension());
         }
 

@@ -20,3 +20,6 @@ package-lock.json
 /build/
 .wp-env.override.json
 .idea/
+
+# Scratch / temporary files (never track) - underscore-prefixed
+_*

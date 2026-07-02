@@ -19,7 +19,7 @@ Filter the rendered HTML before it is returned to WordPress.
 
 ```php
 add_filter('wp_carve_rendered_html', function (string $html, string $carve, string $context): string {
-    // $context is 'post' or 'comment'.
+    // $context is 'post', 'comment', or 'editor' (the visual-editor seed - see below).
     return $html;
 }, 10, 3);
 ```
@@ -94,12 +94,31 @@ add_filter('wp_carve_katex_base', fn (string $base): string => 'https://example.
 Register additional carve-php extensions on the converter as it is built (once
 per context).
 
+`$context` is one of:
+
+- `post` - front-end post/page rendering.
+- `comment` - comment rendering (always safe mode).
+- `editor` - the **visual-editor seed**. The Visual (WYSIWYG) editor renders the
+  source to HTML, then serializes that HTML back to Carve on every edit. Any
+  *generated* markup (a table of contents, heading permalink anchors, shifted
+  heading levels) would be frozen into the source on that round trip, so the
+  built-in extensions that emit it are skipped for `editor`.
+
+Gate accordingly: apply **round-trippable content extensions** for both `post`
+and `editor` so Visual mode previews and round-trips faithfully, but apply
+extensions that **inject generated markup** for `post` only.
+
 ```php
 use MarkupCarve\Carve\CarveConverter;
 
 add_action('wp_carve_converter', function (CarveConverter $converter, string $context): void {
+    // Round-trippable content extension: also wanted in the visual editor.
+    if (in_array($context, ['post', 'editor'], true)) {
+        $converter->addExtension(new MyContentExtension());
+    }
+    // Generated markup that can't survive the round trip: front-end only.
     if ($context === 'post') {
-        $converter->addExtension(new MyExtension());
+        $converter->addExtension(new MyTocLikeExtension());
     }
 }, 10, 2);
 ```

@@ -41,12 +41,15 @@
 	// Innovation A: prefer the in-browser Carve engine for instant preview.
 	// `window.wpCarveEngine` is set by the optional carve-js module bundle
 	// (assets/js/vendor/carve.js). Falls back to the REST render endpoint.
-	function renderPreview( source, done, profile, forceServer ) {
+	function renderPreview( source, done, profile, forceServer, context ) {
 		const engine = window.wpCarveEngine;
-		// The in-browser engine can't apply a WordPress content profile, so a
-		// block that overrides the profile falls through to the server render.
-		// forceServer is available for callers that need server-faithful HTML.
-		if ( ! forceServer && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
+		const ctx = context || 'post';
+		// The in-browser engine can't apply a WordPress content profile, nor the
+		// 'editor' context that strips non-round-trippable markup (TOC, heading
+		// permalinks) from the visual-editor seed - both fall through to the
+		// server render. forceServer is available for callers that need
+		// server-faithful HTML.
+		if ( ctx === 'post' && ! forceServer && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
 			try {
 				done( engine.carveToHtml( source ) );
 				return;
@@ -62,7 +65,7 @@
 		wp.apiFetch( {
 			url: cfg.restRender,
 			method: 'POST',
-			data: { carve: source, context: 'post', profile: profile || '', post_id: postId },
+			data: { carve: source, context: ctx, profile: profile || '', post_id: postId },
 		} )
 			.then( ( res ) => done( res.html || '' ) )
 			.catch( () => done( '' ) );
@@ -173,7 +176,9 @@
 						setReady( true );
 					} )
 					.catch( () => setFailed( true ) );
-			}, attributes.profile || '', true );
+			// The final 'editor' arg strips generated TOC/permalink markup from the
+			// seed so it can't freeze into source on the HTML -> Carve round trip.
+			}, attributes.profile || '', true, 'editor' );
 			return () => {
 				active = false;
 				if ( ctl ) {
