@@ -30,6 +30,14 @@ export { serializeToCarve };
  * @param {Function}    onChange     Receives Carve markup on every edit.
  * @return {Promise<Object>} Control object: { getCarve, setHtml, destroy, editor }.
  */
+// Carve/HTML renderers emit code blocks as `<code>...\n</code>` (a trailing
+// newline before the close). ProseMirror keeps that newline verbatim, so the
+// editor shows a spurious blank last line in every code block. Strip it from
+// the seed HTML (the serializer already drops it on the way out).
+function trimCodeNewlines( html ) {
+	return ( html || '' ).replace( /\n(<\/code>)/g, '$1' );
+}
+
 export async function initVisualEditor( container, initialHtml, onChange ) {
 	// CarveKit already bundles the keymap (Ctrl/Cmd+1-6, clear, Enter reset).
 	const extensions = [
@@ -46,7 +54,7 @@ export async function initVisualEditor( container, initialHtml, onChange ) {
 	const editor = new Editor( {
 		element: surfaceEl,
 		extensions,
-		content: initialHtml || '<p></p>',
+		content: trimCodeNewlines( initialHtml ) || '<p></p>',
 		onUpdate: ( { editor: ed } ) => {
 			if ( onChange ) {
 				onChange( serializeToCarve( ed.getJSON() ) );
@@ -57,7 +65,7 @@ export async function initVisualEditor( container, initialHtml, onChange ) {
 	return {
 		editor,
 		getCarve: () => serializeToCarve( editor.getJSON() ),
-		setHtml: ( html ) => editor.commands.setContent( html || '<p></p>' ),
+		setHtml: ( html ) => editor.commands.setContent( trimCodeNewlines( html ) || '<p></p>' ),
 		destroy: () => editor.destroy(),
 	};
 }

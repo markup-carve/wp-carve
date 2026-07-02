@@ -43,10 +43,9 @@
 	// (assets/js/vendor/carve.js). Falls back to the REST render endpoint.
 	function renderPreview( source, done, profile, forceServer ) {
 		const engine = window.wpCarveEngine;
-		// The in-browser engine can't apply a WordPress content profile, and it
-		// degrades server-only constructs (e.g. media embeds render as a plain
-		// span, not an iframe). Callers that need server-faithful HTML - like the
-		// visual editor seed, where media must round-trip - pass forceServer.
+		// The in-browser engine can't apply a WordPress content profile, so a
+		// block that overrides the profile falls through to the server render.
+		// forceServer is available for callers that need server-faithful HTML.
 		if ( ! forceServer && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
 			try {
 				done( engine.carveToHtml( source ) );
@@ -104,8 +103,11 @@
 			let active = true;
 			let ctl = null;
 			// Seed the editor with HTML rendered from the current Carve source.
-			// Force the server render so media embeds seed as real iframes (which
-			// the editor can round-trip), not carve-js's degraded spans.
+			// Use the same (carve-js-preferred) render as the preview: its output
+			// is what carve-grammars' parse rules align to, so admonitions and
+			// footnotes round-trip. (Media embeds degrade to a span here and are
+			// caught by the lossy gate; the server iframe form is not parse-safe
+			// for footnotes/admonitions, so we don't force it.)
 			renderPreview( attributes.carve || '', ( html ) => {
 				if ( ! active || ! hostRef.current ) {
 					return;
@@ -139,7 +141,7 @@
 						setReady( true );
 					} )
 					.catch( () => setFailed( true ) );
-			}, attributes.profile || '', true );
+			}, attributes.profile || '' );
 			return () => {
 				active = false;
 				if ( ctl ) {
