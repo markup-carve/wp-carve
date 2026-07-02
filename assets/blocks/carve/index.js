@@ -102,12 +102,11 @@
 		useEffect( () => {
 			let active = true;
 			let ctl = null;
-			// Seed the editor with HTML rendered from the current Carve source.
-			// Use the same (carve-js-preferred) render as the preview: its output
-			// is what carve-grammars' parse rules align to, so admonitions and
-			// footnotes round-trip. (Media embeds degrade to a span here and are
-			// caught by the lossy gate; the server iframe form is not parse-safe
-			// for footnotes/admonitions, so we don't force it.)
+			// Seed the editor from the SERVER render (carve-php + extensions):
+			// media embeds seed as real iframes stamped with data-carve-source,
+			// so they preview as video and round-trip losslessly. Admonitions
+			// round-trip too (aside.admonition is parsed). Footnotes still gate
+			// (a known carve-grammars parse gap, same under either engine).
 			renderPreview( attributes.carve || '', ( html ) => {
 				if ( ! active || ! hostRef.current ) {
 					return;
@@ -141,7 +140,7 @@
 						setReady( true );
 					} )
 					.catch( () => setFailed( true ) );
-			}, attributes.profile || '' );
+			}, attributes.profile || '', true );
 			return () => {
 				active = false;
 				if ( ctl ) {
@@ -375,7 +374,11 @@
 				return undefined;
 			}
 			clearTimeout( timer.current );
-			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '' ), 200 );
+			// The Preview tab renders server-side (carve-php) for full front-end
+			// fidelity - media embeds show as real players, etc. Split stays on
+			// the instant in-browser engine for live-typing speed.
+			const forceServer = mode === 'preview';
+			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '', forceServer ), 200 );
 			return () => clearTimeout( timer.current );
 		}, [ source, mode, showPreview, attributes.profile ] );
 
