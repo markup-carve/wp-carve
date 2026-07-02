@@ -5,7 +5,22 @@ triggers an automated deploy to the WordPress.org plugin SVN.
 
 ## How a release works
 
-1. Bump the version everywhere with the helper script:
+1. **Update all dependencies to their latest first.** The Carve packages are
+   tracked on dev branches (`markup-carve/carve-php: dev-main`, the media-embed
+   extension, and the npm engine/grammars on `#main`), so a release must ship
+   against their current `main` - not a stale locked commit:
+
+   ```bash
+   composer update            # pull latest carve-php + all Composer deps
+   npm update                 # pull latest @markup-carve/carve + carve-grammars
+   npm run build              # rebuild engine + editor bundles against them
+   ```
+
+   Then re-run the gates (`composer test`, `composer stan`, `composer cs-check`,
+   `npm run test:js`) so the new versions are verified before tagging. Commit the
+   refreshed `composer.lock`, `package-lock.json`, and rebuilt bundles.
+
+2. Bump the version everywhere with the helper script:
 
    ```bash
    ./scripts/version.sh 0.1.0
@@ -15,12 +30,12 @@ triggers an automated deploy to the WordPress.org plugin SVN.
    constant), `readme.txt` (`Stable tag:`), `package.json`, and each
    `assets/blocks/*/index.asset.php` version.
 
-2. Update `CHANGELOG.md` and the `== Changelog ==` section of `readme.txt`.
+3. Update `CHANGELOG.md` and the `== Changelog ==` section of `readme.txt`.
 
-3. Commit, then publish a GitHub release whose **tag equals the version**
+4. Commit, then publish a GitHub release whose **tag equals the version**
    (bare `0.1.0`, no `v` prefix - matching the rest of the Carve ecosystem).
 
-4. `.github/workflows/deploy.yml` runs on `release: published`:
+5. `.github/workflows/deploy.yml` runs on `release: published`:
    - validates header == constant == stable tag == release tag (fails loudly
      if any drift),
    - runs syntax check + PHPStan,
@@ -71,10 +86,11 @@ These are **not yet done** and are the gate to a public listing:
 
 ## Checklist before tagging 0.1.0
 
+- [ ] `composer update` + `npm update` run; lockfiles committed (deps at latest).
+- [ ] `npm run build` run against the updated deps (engine + editor bundles rebuilt + committed).
 - [ ] `./scripts/version.sh 0.1.0` run; versions consistent.
 - [ ] `CHANGELOG.md` + `readme.txt` changelog updated.
-- [ ] `composer test`, `composer stan`, `composer cs-check` all green.
-- [ ] `npm run build` run (engine + editor bundles rebuilt + committed).
+- [ ] `composer test`, `composer stan`, `composer cs-check`, `npm run test:js` all green.
 - [ ] Plugin Check (PCP) passes.
 - [ ] WordPress.org listing approved and slug confirmed.
 - [ ] `SVN_USERNAME` / `SVN_PASSWORD` secrets set.
