@@ -68,6 +68,19 @@
 	// mode, so the CDN-backed Tiptap bundle never loads for source-only editing.
 	// Normalize Carve to comparable non-empty, whitespace-collapsed lines so a
 	// round-trip diff ignores cosmetic reflow.
+	// Normalize rendered HTML for equivalence comparison: sort each tag's
+	// attributes and collapse insignificant whitespace, so visually-identical
+	// output (attribute order, reflow) compares equal.
+	function normHtml( html ) {
+		return ( html || '' )
+			.replace( /<([a-z0-9]+)((?:\s[^<>]*?)?)\s*(\/?)>/gi, ( m, tag, attrs, sl ) => {
+				const parts = ( attrs.match( /[\w-]+(?:="[^"]*")?/g ) || [] ).sort();
+				return '<' + tag.toLowerCase() + ( parts.length ? ' ' + parts.join( ' ' ) : '' ) + sl + '>';
+			} )
+			.replace( /\s+/g, ' ' )
+			.trim();
+	}
+
 	function normalizeLines( carve ) {
 		return ( carve || '' )
 			.split( '\n' )
@@ -127,15 +140,30 @@
 						// Re-render the toolbar as the cursor moves so context
 						// controls (code language, admonition type) track the node.
 						instance.editor.on( 'selectionUpdate', () => setTick( ( t ) => t + 1 ) );
-						// Round-trip check: seed -> serialize back. Ignore pure
-						// whitespace / reflow (normalizeLines collapses it); only
-						// real content drift gates entry.
-						const original = normalizeLines( attributes.carve );
-						const roundtrip = normalizeLines( instance.getCarve() );
-						const removed = missingFrom( original, roundtrip );
-						const added = missingFrom( roundtrip, original );
-						if ( removed.length || added.length ) {
-							setLossy( { removed, added } );
+						// Round-trip check: seed -> serialize back. Only a change in
+						// the RENDERED output gates entry - cosmetic source
+						// normalization (attribute order, `|=` vs `|---|` table
+						// headers, `^x^` vs `{^x^}`, blockquote soft-break reflow,
+						// code-span padding) renders identically and is ignored.
+						const rt = instance.getCarve();
+						const engine = window.wpCarveEngine;
+						let rendersSame = false;
+						if ( engine && typeof engine.carveToHtml === 'function' ) {
+							try {
+								rendersSame = normHtml( engine.carveToHtml( attributes.carve || '' ) ) === normHtml( engine.carveToHtml( rt ) );
+							} catch ( e ) {
+								rendersSame = false;
+							}
+						}
+						if ( ! rendersSame ) {
+							// Show a line diff (whitespace-collapsed) of what changed.
+							const original = normalizeLines( attributes.carve );
+							const roundtrip = normalizeLines( rt );
+							const removed = missingFrom( original, roundtrip );
+							const added = missingFrom( roundtrip, original );
+							if ( removed.length || added.length ) {
+								setLossy( { removed, added } );
+							}
 						}
 						setReady( true );
 					} )
