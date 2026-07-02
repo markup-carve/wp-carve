@@ -1,4 +1,4 @@
-# Carve Markup for WordPress (wp-carve)
+# Carve Markup for WordPress
 
 A WordPress plugin for the [Carve](https://github.com/markup-carve/carve) markup language - a Djot-inspired, post-Markdown dialect. 
 Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-php`](https://github.com/markup-carve/carve-php) engine.
