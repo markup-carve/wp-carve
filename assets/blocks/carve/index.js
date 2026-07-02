@@ -382,6 +382,25 @@
 			return () => clearTimeout( timer.current );
 		}, [ source, mode, showPreview, attributes.profile ] );
 
+		// Surface the code-block language as the floating badge in Preview/Split
+		// (the front-end code-blocks.js does this, but it doesn't run in the
+		// editor). The pill CSS renders `pre[data-lang]::after`.
+		useEffect( () => {
+			if ( mode === 'visual' || ! showPreview || ! previewRef.current ) {
+				return;
+			}
+			previewRef.current.querySelectorAll( 'pre > code' ).forEach( ( code ) => {
+				const pre = code.parentElement;
+				if ( ! pre || pre.dataset.lang ) {
+					return;
+				}
+				const m = ( code.className || '' ).match( /language-([\w+#-]+)/ );
+				if ( m && m[ 1 ] !== 'text' ) {
+					pre.dataset.lang = m[ 1 ];
+				}
+			} );
+		}, [ html, mode, showPreview ] );
+
 		// --- source manipulation (operate on the raw textarea selection) ---
 		function setVal( value, selStart, selEnd ) {
 			setAttributes( { carve: value } );
