@@ -10,6 +10,9 @@
 /.ddev
 /.phpunit.cache
 /.distignore
+/.wp-env.json
+/.wp-env.override.json
+/.wp-env.plugin-check.json
 /node_modules
 /tests
 /build
@@ -17,6 +20,7 @@
 /assets/js/src
 /assets/js/tiptap
 /screenshots
+/phpunit-integration.xml.dist
 
 # Build tools
 /scripts

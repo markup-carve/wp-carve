@@ -272,7 +272,8 @@ class SettingsPage
         $current = (string)($s[$key] ?? '');
         $opts = '';
         // Accept both a flat list (value === label) and a value => label map.
-        $isList = array_is_list($options);
+        // (Avoid array_is_list(): Plugin Check gates it behind a newer WP min.)
+        $isList = $options === array_values($options);
         foreach ($options as $value => $label) {
             $value = $isList ? $label : (string)$value;
             $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($value), selected($current, $value, false), esc_html((string)$label));
@@ -284,6 +285,7 @@ class SettingsPage
             $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
             esc_html($label),
             esc_attr($name),
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $opts is <option> markup built above with esc_attr()/esc_html().
             $opts,
             $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
@@ -401,6 +403,7 @@ class SettingsPage
                 esc_html((string)($diagram['label'] ?? $name)),
                 esc_html($class),
                 esc_html($weight),
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $previewHtml is anchor markup built above with esc_url()/esc_attr().
                 $previewHtml,
             );
         }

@@ -70,3 +70,82 @@ jobs:
 
       - name: Check coding standard
         run: composer cs-check
+
+  js:
+    name: JS round-trip tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install npm dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run JS tests
+        run: npm run test:js
+
+  integration:
+    name: WP integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install runtime dependencies
+        run: composer install --no-dev --prefer-dist --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Start WordPress
+        run: npx @wordpress/env@11.6.0 start
+
+      - name: Activate plugin
+        run: npx @wordpress/env@11.6.0 run cli wp plugin activate carve-markup
+
+      - name: Run integration checks
+        run: npx @wordpress/env@11.6.0 run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/checks.php
+
+  plugin-check:
+    name: Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          coverage: none
+
+      - name: Stage the distribution copy (runtime deps only, .distignore applied)
+        run: bash scripts/build-dist.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Start WordPress for Plugin Check
+        run: npx @wordpress/env@11.6.0 --config .wp-env.plugin-check.json start
+
+      - name: Run Plugin Check
+        run: |
+          npx @wordpress/env@11.6.0 --config .wp-env.plugin-check.json run cli \
+            wp plugin activate carve-markup
+          npx @wordpress/env@11.6.0 --config .wp-env.plugin-check.json run cli \
+            wp plugin check carve-markup --severity=5 --format=csv | tee plugin-check.csv
+          if grep -q ',ERROR,' plugin-check.csv; then
+            echo "::error::Plugin Check reported errors (see log above)."
+            exit 1
+          fi

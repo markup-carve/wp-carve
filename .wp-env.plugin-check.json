@@ -1,0 +1,9 @@
+{
+	"core": null,
+	"port": 8880,
+	"testsEnvironment": false,
+	"plugins": ["https://downloads.wordpress.org/plugin/plugin-check.zip"],
+	"mappings": {
+		"wp-content/plugins/carve-markup": "./build/dist/carve-markup"
+	}
+}

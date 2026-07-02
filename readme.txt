@@ -2,13 +2,13 @@
 Contributors: dereuromark
 Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 7.0
 Requires PHP: 8.2
 Stable tag: 0.1.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
-Write posts, pages and comments in the Carve markup language, with a visual editor, live in-browser preview, multi-format paste, frontmatter-to-meta and a REST API.
+Write posts, pages and comments in Carve markup: a visual editor, live preview, multi-format paste, frontmatter-to-meta and a REST API.
 
 == Description ==
 

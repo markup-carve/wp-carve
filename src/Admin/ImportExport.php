@@ -69,19 +69,22 @@ class ImportExport
         if (!current_user_can('edit_posts')) {
             wp_die(esc_html__('You are not allowed to import.', 'carve-markup'));
         }
-        if (!isset($_FILES['wp_carve_file']) || !is_array($_FILES['wp_carve_file']) || ($_FILES['wp_carve_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- The upload error code is cast to int and compared numerically.
+        if (!isset($_FILES['wp_carve_file']) || !is_array($_FILES['wp_carve_file']) || (int)($_FILES['wp_carve_file']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
             wp_die(esc_html__('No file was uploaded.', 'carve-markup'));
         }
-        $tmp = (string)$_FILES['wp_carve_file']['tmp_name'];
-        $name = sanitize_file_name((string)($_FILES['wp_carve_file']['name'] ?? 'import'));
-        if (!is_uploaded_file($tmp)) {
+        $tmp = isset($_FILES['wp_carve_file']['tmp_name'])
+            ? sanitize_text_field(wp_unslash($_FILES['wp_carve_file']['tmp_name']))
+            : '';
+        $name = sanitize_file_name(wp_unslash($_FILES['wp_carve_file']['name'] ?? 'import'));
+        if ($tmp === '' || !is_uploaded_file($tmp)) {
             wp_die(esc_html__('Invalid upload.', 'carve-markup'));
         }
         $raw = (string)file_get_contents($tmp);
         $ext = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
         $carve = $this->toCarve($raw, $ext);
 
-        $title = sanitize_text_field((string)($_POST['wp_carve_title'] ?? ''));
+        $title = sanitize_text_field(wp_unslash($_POST['wp_carve_title'] ?? ''));
         if ($title === '') {
             $title = (string)pathinfo($name, PATHINFO_FILENAME);
         }
@@ -152,8 +155,9 @@ class ImportExport
 
         nocache_headers();
         header('Content-Type: text/plain; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $slug . '.carve"');
-        echo $source; // Raw Carve source; not HTML output.
+        header('Content-Disposition: attachment; filename="' . esc_attr($slug) . '.carve"');
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw Carve source streamed as a text/plain file download, not HTML.
+        echo $source;
         exit;
     }
 

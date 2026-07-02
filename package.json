@@ -8,7 +8,8 @@
     "build": "npm run build:engine && npm run build:editor",
     "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
     "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
-    "watch": "npm run build:engine -- --watch"
+    "watch": "npm run build:engine -- --watch",
+    "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
     "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#main",
@@ -30,6 +31,7 @@
     "@tiptap/extension-task-list": "^2.11.0",
     "@tiptap/extension-underline": "^2.11.0",
     "@tiptap/starter-kit": "^2.11.0",
-    "esbuild": "^0.24.0"
+    "esbuild": "^0.24.0",
+    "happy-dom": "^20.10.6"
   }
 }

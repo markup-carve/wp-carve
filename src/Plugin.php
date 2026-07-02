@@ -31,8 +31,8 @@ class Plugin
 
     public function boot(): void
     {
-        load_plugin_textdomain('carve-markup', false, dirname(plugin_basename(WP_CARVE_FILE)) . '/languages');
-
+        // Translations are loaded automatically: WordPress.org serves them for
+        // the plugin slug, and core's just-in-time loader handles the rest.
         $this->converter = Converter::fromSettings();
         $settings = Settings::all();
 

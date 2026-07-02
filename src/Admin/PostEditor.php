@@ -120,7 +120,7 @@ class PostEditor
             esc_html__('Live Carve preview', 'carve-markup'),
             esc_url($toBlock),
             esc_html__('Move into a Carve block', 'carve-markup'),
-            // Already-sanitized Carve render (safe mode honors the post profile).
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Rendered by the Carve engine with the post's safe mode/profile applied.
             $initial,
         );
     }
@@ -165,9 +165,11 @@ class PostEditor
         if (!is_admin()) {
             return false;
         }
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: detect which post the editor is on to render a preview; no state change.
         $id = isset($_GET['post']) ? (int)$_GET['post'] : 0;
-        if (!$id && isset($_POST['post_ID'])) {
-            $id = (int)$_POST['post_ID'];
+        if (!$id) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Read-only post-ID detection for the editor screen; no state change.
+            $id = isset($_POST['post_ID']) ? (int)$_POST['post_ID'] : 0;
         }
 
         return $id > 0 && (bool)get_post_meta($id, '_wp_carve_enabled', true);
