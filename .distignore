@@ -2,6 +2,7 @@
 /.git
 /.gitattributes
 /.gitignore
+/.wordpress-org
 /.github
 
 # Development

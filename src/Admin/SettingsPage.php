@@ -274,9 +274,11 @@ class SettingsPage
         // Accept both a flat list (value === label) and a value => label map.
         // (Avoid array_is_list(): Plugin Check gates it behind a newer WP min.)
         $isList = $options === array_values($options);
-        foreach ($options as $value => $label) {
-            $value = $isList ? $label : (string)$value;
-            $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($value), selected($current, $value, false), esc_html((string)$label));
+        // Use a distinct loop variable: reusing $label would clobber the field
+        // label parameter used for the card heading below.
+        foreach ($options as $value => $optLabel) {
+            $value = $isList ? $optLabel : (string)$value;
+            $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($value), selected($current, $value, false), esc_html((string)$optLabel));
         }
         printf(
             '<div class="wp-carve-card wp-carve-field"%s>'

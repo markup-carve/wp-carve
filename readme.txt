@@ -26,9 +26,17 @@ Beyond a typical markup plugin:
 
 == Installation ==
 
-1. Install into wp-content/plugins and run `composer install --no-dev`.
-2. Optional: `npm install && npm run build` for instant in-browser preview.
-3. Activate, then configure under Settings -> Carve Markup.
+1. In your dashboard go to Plugins -> Add New, search for "Carve Markup", then install and activate. Or upload the plugin ZIP under Plugins -> Add New -> Upload Plugin.
+2. Configure under Settings -> Carve Markup.
+
+Installing from source (GitHub) instead? Run `composer install --no-dev`, optionally `npm install && npm run build` for the in-browser preview, then activate.
+
+== Screenshots ==
+
+1. Editing a Carve block in the visual (WYSIWYG) editor, with the block toolbar.
+2. Split view: Carve source on the left, live preview on the right.
+3. The rendered post on the front end.
+4. The Carve Markup settings screen.
 
 == Changelog ==
 
