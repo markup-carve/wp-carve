@@ -374,11 +374,11 @@
 				return undefined;
 			}
 			clearTimeout( timer.current );
-			// The Preview tab renders server-side (carve-php) for full front-end
-			// fidelity - media embeds show as real players, etc. Split stays on
-			// the instant in-browser engine for live-typing speed.
-			const forceServer = mode === 'preview';
-			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '', forceServer ), 200 );
+			// Both Preview and Split render server-side (carve-php) so the preview
+			// matches the front end exactly - media embeds show as real players,
+			// server-only constructs render faithfully. Debounced, so live typing
+			// in Split stays responsive.
+			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '', true ), 200 );
 			return () => clearTimeout( timer.current );
 		}, [ source, mode, showPreview, attributes.profile ] );
 
