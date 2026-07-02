@@ -52,6 +52,35 @@
 	opacity: 1;
 }
 
+/* Task lists (Tiptap): keep the checkbox and its text on one line. Without this
+   the block <div><p> drops below the inline <label>, looking like a leading
+   newline before the text. */
+.wp-carve-ve-surface ul[data-type="taskList"] {
+	list-style: none;
+	padding-left: 0;
+}
+
+.wp-carve-ve-surface ul[data-type="taskList"] li {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5em;
+}
+
+.wp-carve-ve-surface ul[data-type="taskList"] li > label {
+	flex: 0 0 auto;
+	margin-top: 0.15em;
+	user-select: none;
+}
+
+.wp-carve-ve-surface ul[data-type="taskList"] li > div {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.wp-carve-ve-surface ul[data-type="taskList"] li > div > p {
+	margin: 0;
+}
+
 .wp-carve-source {
 	width: 100%;
 	font-family: Menlo, Consolas, monospace;
