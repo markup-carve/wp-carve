@@ -141,10 +141,27 @@ class Plugin
         return $commentdata;
     }
 
+    /**
+     * Whether whole-post Carve rendering is enabled for this post's type. The
+     * "Posts" / "Pages" toggles gate those types; custom types rely on the
+     * per-post opt-in meta alone.
+     */
+    private function typeEnabled(WP_Post $post): bool
+    {
+        if ($post->post_type === 'post') {
+            return (bool)Settings::get('enable_posts');
+        }
+        if ($post->post_type === 'page') {
+            return (bool)Settings::get('enable_pages');
+        }
+
+        return true;
+    }
+
     public function maybeRenderExcerpt(string $excerpt): string
     {
         $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true) || !$this->typeEnabled($post)) {
             return $excerpt;
         }
         $src = trim((string)$post->post_excerpt) !== '' ? $post->post_excerpt : $post->post_content;
@@ -156,7 +173,7 @@ class Plugin
     public function maybeRenderPost(string $content): string
     {
         $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true) || !$this->typeEnabled($post)) {
             return $content;
         }
 

@@ -34,7 +34,9 @@ class PostMode
                 'type' => 'boolean',
                 'single' => true,
                 'show_in_rest' => true,
-                'auth_callback' => static fn (): bool => current_user_can('edit_posts'),
+                // Per-object: only someone who can edit THIS post may flip its
+                // Carve flag over REST (not just anyone with edit_posts).
+                'auth_callback' => static fn (bool $allowed, string $metaKey, int $postId): bool => current_user_can('edit_post', $postId),
             ]);
         }
     }

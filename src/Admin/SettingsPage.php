@@ -24,6 +24,11 @@ class SettingsPage
      */
     private const MENU_SLUG = 'wp-carve';
 
+    /**
+     * @var array<int, string>
+     */
+    private const MULTILINE_KEYS = ['abbreviations'];
+
     public function register(): void
     {
         add_action('admin_menu', [$this, 'menu']);
@@ -75,6 +80,10 @@ class SettingsPage
                 $out[$key] = !empty($input[$key]);
             } elseif (is_int($default)) {
                 $out[$key] = (int)($input[$key] ?? $default);
+            } elseif (in_array($key, self::MULTILINE_KEYS, true)) {
+                // Preserve newlines for multi-line textareas (e.g. one
+                // abbreviation per line); sanitize_text_field would flatten them.
+                $out[$key] = sanitize_textarea_field((string)($input[$key] ?? $default));
             } else {
                 $out[$key] = sanitize_text_field((string)($input[$key] ?? $default));
             }

@@ -22,6 +22,11 @@ use WP_Post;
  */
 class ImportExport
 {
+    /**
+     * @var int
+     */
+    private const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
+
     public function register(): void
     {
         add_action('admin_menu', [$this, 'menu']);
@@ -79,6 +84,11 @@ class ImportExport
         $name = sanitize_file_name(wp_unslash($_FILES['wp_carve_file']['name'] ?? 'import'));
         if ($tmp === '' || !is_uploaded_file($tmp)) {
             wp_die(esc_html__('Invalid upload.', 'carve-markup'));
+        }
+        // Cap the import size (source documents are small); avoids reading a huge
+        // file into memory.
+        if ((int)filesize($tmp) > self::MAX_IMPORT_BYTES) {
+            wp_die(esc_html__('That file is too large to import.', 'carve-markup'));
         }
         $raw = (string)file_get_contents($tmp);
         $ext = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));

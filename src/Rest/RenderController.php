@@ -43,6 +43,7 @@ class RenderController
                 'carve' => ['type' => 'string', 'required' => true],
                 'context' => ['type' => 'string', 'default' => 'post'],
                 'profile' => ['type' => 'string', 'default' => ''],
+                'post_id' => ['type' => 'integer', 'default' => 0],
             ],
         ]);
     }
@@ -56,7 +57,14 @@ class RenderController
         // Gate raw HTML on the requesting user's capability, not the global
         // setting, so an edit_posts user without unfiltered_html can't render
         // raw HTML through the endpoint even when safe mode is globally off.
-        $safe = Plugin::safeForAuthor(get_current_user_id());
+        // When rendering an existing post the caller can edit (the block-editor
+        // preview), gate on the POST AUTHOR instead - the preview then matches
+        // the published output, so a reviewer can't be XSS'd by a lower-
+        // privilege author's stored raw HTML.
+        $postId = (int)$request->get_param('post_id');
+        $safe = ($postId > 0 && current_user_can('edit_post', $postId))
+            ? Plugin::safeForAuthor((int)get_post_field('post_author', $postId))
+            : Plugin::safeForAuthor(get_current_user_id());
 
         return new WP_REST_Response([
             'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null, $safe),

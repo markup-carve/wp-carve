@@ -54,10 +54,15 @@
 				// fall through to server render
 			}
 		}
+		// Pass the post id so the server gates raw HTML on the POST AUTHOR (the
+		// published behavior), not the viewer - a reviewer previewing a lower-
+		// privilege author's content can't be XSS'd by stored raw HTML.
+		const postId = ( wp.data && wp.data.select( 'core/editor' ) &&
+			wp.data.select( 'core/editor' ).getCurrentPostId() ) || 0;
 		wp.apiFetch( {
 			url: cfg.restRender,
 			method: 'POST',
-			data: { carve: source, context: 'post', profile: profile || '' },
+			data: { carve: source, context: 'post', profile: profile || '', post_id: postId },
 		} )
 			.then( ( res ) => done( res.html || '' ) )
 			.catch( () => done( '' ) );

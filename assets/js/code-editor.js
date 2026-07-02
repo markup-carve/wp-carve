@@ -17,25 +17,22 @@
 	}
 	const preview = document.getElementById( 'wp-carve-live-preview' );
 
+	// Always render the preview server-side: the endpoint applies the post
+	// author's safe-mode policy (raw HTML is escaped unless the author may post
+	// unfiltered HTML), so previewing another user's content can't inject script
+	// into this page. The in-browser engine is not used here because it would
+	// emit raw HTML live regardless of that policy.
+	const postIdEl = document.getElementById( 'post_ID' );
+	const postId = postIdEl ? ( parseInt( postIdEl.value, 10 ) || 0 ) : 0;
+
 	function render( source ) {
-		const engine = window.wpCarveEngine;
-		if ( cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
-			try {
-				if ( preview ) {
-					preview.innerHTML = engine.carveToHtml( source );
-				}
-				return;
-			} catch ( e ) {
-				// fall through to the REST render endpoint
-			}
-		}
 		if ( ! preview || ! cfg.restRender || ! wp || ! wp.apiFetch ) {
 			return;
 		}
 		wp.apiFetch( {
 			url: cfg.restRender,
 			method: 'POST',
-			data: { carve: source, context: 'post' },
+			data: { carve: source, context: 'post', post_id: postId },
 		} )
 			.then( ( res ) => {
 				preview.innerHTML = res.html || '';
