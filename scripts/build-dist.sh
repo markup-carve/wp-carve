@@ -22,9 +22,11 @@ mkdir -p "$DEST"
 EXCLUDES="$(mktemp)"
 grep -vE '^\s*(#|$)' "$SRC/.distignore" > "$EXCLUDES"
 
+# NOTE: anchor /vendor so only the root Composer dir is skipped - a bare
+# 'vendor' would also drop assets/js/vendor (the shipped JS bundles).
 rsync -a --delete \
 	--exclude='.git' \
-	--exclude='vendor' \
+	--exclude='/vendor' \
 	--exclude='node_modules' \
 	--exclude-from="$EXCLUDES" \
 	"$SRC/" "$DEST/"
@@ -35,5 +37,10 @@ cp "$SRC/composer.json" "$DEST/"
 [ -f "$SRC/composer.lock" ] && cp "$SRC/composer.lock" "$DEST/"
 ( cd "$DEST" && composer install --no-dev --prefer-dist --no-progress --no-scripts --optimize-autoloader )
 rm -f "$DEST/composer.lock"
+
+# Prune dev cruft from the freshly-installed vendor tree (mirrors the vendor
+# rules in .distignore, which only the SVN deploy applies otherwise).
+find "$DEST/vendor" -type d \( -name tests -o -name docs -o -name .github -o -name bin -o -name fuzz \) -prune -exec rm -rf {} + 2>/dev/null || true
+find "$DEST/vendor" -type f \( -name '*.md' -o -name '*.xml' -o -name '*.neon' -o -name '*.dist' -o -name 'phpunit.xml*' -o -name 'package.json' -o -name 'package-lock.json' \) -delete 2>/dev/null || true
 
 echo "Done. Staged plugin at: $DEST"
