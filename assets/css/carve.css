@@ -52,6 +52,35 @@
 	opacity: 1;
 }
 
+/* In-block media embed "Edit" control (carve-grammars NodeView). */
+.wp-carve-ve-surface .wpcarve-embed {
+	position: relative;
+	display: inline-block;
+	max-width: 100%;
+}
+
+.wp-carve-ve-surface .carve-embed-edit {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 2;
+	font-size: 11px;
+	line-height: 1.4;
+	padding: 2px 8px;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	border-radius: 4px;
+	background: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	opacity: 0;
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+}
+
+.wp-carve-ve-surface .wpcarve-embed:hover .carve-embed-edit,
+.wp-carve-ve-surface .carve-embed-edit:focus {
+	opacity: 1;
+}
+
 /* Task lists (Tiptap): keep the checkbox and its text on one line. Without this
    the block <div><p> drops below the inline <label>, looking like a leading
    newline before the text. */
