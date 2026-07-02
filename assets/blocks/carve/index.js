@@ -34,21 +34,6 @@
 		'quote',
 	];
 
-	const CODE_LANGS = [
-		{ label: __( 'Plain text', 'carve-markup' ), value: null },
-		{ label: 'PHP', value: 'php' },
-		{ label: 'JavaScript', value: 'javascript' },
-		{ label: 'TypeScript', value: 'typescript' },
-		{ label: 'HTML', value: 'html' },
-		{ label: 'CSS', value: 'css' },
-		{ label: 'JSON', value: 'json' },
-		{ label: 'Bash', value: 'bash' },
-		{ label: 'Python', value: 'python' },
-		{ label: 'SQL', value: 'sql' },
-		{ label: 'YAML', value: 'yaml' },
-		{ label: 'Markdown', value: 'markdown' },
-	];
-
 	function cap( s ) {
 		return s.charAt( 0 ).toUpperCase() + s.slice( 1 );
 	}
@@ -209,26 +194,20 @@
 		}
 
 		// Context controls: attribute editors for the node the cursor is in.
+		// (Code-block language has its own in-block picker from carve-grammars.)
 		const ed = ctlRef.current && ctlRef.current.editor;
 		const setAttr = ( name, attrs ) => () => ed && ed.chain().focus().updateAttributes( name, attrs ).run();
 		const contextGroup =
 			ed &&
-			( ed.isActive( 'codeBlock' ) || ed.isActive( 'carveDiv' ) ) &&
+			ed.isActive( 'carveDiv' ) &&
 			el(
 				ToolbarGroup,
 				null,
-				ed.isActive( 'codeBlock' ) &&
-					el( ToolbarDropdownMenu, {
-						icon: 'editor-code',
-						label: __( 'Code language', 'carve-markup' ),
-						controls: CODE_LANGS.map( ( l ) => ( { title: l.label, onClick: setAttr( 'codeBlock', { language: l.value } ) } ) ),
-					} ),
-				ed.isActive( 'carveDiv' ) &&
-					el( ToolbarDropdownMenu, {
-						icon: 'info',
-						label: __( 'Admonition type', 'carve-markup' ),
-						controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: setAttr( 'carveDiv', { class: t } ) } ) ),
-					} )
+				el( ToolbarDropdownMenu, {
+					icon: 'info',
+					label: __( 'Admonition type', 'carve-markup' ),
+					controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: setAttr( 'carveDiv', { class: t } ) } ) ),
+				} )
 			);
 
 		const visualToolbar =

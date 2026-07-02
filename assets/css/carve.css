@@ -25,6 +25,33 @@
 	min-height: 70vh;
 }
 
+/* In-block code-language picker (carve-grammars NodeView). */
+.wp-carve-ve-surface pre {
+	position: relative;
+}
+
+.wp-carve-ve-surface pre > .carve-code-lang {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 2;
+	font-size: 11px;
+	line-height: 1.4;
+	padding: 1px 4px;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	border-radius: 4px;
+	background: rgba(0, 0, 0, 0.35);
+	color: #fff;
+	opacity: 0.55;
+	transition: opacity 0.15s ease;
+	cursor: pointer;
+}
+
+.wp-carve-ve-surface pre:hover > .carve-code-lang,
+.wp-carve-ve-surface pre > .carve-code-lang:focus {
+	opacity: 1;
+}
+
 .wp-carve-source {
 	width: 100%;
 	font-family: Menlo, Consolas, monospace;

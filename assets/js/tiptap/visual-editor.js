@@ -15,7 +15,6 @@
 import { Editor } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
 import { CarveKit, serializeToCarve } from 'carve-grammars/tiptap';
-import { CarveKeymap } from './extensions/carve-keymap.js';
 
 export { serializeToCarve };
 
@@ -32,9 +31,9 @@ export { serializeToCarve };
  * @return {Promise<Object>} Control object: { getCarve, setHtml, destroy, editor }.
  */
 export async function initVisualEditor( container, initialHtml, onChange ) {
+	// CarveKit already bundles the keymap (Ctrl/Cmd+1-6, clear, Enter reset).
 	const extensions = [
 		CarveKit,
-		CarveKeymap,
 		Placeholder.configure( { placeholder: 'Start writing Carve…' } ),
 	];
 
