@@ -73,7 +73,12 @@ class Converter
          */
         $carve = (string)apply_filters('wp_carve_source', $carve, $context);
 
-        $html = $this->converterFor($context, $profileOverride, $safe)->convert($this->abbreviationDefs() . $carve);
+        // Site-wide abbreviation defs are prepended for rendering, but the visual
+        // editor seed must not carry them: they render <abbr> spans that serialize
+        // back into per-post source (freezing a global setting into the post). So
+        // the editor context renders the source alone.
+        $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
+        $html = $this->converterFor($context, $profileOverride, $safe)->convert($abbrevDefs . $carve);
 
         /**
          * Filter the rendered HTML before it is returned to WordPress.
@@ -117,9 +122,10 @@ class Converter
         $isComment = $context === 'comment';
         // The visual editor seeds itself from rendered HTML and serializes it
         // back to Carve source on every edit. Generated, non-round-trippable
-        // markup (a TOC nav, heading permalink anchors, shifted heading levels)
-        // would be frozen into the source on that round trip, so the 'editor'
-        // context renders like a post but omits those extensions.
+        // markup (a TOC nav, heading permalink anchors, shifted heading levels,
+        // rendered diagram containers) would be frozen into the source on that
+        // round trip, so the 'editor' context renders like a post but omits those
+        // extensions (and the abbreviation defs, see toHtml()).
         $isEditor = $context === 'editor';
         $safeMode = $isComment ? true : ($safe ?? (bool)($this->settings['safe_mode'] ?? true));
         // Key on the RESOLVED safe value (not the nullable input) so the cache
@@ -170,8 +176,9 @@ class Converter
      * @param \MarkupCarve\Carve\CarveConverter $converter
      * @param bool $forEditor Rendering to seed the visual editor. Skips generated
      *   markup that cannot survive the HTML -> Carve round trip (TOC, heading
-     *   permalinks, heading level shift), mirroring wp-djot's editor render path.
-     *   All content-authoring extensions stay enabled.
+     *   permalinks, heading level shift, diagram renderers), mirroring wp-djot's
+     *   editor render path. All content-authoring extensions stay enabled.
+     *   (Abbreviation defs are handled separately in toHtml().)
      */
     private function addPostExtensions(CarveConverter $converter, bool $forEditor = false): void
     {
@@ -208,7 +215,11 @@ class Converter
             $converter->addExtension(new SmartQuotesExtension(locale: (string)($s['smart_quotes_locale'] ?? 'en')));
         }
 
-        foreach (Diagrams::all() as $name => $diagram) {
+        // Diagram renderers turn a fenced block (```mermaid, ```chart, ...) into a
+        // rendered container whose fence language is lost on the HTML -> Carve
+        // round trip, degrading the diagram to a plain code block. The editor seed
+        // keeps the raw fence instead - it round-trips and stays editable.
+        foreach ($forEditor ? [] : Diagrams::all() as $name => $diagram) {
             if (empty($s[Diagrams::settingKey($name)])) {
                 continue;
             }

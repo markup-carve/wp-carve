@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WpCarve\Converter;
 
@@ -54,34 +55,62 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('toc', $html);
     }
 
-    public function testEditorContextOmitsNonRoundTrippableMarkup(): void
+    /**
+     * Round-trip-safety harness for the visual-editor seed.
+     *
+     * The Visual editor seeds from rendered HTML and serializes it back to Carve
+     * on every edit, so any generated/injected markup in the seed gets frozen
+     * into per-post source (a global setting leaking into the post, or generated
+     * navigation stacking up each render). Each case below is markup that the
+     * 'post' render injects; the 'editor' seed must NOT contain it. Add a row
+     * here whenever a new render-side extension is introduced.
+     *
+     * @param array<string, mixed> $settings
+     */
+    #[DataProvider('editorSeedProvider')]
+    public function testEditorSeedOmitsGeneratedMarkup(array $settings, string $carve, string $generatedMarker): void
     {
-        // The visual editor seeds from rendered HTML and serializes it back to
-        // Carve on every edit. A generated TOC nav or heading permalink anchor
-        // would be frozen into the source on that round trip (and then a fresh
-        // TOC would stack on top each render). The 'editor' context must render
-        // like a post but omit that generated markup; 'post' keeps it.
-        $converter = new Converter([
-            'toc_enabled' => true,
-            'toc_position' => 'top',
-            'permalinks_enabled' => true,
-        ]);
-        $carve = "# Title\n\n## Getting started\n\ntext\n\n## Configuration\n\nmore";
+        $converter = new Converter($settings);
 
-        $post = $converter->toHtml($carve, 'post');
-        $editor = $converter->toHtml($carve, 'editor');
-
-        // 'post' seeds the frontend: generated TOC + permalink anchors are present.
-        $this->assertStringContainsString('class="toc"', $post);
-        $this->assertStringContainsString('class="permalink"', $post);
+        // 'post' seeds the frontend: the generated markup is present.
+        $this->assertStringContainsString(
+            $generatedMarker,
+            $converter->toHtml($carve, 'post'),
+            'post context should inject the generated markup'
+        );
 
         // 'editor' seeds the visual editor: nothing generated to freeze into source.
-        $this->assertStringNotContainsString('class="toc"', $editor);
-        $this->assertStringNotContainsString('class="permalink"', $editor);
+        $this->assertStringNotContainsString(
+            $generatedMarker,
+            $converter->toHtml($carve, 'editor'),
+            'editor seed must not carry non-round-trippable markup'
+        );
+    }
 
-        // The authored content itself still renders in the editor context.
+    /**
+     * @return array<string, array{0: array<string, mixed>, 1: string, 2: string}>
+     */
+    public static function editorSeedProvider(): array
+    {
+        return [
+            // name              => [ settings,                              carve source,                              marker only 'post' should render ]
+            'table of contents'  => [['toc_enabled' => true],               "# A\n\n## B\n\ntext",                      'class="toc"'],
+            'heading permalinks' => [['permalinks_enabled' => true],        "# A\n\n## B",                              'class="permalink"'],
+            'abbreviations'      => [['abbreviations' => 'HTML: HyperText Markup Language'], 'We use HTML often.',        '<abbr'],
+            'diagram (mermaid)'  => [['mermaid_enabled' => true],           "``` mermaid\ngraph TD; A-->B;\n```",        'class="mermaid"'],
+            'heading level shift' => [['heading_shift' => 2],               '# A',                                      '<h3'],
+        ];
+    }
+
+    public function testEditorContextPreservesAuthoredContent(): void
+    {
+        // Stripping generated markup must not drop the author's own content.
+        $converter = new Converter(['toc_enabled' => true, 'permalinks_enabled' => true]);
+        $editor = $converter->toHtml("# Title\n\n## Getting started\n\nBody text.", 'editor');
+
         $this->assertStringContainsString('<h2', $editor);
         $this->assertStringContainsString('Getting started', $editor);
+        $this->assertStringContainsString('Body text.', $editor);
     }
 
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void

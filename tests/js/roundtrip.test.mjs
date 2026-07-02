@@ -59,6 +59,9 @@ const CASES = {
 	taskList: '- [ ] todo\n- [x] done',
 	blockquote: '> quoted line',
 	codeBlock: '```php\n$x = 1;\n```',
+	// The editor seed keeps diagram fences raw (the diagram renderer is skipped
+	// for the editor context), so the fence language must survive the round trip.
+	mermaidFence: '```mermaid\ngraph TD; A-->B;\n```',
 	admonition: '::: note\nBody.\n:::',
 	math: 'Inline $`E=mc^2` here.',
 	footnote: 'See it.[^1]\n\n[^1]: The note.',
