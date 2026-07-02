@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#main",
-    "carve-grammars": "^0.2.0"
+    "carve-grammars": "github:markup-carve/carve-grammars#main"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",
