@@ -1,7 +1,7 @@
 # WP-CLI
 
-The plugin registers a `carve` command (`WpCarve\CLI\MigrateCommand`, backed by
-`WpCarve\Migration\Migrator`).
+The plugin registers `wp carve migrate` (`WpCarve\CLI\MigrateCommand`, backed by
+`WpCarve\Migration\Migrator`) and `wp carve lint` (`WpCarve\CLI\LintCommand`).
 
 ## `wp carve migrate`
 
@@ -47,3 +47,34 @@ auto-migrated:
 The plugin's own `[carve]` shortcode does **not** count as a blocking
 shortcode. Migrated posts get `_wp_carve_enabled = 1` so the `the_content`
 filter renders them as Carve.
+
+## `wp carve lint`
+
+Read-only health check for Carve content. Renders every Carve-enabled post (the
+"Render as Carve" toggle or a `carve/markup` block) and reports render errors
+plus the features the **Visual editor simplifies** relative to the front end.
+
+```bash
+# Lint every Carve post:
+wp carve lint
+
+# Lint one post, or one post type:
+wp carve lint --post=123
+wp carve lint --post_type=page
+```
+
+Each line is `OK` / `ERROR` with the post ID, title, and any caveats:
+
+```
+OK     #6  Carve TOC demo  [visual editor simplifies: table of contents]
+```
+
+### What it reports
+
+| Column | Meaning |
+| --- | --- |
+| `ERROR` | The source threw during render, or rendered empty (broken Carve). |
+| visual editor simplifies | Generated markup present on the front end but intentionally omitted from the visual-editor seed - a table of contents, heading permalinks, diagrams, or abbreviations. These are render-time output, not part of the source, so the Visual editor shows the plain source instead (it never freezes into the post). Not a problem - just so you know what differs. |
+
+It writes nothing; use it before or after a migration to spot content that fails
+to render.

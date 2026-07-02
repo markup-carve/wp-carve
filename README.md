@@ -18,7 +18,7 @@ Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-p
 - **Media embeds** via `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]`, with a WordPress **oEmbed fallback** when the media-embed extension is off.
 - **Multi-format paste.** Paste Markdown / Djot / BBCode / HTML and convert to Carve in place, using carve-php's `*ToCarve` converters. `POST /wp-json/carve/v1/ingest`.
 - **Frontmatter → meta/SEO.** Typed `---yaml` / `---json` / `---toml` frontmatter maps to excerpt, SEO description (Yoast/AIOSEO when present), canonical, and `_wp_carve_frontmatter` meta. Non-destructive.
-- **WP-CLI migration**: `wp carve migrate` - analyzes each post (skips block-editor / foreign-shortcode content), auto-detects Markdown vs HTML, converts safely (`--dry-run`, `--force`).
+- **WP-CLI**: `wp carve migrate` - analyzes each post (skips block-editor / foreign-shortcode content), auto-detects Markdown vs HTML, converts safely (`--dry-run`, `--force`); `wp carve lint` - read-only health check reporting render errors and visual-editor round-trip caveats.
 - **Import / export**: Tools → Carve Import loads a Markdown / Djot / HTML / Carve file as a draft; an "Export Carve" row action downloads a post's `.carve` source.
 - **Render caching + REST.** Rendered HTML is cached in post meta at save (fast views); `POST /wp-json/carve/v1/render` serves headless WordPress.
 

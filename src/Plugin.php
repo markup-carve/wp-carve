@@ -16,6 +16,7 @@ use WpCarve\Admin\PostMode;
 use WpCarve\Admin\SettingsPage;
 use WpCarve\Blocks\CarveBlock;
 use WpCarve\Blocks\SlidesBlock;
+use WpCarve\CLI\LintCommand;
 use WpCarve\CLI\MigrateCommand;
 use WpCarve\Ingest\PasteController;
 use WpCarve\Meta\FrontmatterMeta;
@@ -87,6 +88,7 @@ class Plugin
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
+            WP_CLI::add_command('carve lint', new LintCommand());
         }
     }
 
