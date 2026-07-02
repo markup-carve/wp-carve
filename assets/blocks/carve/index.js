@@ -41,11 +41,13 @@
 	// Innovation A: prefer the in-browser Carve engine for instant preview.
 	// `window.wpCarveEngine` is set by the optional carve-js module bundle
 	// (assets/js/vendor/carve.js). Falls back to the REST render endpoint.
-	function renderPreview( source, done, profile ) {
+	function renderPreview( source, done, profile, forceServer ) {
 		const engine = window.wpCarveEngine;
-		// The in-browser engine can't apply a WordPress content profile, so when
-		// a block overrides the profile fall through to the server render.
-		if ( ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
+		// The in-browser engine can't apply a WordPress content profile, and it
+		// degrades server-only constructs (e.g. media embeds render as a plain
+		// span, not an iframe). Callers that need server-faithful HTML - like the
+		// visual editor seed, where media must round-trip - pass forceServer.
+		if ( ! forceServer && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
 			try {
 				done( engine.carveToHtml( source ) );
 				return;
@@ -102,6 +104,8 @@
 			let active = true;
 			let ctl = null;
 			// Seed the editor with HTML rendered from the current Carve source.
+			// Force the server render so media embeds seed as real iframes (which
+			// the editor can round-trip), not carve-js's degraded spans.
 			renderPreview( attributes.carve || '', ( html ) => {
 				if ( ! active || ! hostRef.current ) {
 					return;
@@ -135,7 +139,7 @@
 						setReady( true );
 					} )
 					.catch( () => setFailed( true ) );
-			} );
+			}, attributes.profile || '', true );
 			return () => {
 				active = false;
 				if ( ctl ) {
@@ -191,6 +195,21 @@
 				return;
 			}
 			ed.chain().focus().setImage( { src, alt: window.prompt( __( 'Alt text', 'carve-markup' ), '' ) || '' } ).run();
+		}
+
+		function promptEmbed() {
+			const ed = ctlRef.current && ctlRef.current.editor;
+			if ( ! ed ) {
+				return;
+			}
+			const url = window.prompt( __( 'YouTube / Vimeo URL or video ID:', 'carve-markup' ), '' );
+			if ( ! url ) {
+				return;
+			}
+			// A bare id (no scheme) is assumed to be YouTube. carve-grammars
+			// serializes the src to :youtube[id] / :vimeo[id] / :media[url].
+			const src = /^https?:|^\/\//.test( url ) ? url : 'https://www.youtube.com/watch?v=' + url;
+			ed.chain().focus().setCarveEmbed( { src } ).run();
 		}
 
 		// Context controls: attribute editors for the node the cursor is in.
@@ -249,6 +268,7 @@
 						label: __( 'Admonition', 'carve-markup' ),
 						controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: cmd( ( c ) => c.toggleCarveDiv( { class: t } ) ) } ) ),
 					} ),
+					el( ToolbarButton, { icon: 'format-video', title: __( 'Media embed', 'carve-markup' ), onClick: promptEmbed } ),
 					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: cmd( ( c ) => c.setHorizontalRule() ) } )
 				),
 				el(
