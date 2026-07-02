@@ -75,7 +75,6 @@ These are **not yet done** and are the gate to a public listing:
 - [ ] `CHANGELOG.md` + `readme.txt` changelog updated.
 - [ ] `composer test`, `composer stan`, `composer cs-check` all green.
 - [ ] `npm run build` run (engine + editor bundles rebuilt + committed).
-- [ ] `npm run test:js` (serializer round-trip unit tests) green.
 - [ ] Plugin Check (PCP) passes.
 - [ ] WordPress.org listing approved and slug confirmed.
 - [ ] `SVN_USERNAME` / `SVN_PASSWORD` secrets set.

@@ -7,13 +7,17 @@
  *
  * Round-trip note: the editor is seeded with HTML (rendered from Carve by the
  * server/JS engine) and serializes the edited document back to Carve via
- * serializeToCarve(). Core constructs round-trip cleanly; carve-specific
- * containers are covered incrementally by the extensions in ./extensions.
+ * serializeToCarve(). The extension kit + serializer are the org's shared core
+ * (carve-grammars/tiptap), used by carve-wysiwyg too; wp-carve only adds the
+ * keyboard map + an empty-state placeholder on top.
  */
 
 import { Editor } from '@tiptap/core';
-import { buildCarveExtensions } from './carve-kit.js';
-import { serializeToCarve } from './serializer.js';
+import Placeholder from '@tiptap/extension-placeholder';
+import { CarveKit, serializeToCarve } from 'carve-grammars/tiptap';
+import { CarveKeymap } from './extensions/carve-keymap.js';
+
+export { serializeToCarve };
 
 /**
  * Mount a Carve visual editor inside a container.
@@ -28,7 +32,11 @@ import { serializeToCarve } from './serializer.js';
  * @return {Promise<Object>} Control object: { getCarve, setHtml, destroy, editor }.
  */
 export async function initVisualEditor( container, initialHtml, onChange ) {
-	const extensions = buildCarveExtensions( {} );
+	const extensions = [
+		CarveKit,
+		CarveKeymap,
+		Placeholder.configure( { placeholder: 'Start writing Carve…' } ),
+	];
 
 	container.innerHTML = '';
 

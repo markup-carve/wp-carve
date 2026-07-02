@@ -14,12 +14,14 @@ textarea + live preview; Visual mounts the Tiptap editor.
 
 ## How it works
 
-- Tiptap is **bundled locally** with esbuild into
-  `assets/js/vendor/carve-editor.js` (run `npm run build:editor`; `npm run build`
-  builds both the engine and the editor). No CDN at runtime. The bundle is
-  **lazy-loaded** via dynamic `import()` only when the user switches to Visual
-  mode. Sources live under `assets/js/tiptap/` (build inputs, excluded from the
-  dist).
+- The editor core (extension kit + serializer) is the org's **shared
+  `carve-grammars/tiptap`** package (`CarveKit` + `serializeToCarve`), the same
+  one `carve-wysiwyg` uses. wp-carve only adds a keyboard map and an empty-state
+  placeholder on top.
+- It's **bundled locally** with esbuild into `assets/js/vendor/carve-editor.js`
+  (run `npm run build:editor`; `npm run build` builds both the engine and the
+  editor). No CDN at runtime. The bundle is **lazy-loaded** via dynamic
+  `import()` only when the user switches to Visual mode.
 - The editor is seeded with HTML rendered from the current Carve source (via the
   JS engine or the REST render endpoint).
 - On every edit the document is serialized back to **Carve markup**
@@ -46,43 +48,24 @@ exact. When nothing would change, Visual mode opens straight away.
 
 | File | Role |
 | --- | --- |
-| `assets/js/tiptap/visual-editor.js` | Editor shell: mounts Tiptap, toolbar, change wiring. |
-| `assets/js/tiptap/carve-kit.js` | Assembles StarterKit + Carve marks/nodes. |
-| `assets/js/tiptap/serializer.js` | Tiptap JSON -> Carve markup. |
-| `assets/js/tiptap/extensions/` | Carve-specific node/mark extensions (e.g. `CarveDiv`). |
+| `carve-grammars/tiptap` (npm) | **Shared** `CarveKit` extension bundle + `serializeToCarve` - the round-trip core, maintained upstream and used by carve-wysiwyg too. |
+| `assets/js/tiptap/visual-editor.js` | wp-carve editor shell: mounts Tiptap with `CarveKit` + the keymap, wires change events. |
+| `assets/js/tiptap/extensions/carve-keymap.js` | wp-carve-local keyboard map (Ctrl/Cmd+1-6 headings, clear, Enter reset). |
+| `assets/blocks/carve/index.js` | The block UI: mode tabs, WordPress block toolbar, gating modal, context controls. |
 
 ## Coverage
 
-**Round-trips today:** headings, paragraphs, bold (`*`), italic (`/`), underline
-(`_`), strike (`~`), superscript (`^`), subscript (`,,`), highlight (`==`), inline
-code, links, bullet / ordered / task lists, blockquotes, fenced code blocks,
-horizontal rules, images, admonition divs (all 8 types), inline / display math
-(`` $`…` `` / `` $$`…` ``), definition lists, tables, and footnotes (ref +
-definitions; footnote bodies round-trip as plain text), and media embeds
-(`:youtube[ID]` / `:vimeo[ID]` round-trip exactly; `:media[URL]` canonicalizes to
-the provider form - identical output, but the source text changes).
-
-**Not yet:** tabs, code-groups, frontmatter, attributes, and formatted footnote
-bodies. Anything that would not survive a round-trip is caught by the warning
-below rather than silently changed. Add support by creating a node/mark
-extension under `extensions/`, a matching `case` in `serializeToCarve()`, and an
-entry in `carve-kit.js` - see `CarveDiv` / `CarveMath` for the pattern.
-
-Every tiptap file carries a `?ver` query threaded through `import.meta.url`, so
-editing any module busts the browser's ES-module cache for the whole graph.
+Round-trip coverage is owned by `carve-grammars/tiptap` (headings, marks incl.
+critic insert/delete, lists incl. tasks, blockquotes, code blocks, tables with
+alignment, admonition divs, math, footnotes, definition lists, spans,
+abbreviations). Constructs it can't round-trip exactly are caught by the warning
+above rather than silently changed. New constructs are added **upstream** in
+`carve-grammars` so every consumer (wp-carve, carve-wysiwyg, the playground)
+benefits.
 
 ## Extending
 
-```js
-// assets/js/tiptap/extensions/carve-kbd.js
-import { Mark } from '@tiptap/core';
-
-export const CarveKbd = Mark.create( {
-	name: 'carveKbd',
-	parseHTML() { return [ { tag: 'kbd' } ]; },
-	renderHTML() { return [ 'kbd', 0 ]; },
-} );
-```
-
-Register it in `carve-kit.js`, export it from `extensions/index.js`, and add the
-serializer mapping. Marks apply innermost-to-outermost in `serializeInline()`.
+Add or improve editor constructs in the shared **`carve-grammars`** repo
+(`tiptap/extensions/` + the serializer). wp-carve picks them up on the next
+`carve-grammars` bump + `npm run build:editor`. wp-carve-local additions are
+limited to WordPress glue (the block UI, keymap, gating).

@@ -270,20 +270,12 @@
 						label: __( 'Admonition', 'carve-markup' ),
 						controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: cmd( ( c ) => c.toggleCarveDiv( { class: t } ) ) } ) ),
 					} ),
-					el( ToolbarDropdownMenu, {
-						icon: 'format-video',
-						label: __( 'Media embed', 'carve-markup' ),
-						controls: [
-							{ title: 'YouTube', onClick: insertNode( { type: 'mediaEmbed', attrs: { provider: 'youtube', mediaId: 'VIDEO_ID' } } ) },
-							{ title: 'Vimeo', onClick: insertNode( { type: 'mediaEmbed', attrs: { provider: 'vimeo', mediaId: 'VIDEO_ID' } } ) },
-						],
-					} ),
 					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: cmd( ( c ) => c.setHorizontalRule() ) } )
 				),
 				el(
 					ToolbarGroup,
 					null,
-					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: insertNode( { type: 'footnoteRef', attrs: { label: '1' } } ) } ),
+					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: insertNode( { type: 'carveFootnote', attrs: { label: 'note' } } ) } ),
 					el( ToolbarDropdownMenu, {
 						icon: 'calculator',
 						label: __( 'Math', 'carve-markup' ),
