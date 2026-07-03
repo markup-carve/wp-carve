@@ -32,11 +32,11 @@
 
 	document.addEventListener( 'DOMContentLoaded', function () {
 		const ta = document.getElementById( 'comment' );
-		if ( ! ta || document.querySelector( '.wp-carve-comment-toolbar' ) ) {
+		if ( ! ta || document.querySelector( '.wpcarve-comment-toolbar' ) ) {
 			return;
 		}
 		const bar = document.createElement( 'div' );
-		bar.className = 'wp-carve-comment-toolbar';
+		bar.className = 'wpcarve-comment-toolbar';
 		BUTTONS.forEach( function ( b ) {
 			const btn = document.createElement( 'button' );
 			btn.type = 'button';

@@ -23,12 +23,12 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WP_CARVE_VERSION', '0.1.0');
-define('WP_CARVE_FILE', __FILE__);
-define('WP_CARVE_DIR', plugin_dir_path(__FILE__));
-define('WP_CARVE_URL', plugin_dir_url(__FILE__));
+define('WPCARVE_VERSION', '0.1.0');
+define('WPCARVE_FILE', __FILE__);
+define('WPCARVE_DIR', plugin_dir_path(__FILE__));
+define('WPCARVE_URL', plugin_dir_url(__FILE__));
 
-$wpCarveAutoload = WP_CARVE_DIR . 'vendor/autoload.php';
+$wpCarveAutoload = WPCARVE_DIR . 'vendor/autoload.php';
 if (is_readable($wpCarveAutoload)) {
     require $wpCarveAutoload;
 }

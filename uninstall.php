@@ -8,14 +8,14 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
-delete_option('wp_carve_settings');
+delete_option('wpcarve_settings');
 
 // Remove plugin post meta across all posts. One-time uninstall cleanup: a direct
 // query is the correct tool (no per-row hooks needed) and caching is irrelevant.
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time uninstall cleanup.
 $wpdb->query(
-    "DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_wp_carve_enabled', '_wp_carve_html', '_wp_carve_html_version', '_wp_carve_frontmatter', '_wp_carve_excerpt', '_wp_carve_seo_description', '_wp_carve_canonical')",
+    "DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_wpcarve_enabled', '_wpcarve_html', '_wpcarve_html_version', '_wpcarve_frontmatter', '_wpcarve_excerpt', '_wpcarve_seo_description', '_wpcarve_canonical')",
 );
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time uninstall cleanup.
-$wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key = '_wp_carve_raw'");
+$wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key = '_wpcarve_raw'");

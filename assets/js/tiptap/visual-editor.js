@@ -8,7 +8,7 @@
  * Round-trip note: the editor is seeded with HTML (rendered from Carve by the
  * server/JS engine) and serializes the edited document back to Carve via
  * serializeToCarve(). The extension kit + serializer are the org's shared core
- * (carve-grammars/tiptap), used by carve-wysiwyg too; wp-carve only adds the
+ * (carve-grammars/tiptap), used by carve-wysiwyg too; wpcarve only adds the
  * keyboard map + an empty-state placeholder on top.
  */
 
@@ -48,7 +48,7 @@ export async function initVisualEditor( container, initialHtml, onChange ) {
 	container.innerHTML = '';
 
 	const surfaceEl = document.createElement( 'div' );
-	surfaceEl.className = 'wp-carve wp-carve-ve-surface';
+	surfaceEl.className = 'wpcarve wpcarve-ve-surface';
 	container.appendChild( surfaceEl );
 
 	const editor = new Editor( {

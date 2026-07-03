@@ -78,4 +78,4 @@ focused lines. Carve does not support Djot-style language strings like
 ```` ``` php # ````; use the preceding attribute line instead.
 
 To register further carve-php extensions of your own, use the
-`wp_carve_converter` action - see [Hooks](hooks.md).
+`wpcarve_converter` action - see [Hooks](hooks.md).

@@ -1,5 +1,5 @@
 === Carve Markup ===
-Contributors: dereuromark
+Contributors: markmarkmark
 Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.0
 Tested up to: 7.0

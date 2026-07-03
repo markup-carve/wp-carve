@@ -3,7 +3,7 @@
 	'use strict';
 
 	document.addEventListener( 'click', function ( e ) {
-		const a = e.target.closest( '.wp-carve .permalink' );
+		const a = e.target.closest( '.wpcarve .permalink' );
 		if ( ! a ) {
 			return;
 		}

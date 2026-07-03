@@ -71,7 +71,7 @@ class Converter
          * @param string $carve The Carve source.
          * @param string $context 'post', 'comment', or 'editor'.
          */
-        $carve = (string)apply_filters('wp_carve_source', $carve, $context);
+        $carve = (string)apply_filters('wpcarve_source', $carve, $context);
 
         // Site-wide abbreviation defs are prepended for rendering, but the visual
         // editor seed must not carry them: they render <abbr> spans that serialize
@@ -80,6 +80,15 @@ class Converter
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $html = $this->converterFor($context, $profileOverride, $safe)->convert($abbrevDefs . $carve);
 
+        // Defense in depth: in safe mode the engine already escapes raw HTML and
+        // strips event handlers, but the generated markup additionally passes
+        // through wp_kses so only allowlisted tags/attributes ever reach output.
+        // Unsafe mode is reserved for unfiltered_html authors (see
+        // Plugin::safeForAuthor()), matching how core treats their post content.
+        if ($this->resolveSafeMode($context, $safe)) {
+            $html = self::sanitizeHtml($html);
+        }
+
         /**
          * Filter the rendered HTML before it is returned to WordPress.
          *
@@ -87,7 +96,7 @@ class Converter
          * @param string $carve The original Carve source.
          * @param string $context 'post', 'comment', or 'editor'.
          */
-        return (string)apply_filters('wp_carve_rendered_html', $html, $carve, $context);
+        return (string)apply_filters('wpcarve_rendered_html', $html, $carve, $context);
     }
 
     /**
@@ -117,6 +126,84 @@ class Converter
         return $defs !== [] ? implode("\n", $defs) . "\n\n" : '';
     }
 
+    /**
+     * Effective safe mode for a render: comments are always safe; elsewhere an
+     * explicit $safe wins, then the site setting (default on).
+     */
+    private function resolveSafeMode(string $context, ?bool $safe): bool
+    {
+        if ($context === 'comment') {
+            return true;
+        }
+
+        return $safe ?? (bool)($this->settings['safe_mode'] ?? true);
+    }
+
+    /**
+     * Run rendered HTML through wp_kses with the Carve allowlist. No-op outside
+     * WordPress (unit tests); the engine's own safe mode still applies there.
+     */
+    public static function sanitizeHtml(string $html): string
+    {
+        if ($html === '' || !function_exists('wp_kses')) {
+            return $html;
+        }
+
+        return wp_kses($html, self::allowedHtml());
+    }
+
+    /**
+     * Allowed tags/attributes for sanitizing rendered Carve output: the core
+     * `post` allowlist (which already permits class, id, role, and any aria- or
+     * data- attribute globally) plus the elements Carve generates beyond it - task-list
+     * checkboxes and media-embed iframes. URL attributes stay restricted to
+     * core's allowed protocols, so javascript: URIs never survive.
+     *
+     * @return array<string, array<string, bool>>
+     */
+    public static function allowedHtml(): array
+    {
+        $allowed = function_exists('wp_kses_allowed_html')
+            ? wp_kses_allowed_html('post')
+            : [];
+
+        $allowed['input'] = [
+            'type' => true,
+            'checked' => true,
+            'disabled' => true,
+            'class' => true,
+            'id' => true,
+        ];
+        $allowed['label'] = [
+            'for' => true,
+            'class' => true,
+        ];
+        $allowed['iframe'] = [
+            'src' => true,
+            'width' => true,
+            'height' => true,
+            'title' => true,
+            'class' => true,
+            'allow' => true,
+            'allowfullscreen' => true,
+            'frameborder' => true,
+            'loading' => true,
+            'referrerpolicy' => true,
+        ];
+
+        /**
+         * Filter the allowed HTML tags/attributes for sanitizing rendered Carve.
+         *
+         * @param array<string, array<string, bool>> $allowed wp_kses-style allowlist.
+         */
+        if (function_exists('apply_filters')) {
+            /** @var array<string, array<string, bool>> */
+            return apply_filters('wpcarve_allowed_html', $allowed);
+        }
+
+        return $allowed;
+    }
+
     private function converterFor(string $context, ?string $profileOverride = null, ?bool $safe = null): CarveConverter
     {
         $isComment = $context === 'comment';
@@ -127,7 +214,7 @@ class Converter
         // round trip, so the 'editor' context renders like a post but omits those
         // extensions (and the abbreviation defs, see toHtml()).
         $isEditor = $context === 'editor';
-        $safeMode = $isComment ? true : ($safe ?? (bool)($this->settings['safe_mode'] ?? true));
+        $safeMode = $this->resolveSafeMode($context, $safe);
         // Key on the RESOLVED safe value (not the nullable input) so the cache
         // can never return a converter whose safe mode differs from behavior.
         $cacheKey = $context
@@ -167,7 +254,7 @@ class Converter
          * @param \MarkupCarve\Carve\CarveConverter $converter
          * @param string $context 'post', 'comment', or 'editor'.
          */
-        do_action('wp_carve_converter', $converter, $context);
+        do_action('wpcarve_converter', $converter, $context);
 
         return $this->cache[$cacheKey] = $converter;
     }

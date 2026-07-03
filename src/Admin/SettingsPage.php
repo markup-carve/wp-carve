@@ -22,7 +22,7 @@ class SettingsPage
     /**
      * @var string
      */
-    private const MENU_SLUG = 'wp-carve';
+    private const MENU_SLUG = 'wpcarve';
 
     /**
      * @var array<int, string>
@@ -52,13 +52,13 @@ class SettingsPage
         if ($hook !== 'settings_page_' . self::MENU_SLUG) {
             return;
         }
-        wp_enqueue_style('wp-carve-admin-settings', WP_CARVE_URL . 'assets/css/admin-settings.css', [], WP_CARVE_VERSION);
-        wp_enqueue_script('wp-carve-admin-settings', WP_CARVE_URL . 'assets/js/admin-settings.js', [], WP_CARVE_VERSION, true);
+        wp_enqueue_style('wpcarve-admin-settings', WPCARVE_URL . 'assets/css/admin-settings.css', [], WPCARVE_VERSION);
+        wp_enqueue_script('wpcarve-admin-settings', WPCARVE_URL . 'assets/js/admin-settings.js', [], WPCARVE_VERSION, true);
     }
 
     public function settings(): void
     {
-        register_setting('wp_carve', Settings::OPTION, [
+        register_setting('wpcarve', Settings::OPTION, [
             'type' => 'array',
             'sanitize_callback' => [$this, 'sanitize'],
             'default' => Settings::defaults(),
@@ -104,11 +104,11 @@ class SettingsPage
             'advanced' => __('Advanced', 'carve-markup'),
         ];
 
-        echo '<div class="wrap wp-carve-settings">';
+        echo '<div class="wrap wpcarve-settings">';
         echo '<h1>' . esc_html__('Carve Markup', 'carve-markup') . '</h1>';
-        echo '<p class="wp-carve-intro">' . esc_html__('A post-Markdown markup language for WordPress. Each feature below is independent; diagram libraries load only on pages that use them.', 'carve-markup') . '</p>';
+        echo '<p class="wpcarve-intro">' . esc_html__('A post-Markdown markup language for WordPress. Each feature below is independent; diagram libraries load only on pages that use them.', 'carve-markup') . '</p>';
 
-        echo '<h2 class="nav-tab-wrapper wp-carve-tabs">';
+        echo '<h2 class="nav-tab-wrapper wpcarve-tabs">';
         $first = true;
         foreach ($tabs as $id => $label) {
             printf(
@@ -122,7 +122,7 @@ class SettingsPage
         echo '</h2>';
 
         echo '<form method="post" action="options.php">';
-        settings_fields('wp_carve');
+        settings_fields('wpcarve');
 
         // General.
         $this->panelStart('general', true);
@@ -216,7 +216,7 @@ class SettingsPage
 
     private function panelStart(string $id, bool $active = false): void
     {
-        printf('<div class="wp-carve-panel%s" data-panel="%s">', $active ? ' is-active' : '', esc_attr($id));
+        printf('<div class="wpcarve-panel%s" data-panel="%s">', $active ? ' is-active' : '', esc_attr($id));
     }
 
     private function panelEnd(): void
@@ -226,15 +226,15 @@ class SettingsPage
 
     private function group(string $title, string $desc = ''): void
     {
-        echo '<h3 class="wp-carve-group">' . esc_html($title) . '</h3>';
+        echo '<h3 class="wpcarve-group">' . esc_html($title) . '</h3>';
         if ($desc !== '') {
-            echo '<p class="wp-carve-group-desc">' . esc_html($desc) . '</p>';
+            echo '<p class="wpcarve-group-desc">' . esc_html($desc) . '</p>';
         }
     }
 
     private function grid(): void
     {
-        echo '<div class="wp-carve-grid">';
+        echo '<div class="wpcarve-grid">';
     }
 
     private function gridEnd(): void
@@ -253,17 +253,17 @@ class SettingsPage
     {
         $name = Settings::OPTION . '[' . $key . ']';
         printf(
-            '<div class="wp-carve-card"%s>'
-            . '<label class="wp-carve-toggle">'
+            '<div class="wpcarve-card"%s>'
+            . '<label class="wpcarve-toggle">'
             . '<input type="checkbox" name="%s" value="1" %s>'
-            . '<span class="wp-carve-switch" aria-hidden="true"></span>'
-            . '<span class="wp-carve-card-label">%s</span></label>'
+            . '<span class="wpcarve-switch" aria-hidden="true"></span>'
+            . '<span class="wpcarve-card-label">%s</span></label>'
             . '%s</div>',
             $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
             esc_attr($name),
             checked(!empty($s[$key]), true, false),
             esc_html($label),
-            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+            $desc !== '' ? '<p class="wpcarve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
 
@@ -290,15 +290,15 @@ class SettingsPage
             $opts .= sprintf('<option value="%s"%s>%s</option>', esc_attr($value), selected($current, $value, false), esc_html((string)$optLabel));
         }
         printf(
-            '<div class="wp-carve-card wp-carve-field"%s>'
-            . '<span class="wp-carve-card-label">%s</span>'
+            '<div class="wpcarve-card wpcarve-field"%s>'
+            . '<span class="wpcarve-card-label">%s</span>'
             . '<select name="%s">%s</select>%s</div>',
             $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
             esc_html($label),
             esc_attr($name),
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $opts is <option> markup built above with esc_attr()/esc_html().
             $opts,
-            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+            $desc !== '' ? '<p class="wpcarve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
 
@@ -313,14 +313,14 @@ class SettingsPage
     {
         $name = Settings::OPTION . '[' . $key . ']';
         printf(
-            '<div class="wp-carve-card wp-carve-field"%s>'
-            . '<span class="wp-carve-card-label">%s</span>'
+            '<div class="wpcarve-card wpcarve-field"%s>'
+            . '<span class="wpcarve-card-label">%s</span>'
             . '<input type="number" name="%s" value="%s" class="small-text">%s</div>',
             $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
             esc_html($label),
             esc_attr($name),
             esc_attr((string)($s[$key] ?? 0)),
-            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+            $desc !== '' ? '<p class="wpcarve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
 
@@ -335,14 +335,14 @@ class SettingsPage
     {
         $name = Settings::OPTION . '[' . $key . ']';
         printf(
-            '<div class="wp-carve-card wp-carve-field"%s>'
-            . '<span class="wp-carve-card-label">%s</span>'
+            '<div class="wpcarve-card wpcarve-field"%s>'
+            . '<span class="wpcarve-card-label">%s</span>'
             . '<input type="text" name="%s" value="%s" class="regular-text">%s</div>',
             $depends !== '' ? ' data-depends="' . esc_attr($depends) . '"' : '',
             esc_html($label),
             esc_attr($name),
             esc_attr((string)($s[$key] ?? '')),
-            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+            $desc !== '' ? '<p class="wpcarve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
 
@@ -356,13 +356,13 @@ class SettingsPage
     {
         $name = Settings::OPTION . '[' . $key . ']';
         printf(
-            '<div class="wp-carve-card wp-carve-field">'
-            . '<span class="wp-carve-card-label">%s</span>'
+            '<div class="wpcarve-card wpcarve-field">'
+            . '<span class="wpcarve-card-label">%s</span>'
             . '<textarea name="%s" rows="5" class="large-text code">%s</textarea>%s</div>',
             esc_html($label),
             esc_attr($name),
             esc_textarea((string)($s[$key] ?? '')),
-            $desc !== '' ? '<p class="wp-carve-card-desc">' . esc_html($desc) . '</p>' : '',
+            $desc !== '' ? '<p class="wpcarve-card-desc">' . esc_html($desc) . '</p>' : '',
         );
     }
 
@@ -371,7 +371,7 @@ class SettingsPage
      */
     private function diagramGrid(array $s): void
     {
-        echo '<div class="wp-carve-grid wp-carve-diagram-grid">';
+        echo '<div class="wpcarve-grid wpcarve-diagram-grid">';
         foreach (Diagrams::all() as $name => $diagram) {
             $key = Diagrams::settingKey($name);
             $optName = Settings::OPTION . '[' . $key . ']';
@@ -383,9 +383,9 @@ class SettingsPage
             $actions = '';
             if ($preview !== '') {
                 $actions .= sprintf(
-                    '<span class="wp-carve-preview">'
-                    . '<span class="wp-carve-icon dashicons dashicons-visibility" tabindex="0" role="button" aria-label="%s"></span>'
-                    . '<span class="wp-carve-pop"><img src="%s" alt="" loading="lazy"><code>```%s</code></span></span>',
+                    '<span class="wpcarve-preview">'
+                    . '<span class="wpcarve-icon dashicons dashicons-visibility" tabindex="0" role="button" aria-label="%s"></span>'
+                    . '<span class="wpcarve-pop"><img src="%s" alt="" loading="lazy"><code>```%s</code></span></span>',
                     esc_attr(sprintf(/* translators: %s: renderer name */ __('Preview %s output', 'carve-markup'), $label)),
                     esc_url($preview),
                     esc_html($class),
@@ -394,20 +394,20 @@ class SettingsPage
             if ($url !== '') {
                 $linkLabel = sprintf(/* translators: %s: renderer name */ __('%s website', 'carve-markup'), $label);
                 $actions .= sprintf(
-                    '<a class="wp-carve-icon dashicons dashicons-external" href="%1$s" target="_blank" rel="noopener noreferrer" title="%2$s" aria-label="%2$s"></a>',
+                    '<a class="wpcarve-icon dashicons dashicons-external" href="%1$s" target="_blank" rel="noopener noreferrer" title="%2$s" aria-label="%2$s"></a>',
                     esc_url($url),
                     esc_attr($linkLabel),
                 );
             }
-            $previewHtml = $actions !== '' ? '<span class="wp-carve-actions">' . $actions . '</span>' : '';
+            $previewHtml = $actions !== '' ? '<span class="wpcarve-actions">' . $actions . '</span>' : '';
             printf(
-                '<div class="wp-carve-card wp-carve-diagram">'
-                . '<label class="wp-carve-toggle">'
+                '<div class="wpcarve-card wpcarve-diagram">'
+                . '<label class="wpcarve-toggle">'
                 . '<input type="checkbox" name="%s" value="1" %s>'
-                . '<span class="wp-carve-switch" aria-hidden="true"></span>'
-                . '<span class="wp-carve-card-label">%s</span></label>'
-                . '<p class="wp-carve-card-desc"><code>```%s</code></p>'
-                . '<span class="wp-carve-card-foot"><span class="wp-carve-badge">%s</span>%s</span>'
+                . '<span class="wpcarve-switch" aria-hidden="true"></span>'
+                . '<span class="wpcarve-card-label">%s</span></label>'
+                . '<p class="wpcarve-card-desc"><code>```%s</code></p>'
+                . '<span class="wpcarve-card-foot"><span class="wpcarve-badge">%s</span>%s</span>'
                 . '</div>',
                 esc_attr($optName),
                 checked(!empty($s[$key]), true, false),
@@ -435,8 +435,8 @@ class SettingsPage
         }
         foreach (['svg', 'png'] as $ext) {
             $rel = 'assets/img/diagrams/' . $name . '.' . $ext;
-            if (is_file(WP_CARVE_DIR . $rel)) {
-                return WP_CARVE_URL . $rel;
+            if (is_file(WPCARVE_DIR . $rel)) {
+                return WPCARVE_URL . $rel;
             }
         }
 
@@ -455,7 +455,7 @@ class SettingsPage
         }
         $bytes = 0;
         foreach ((array)($diagram['libs'] ?? []) as $lib) {
-            $path = WP_CARVE_DIR . 'assets/js/vendor/' . $lib;
+            $path = WPCARVE_DIR . 'assets/js/vendor/' . $lib;
             if (is_string($lib) && is_file($path)) {
                 $bytes += (int)filesize($path);
             }

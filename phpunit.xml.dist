@@ -9,7 +9,7 @@
     failOnRisky="true"
 >
     <testsuites>
-        <testsuite name="wp-carve">
+        <testsuite name="wpcarve">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

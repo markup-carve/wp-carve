@@ -84,7 +84,7 @@ class Plugin
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
         add_filter('script_loader_tag', [$this, 'deferFrontendScripts'], 10, 2);
         add_action('wp_head', [$this, 'autoOgImage'], 5);
-        add_filter('wp_carve_rendered_html', [$this, 'oembedBridge'], 10, 3);
+        add_filter('wpcarve_rendered_html', [$this, 'oembedBridge'], 10, 3);
 
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
@@ -105,12 +105,12 @@ class Plugin
     }
 
     /**
-     * Wrap rendered Carve HTML so the `.wp-carve` stylesheet (admonitions,
+     * Wrap rendered Carve HTML so the `.wpcarve` stylesheet (admonitions,
      * permalinks, code) applies on every surface.
      */
     private function wrap(string $html): string
     {
-        return $html === '' ? '' : '<div class="wp-carve">' . $html . '</div>';
+        return $html === '' ? '' : '<div class="wpcarve">' . $html . '</div>';
     }
 
     public function renderComment(string $text): string
@@ -119,7 +119,7 @@ class Plugin
         if (!$comment) {
             return $text;
         }
-        $raw = get_comment_meta((int)$comment->comment_ID, '_wp_carve_raw', true);
+        $raw = get_comment_meta((int)$comment->comment_ID, '_wpcarve_raw', true);
         if (!is_string($raw) || $raw === '') {
             return $text;
         }
@@ -137,7 +137,7 @@ class Plugin
         // Persist the raw Carve so re-rendering is lossless. The stored
         // comment_content stays as the rendered/escaped text WordPress expects.
         if (isset($commentdata['comment_content'])) {
-            $commentdata['comment_meta']['_wp_carve_raw'] = wp_unslash((string)$commentdata['comment_content']);
+            $commentdata['comment_meta']['_wpcarve_raw'] = wp_unslash((string)$commentdata['comment_content']);
         }
 
         return $commentdata;
@@ -163,7 +163,7 @@ class Plugin
     public function maybeRenderExcerpt(string $excerpt): string
     {
         $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true) || !$this->typeEnabled($post)) {
+        if (!$post || !get_post_meta($post->ID, '_wpcarve_enabled', true) || !$this->typeEnabled($post)) {
             return $excerpt;
         }
         $src = trim((string)$post->post_excerpt) !== '' ? $post->post_excerpt : $post->post_content;
@@ -175,7 +175,7 @@ class Plugin
     public function maybeRenderPost(string $content): string
     {
         $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wp_carve_enabled', true) || !$this->typeEnabled($post)) {
+        if (!$post || !get_post_meta($post->ID, '_wpcarve_enabled', true) || !$this->typeEnabled($post)) {
             return $content;
         }
 
@@ -195,9 +195,9 @@ class Plugin
 
     public function enqueueEditorAssets(): void
     {
-        $asset = WP_CARVE_DIR . 'assets/blocks/carve/index.asset.php';
+        $asset = WPCARVE_DIR . 'assets/blocks/carve/index.asset.php';
         $deps = ['wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n'];
-        $ver = WP_CARVE_VERSION;
+        $ver = WPCARVE_VERSION;
         if (is_readable($asset)) {
             $data = require $asset;
             $deps = $data['dependencies'] ?? $deps;
@@ -206,22 +206,22 @@ class Plugin
         // Optional in-browser Carve engine (innovation A). Built by `npm run
         // build` into assets/js/vendor/carve.js (sets window.wpCarveEngine). When
         // absent, the editor falls back to the REST render endpoint.
-        $engine = WP_CARVE_DIR . 'assets/js/vendor/carve.js';
+        $engine = WPCARVE_DIR . 'assets/js/vendor/carve.js';
         if (Settings::get('live_preview') && is_readable($engine)) {
-            wp_enqueue_script('wp-carve-engine', WP_CARVE_URL . 'assets/js/vendor/carve.js', [], WP_CARVE_VERSION, true);
-            $deps[] = 'wp-carve-engine';
+            wp_enqueue_script('wpcarve-engine', WPCARVE_URL . 'assets/js/vendor/carve.js', [], WPCARVE_VERSION, true);
+            $deps[] = 'wpcarve-engine';
         }
 
         wp_enqueue_script(
-            'wp-carve-editor',
-            WP_CARVE_URL . 'assets/blocks/carve/index.js',
+            'wpcarve-editor',
+            WPCARVE_URL . 'assets/blocks/carve/index.js',
             $deps,
             $ver,
             true,
         );
-        wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
-        wp_enqueue_script('wp-carve-slides', WP_CARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
-        wp_localize_script('wp-carve-editor', 'wpCarve', [
+        wp_enqueue_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
+        wp_enqueue_script('wpcarve-slides', WPCARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
+        wp_localize_script('wpcarve-editor', 'wpCarve', [
             'restRender' => esc_url_raw(rest_url('carve/v1/render')),
             'restIngest' => esc_url_raw(rest_url('carve/v1/ingest')),
             'nonce' => wp_create_nonce('wp_rest'),
@@ -231,7 +231,7 @@ class Plugin
             // no CDN). Empty string hides the Visual tab. Lazy-loaded via
             // dynamic import() from the block only when Visual mode is used.
             'visualEditor' => Settings::get('visual_editor_mode') !== 'disabled'
-                ? esc_url_raw(WP_CARVE_URL . 'assets/js/vendor/carve-editor.js') . '?ver=' . $this->assetVersion('assets/js/vendor/carve-editor.js')
+                ? esc_url_raw(WPCARVE_URL . 'assets/js/vendor/carve-editor.js') . '?ver=' . $this->assetVersion('assets/js/vendor/carve-editor.js')
                 : '',
             // Default mode when a Carve block is opened.
             'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
@@ -251,7 +251,7 @@ class Plugin
      */
     public function deferFrontendScripts(string $tag, string $handle): string
     {
-        if (is_admin() || strncmp($handle, 'wp-carve', 8) !== 0) {
+        if (is_admin() || strncmp($handle, 'wpcarve', 8) !== 0) {
             return $tag;
         }
         if (str_contains($tag, ' defer') || str_contains($tag, ' async')) {
@@ -270,7 +270,7 @@ class Plugin
     public function oembedBridge(string $html, string $carve = '', string $context = 'post'): string
     {
         // Never fetch on behalf of untrusted commenters, and only when enabled.
-        if ($context === 'comment' || !apply_filters('wp_carve_media_oembed', true) || !str_contains($html, 'ext-')) {
+        if ($context === 'comment' || !apply_filters('wpcarve_media_oembed', true) || !str_contains($html, 'ext-')) {
             return $html;
         }
 
@@ -298,7 +298,7 @@ class Plugin
                 }
                 $embed = wp_oembed_get($url);
 
-                return $embed ? '<div class="wp-carve-oembed">' . $embed . '</div>' : $m[0];
+                return $embed ? '<div class="wpcarve-oembed">' . $embed . '</div>' : $m[0];
             },
             $html,
         );
@@ -309,21 +309,21 @@ class Plugin
     /**
      * Fallback OG image for Carve posts without a featured image: the first
      * `![](url)` in the source. Skipped if a featured image exists or the
-     * `wp_carve_auto_og_image` filter returns false.
+     * `wpcarve_auto_og_image` filter returns false.
      */
     public function autoOgImage(): void
     {
         if (!is_singular() || has_post_thumbnail()) {
             return;
         }
-        if (!apply_filters('wp_carve_auto_og_image', true)) {
+        if (!apply_filters('wpcarve_auto_og_image', true)) {
             return;
         }
         $post = get_post();
         if (!$post instanceof WP_Post) {
             return;
         }
-        $isCarve = get_post_meta($post->ID, '_wp_carve_enabled', true)
+        $isCarve = get_post_meta($post->ID, '_wpcarve_enabled', true)
             || has_block('carve/markup', $post)
             || has_block('carve/slides', $post);
         if (!$isCarve) {
@@ -347,20 +347,26 @@ class Plugin
         if ((bool)Settings::get('safe_mode')) {
             return true;
         }
+        // Core already strips the unfiltered_html capability when this constant
+        // is set; the explicit check makes the guarantee independent of cap
+        // filtering and self-documenting.
+        if (defined('DISALLOW_UNFILTERED_HTML') && DISALLOW_UNFILTERED_HTML) {
+            return true;
+        }
 
         return !($authorId && user_can($authorId, 'unfiltered_html'));
     }
 
     private function assetVersion(string $relPath): string
     {
-        $mtime = @filemtime(WP_CARVE_DIR . $relPath);
+        $mtime = @filemtime(WPCARVE_DIR . $relPath);
 
-        return $mtime ? (string)$mtime : WP_CARVE_VERSION;
+        return $mtime ? (string)$mtime : WPCARVE_VERSION;
     }
 
     public function enqueueFrontendAssets(): void
     {
-        wp_enqueue_style('wp-carve', WP_CARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
+        wp_enqueue_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
 
         if (!is_singular()) {
             return;
@@ -368,14 +374,14 @@ class Plugin
 
         // Comment toolbar (independent of whether the post itself is Carve).
         if (Settings::get('enable_comments') && comments_open()) {
-            wp_enqueue_script('wp-carve-comment-toolbar', WP_CARVE_URL . 'assets/js/comment-toolbar.js', [], $this->assetVersion('assets/js/comment-toolbar.js'), true);
+            wp_enqueue_script('wpcarve-comment-toolbar', WPCARVE_URL . 'assets/js/comment-toolbar.js', [], $this->assetVersion('assets/js/comment-toolbar.js'), true);
         }
 
         $post = get_post();
         // Carve is present either as whole-post mode (meta) or a Carve block;
         // all such surfaces need the shared enhancements.
         $hasCarveBlock = $post && (has_block('carve/markup', $post) || has_block('carve/slides', $post));
-        if (!$post || (!get_post_meta($post->ID, '_wp_carve_enabled', true) && !$hasCarveBlock)) {
+        if (!$post || (!get_post_meta($post->ID, '_wpcarve_enabled', true) && !$hasCarveBlock)) {
             return;
         }
         $content = (string)$post->post_content;
@@ -383,16 +389,16 @@ class Plugin
         // Code-block enhancements (copy button, optional line numbers) - only
         // when the content actually has a fenced block.
         if (str_contains($content, '```') || str_contains($content, '~~~')) {
-            wp_enqueue_script('wp-carve-code', WP_CARVE_URL . 'assets/js/code-blocks.js', [], $this->assetVersion('assets/js/code-blocks.js'), true);
+            wp_enqueue_script('wpcarve-code', WPCARVE_URL . 'assets/js/code-blocks.js', [], $this->assetVersion('assets/js/code-blocks.js'), true);
         }
 
         // Heading permalink click-to-copy.
         if (Settings::get('permalinks_enabled')) {
-            wp_enqueue_script('wp-carve-permalink', WP_CARVE_URL . 'assets/js/permalink.js', [], $this->assetVersion('assets/js/permalink.js'), true);
+            wp_enqueue_script('wpcarve-permalink', WPCARVE_URL . 'assets/js/permalink.js', [], $this->assetVersion('assets/js/permalink.js'), true);
         }
 
         if (has_block('carve/slides', $post)) {
-            wp_enqueue_script('wp-carve-slides', WP_CARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
+            wp_enqueue_script('wpcarve-slides', WPCARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
         }
 
         // Diagram renderers (Mermaid, Chart.js, Vega-Lite, ...). Each type's
@@ -416,31 +422,31 @@ class Plugin
             $i = 0;
             $lastHandle = null;
             foreach ((array)($diagram['libs'] ?? []) as $lib) {
-                $handle = 'wp-carve-diagram-' . $name . '-' . $i;
+                $handle = 'wpcarve-diagram-' . $name . '-' . $i;
                 $src = (string)apply_filters(
-                    'wp_carve_diagram_src',
-                    WP_CARVE_URL . 'assets/js/vendor/' . $lib,
+                    'wpcarve_diagram_src',
+                    WPCARVE_URL . 'assets/js/vendor/' . $lib,
                     $name,
                     $lib,
                 );
-                wp_enqueue_script($handle, esc_url_raw($src), [], WP_CARVE_VERSION, true);
+                wp_enqueue_script($handle, esc_url_raw($src), [], WPCARVE_VERSION, true);
                 $lastHandle = $handle;
                 $i++;
             }
             foreach ((array)($diagram['src'] ?? []) as $url) {
-                $handle = 'wp-carve-diagram-' . $name . '-ext-' . $i;
-                wp_enqueue_script($handle, esc_url_raw((string)$url), [], WP_CARVE_VERSION, true);
+                $handle = 'wpcarve-diagram-' . $name . '-ext-' . $i;
+                wp_enqueue_script($handle, esc_url_raw((string)$url), [], WPCARVE_VERSION, true);
                 $lastHandle = $handle;
                 $i++;
             }
             // A custom renderer's init runs after its own libraries (attached to
             // the last one); with no libraries it rides the shared diagrams.js.
             if (!empty($diagram['init']) && is_string($diagram['init'])) {
-                $diagramInits[$lastHandle ?? 'wp-carve-diagrams'][] = $diagram['init'];
+                $diagramInits[$lastHandle ?? 'wpcarve-diagrams'][] = $diagram['init'];
             }
         }
         if ($needDiagrams) {
-            wp_enqueue_script('wp-carve-diagrams', WP_CARVE_URL . 'assets/js/diagrams.js', [], WP_CARVE_VERSION, true);
+            wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], WPCARVE_VERSION, true);
             foreach ($diagramInits as $handle => $inits) {
                 foreach ($inits as $init) {
                     wp_add_inline_script($handle, $init);
@@ -452,13 +458,13 @@ class Plugin
         // auto-render handles them. Vendored locally (css + js + fonts) so the
         // font requests the stylesheet triggers stay on this host.
         if (str_contains($content, '$`')) {
-            $base = rtrim((string)apply_filters('wp_carve_katex_base', WP_CARVE_URL . 'assets/js/vendor/katex'), '/');
-            wp_enqueue_style('wp-carve-katex', esc_url_raw($base . '/katex.min.css'), [], WP_CARVE_VERSION);
-            wp_enqueue_script('wp-carve-katex', esc_url_raw($base . '/katex.min.js'), [], WP_CARVE_VERSION, true);
-            wp_enqueue_script('wp-carve-katex-auto', esc_url_raw($base . '/contrib/auto-render.min.js'), ['wp-carve-katex'], WP_CARVE_VERSION, true);
+            $base = rtrim((string)apply_filters('wpcarve_katex_base', WPCARVE_URL . 'assets/js/vendor/katex'), '/');
+            wp_enqueue_style('wpcarve-katex', esc_url_raw($base . '/katex.min.css'), [], WPCARVE_VERSION);
+            wp_enqueue_script('wpcarve-katex', esc_url_raw($base . '/katex.min.js'), [], WPCARVE_VERSION, true);
+            wp_enqueue_script('wpcarve-katex-auto', esc_url_raw($base . '/contrib/auto-render.min.js'), ['wpcarve-katex'], WPCARVE_VERSION, true);
             wp_add_inline_script(
-                'wp-carve-katex-auto',
-                'document.addEventListener("DOMContentLoaded",function(){if(window.renderMathInElement){document.querySelectorAll(".wp-carve").forEach(function(e){renderMathInElement(e,{throwOnError:false});});}});',
+                'wpcarve-katex-auto',
+                'document.addEventListener("DOMContentLoaded",function(){if(window.renderMathInElement){document.querySelectorAll(".wpcarve").forEach(function(e){renderMathInElement(e,{throwOnError:false});});}});',
             );
         }
     }

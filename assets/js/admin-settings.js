@@ -11,14 +11,14 @@
 	}
 
 	ready( function () {
-		const root = document.querySelector( '.wp-carve-settings' );
+		const root = document.querySelector( '.wpcarve-settings' );
 		if ( ! root ) {
 			return;
 		}
 
 		// Tabs.
-		const tabs = root.querySelectorAll( '.wp-carve-tabs .nav-tab' );
-		const panels = root.querySelectorAll( '.wp-carve-panel' );
+		const tabs = root.querySelectorAll( '.wpcarve-tabs .nav-tab' );
+		const panels = root.querySelectorAll( '.wpcarve-panel' );
 
 		function activate( id ) {
 			tabs.forEach( function ( t ) {
@@ -40,16 +40,16 @@
 		} );
 
 		const hash = ( window.location.hash || '' ).replace( '#', '' );
-		if ( hash && root.querySelector( '.wp-carve-panel[data-panel="' + hash + '"]' ) ) {
+		if ( hash && root.querySelector( '.wpcarve-panel[data-panel="' + hash + '"]' ) ) {
 			activate( hash );
 		}
 
 		// Dependent fields: a card with data-depends="key" is shown only when the
 		// checkbox for that key is checked.
-		const deps = root.querySelectorAll( '.wp-carve-card[data-depends]' );
+		const deps = root.querySelectorAll( '.wpcarve-card[data-depends]' );
 
 		function inputFor( key ) {
-			return root.querySelector( 'input[name="wp_carve_settings[' + key + ']"]' );
+			return root.querySelector( 'input[name="wpcarve_settings[' + key + ']"]' );
 		}
 
 		function sync() {

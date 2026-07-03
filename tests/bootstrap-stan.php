@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Constants the plugin defines at runtime, declared for static analysis.
 defined('ABSPATH') || define('ABSPATH', '/tmp/wp/');
-defined('WP_CARVE_VERSION') || define('WP_CARVE_VERSION', '0.1.0');
-defined('WP_CARVE_FILE') || define('WP_CARVE_FILE', __DIR__ . '/../wp-carve.php');
-defined('WP_CARVE_DIR') || define('WP_CARVE_DIR', __DIR__ . '/../');
-defined('WP_CARVE_URL') || define('WP_CARVE_URL', 'http://example.test/wp-content/plugins/wp-carve/');
+defined('WPCARVE_VERSION') || define('WPCARVE_VERSION', '0.1.0');
+defined('WPCARVE_FILE') || define('WPCARVE_FILE', __DIR__ . '/../carve-markup.php');
+defined('WPCARVE_DIR') || define('WPCARVE_DIR', __DIR__ . '/../');
+defined('WPCARVE_URL') || define('WPCARVE_URL', 'http://example.test/wp-content/plugins/wpcarve/');

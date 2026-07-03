@@ -334,7 +334,7 @@
 				{
 					title: __( 'Visual editing may change this content', 'carve-markup' ),
 					onRequestClose: onExit,
-					className: 'wp-carve-ve-modal',
+					className: 'wpcarve-ve-modal',
 				},
 				el(
 					'p',
@@ -343,13 +343,13 @@
 				),
 				el(
 					'pre',
-					{ className: 'wp-carve-ve-diff' },
-					lossy.removed.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'r' + i, className: 'wp-carve-diff-del' }, '- ' + l ) ),
-					lossy.added.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'a' + i, className: 'wp-carve-diff-add' }, '+ ' + l ) )
+					{ className: 'wpcarve-ve-diff' },
+					lossy.removed.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'r' + i, className: 'wpcarve-diff-del' }, '- ' + l ) ),
+					lossy.added.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'a' + i, className: 'wpcarve-diff-add' }, '+ ' + l ) )
 				),
 				el(
 					'div',
-					{ className: 'wp-carve-ve-modal-actions' },
+					{ className: 'wpcarve-ve-modal-actions' },
 					el( Button, { variant: 'secondary', onClick: onExit }, __( 'Back to Write', 'carve-markup' ) ),
 					' ',
 					el( Button, { variant: 'primary', onClick: onApprove }, __( 'Edit in Visual anyway', 'carve-markup' ) )
@@ -368,12 +368,12 @@
 
 		return el(
 			'div',
-			{ className: 'wp-carve-ve-wrap' },
+			{ className: 'wpcarve-ve-wrap' },
 			failNotice,
 			visualToolbar,
 			modal,
 			el( 'div', {
-				className: 'wp-carve-ve',
+				className: 'wpcarve-ve',
 				ref: hostRef,
 				// Keep it mounted (needed to compute the round-trip) but hidden
 				// while the approval modal is up.
@@ -384,7 +384,7 @@
 
 	function Edit( props ) {
 		const { attributes, setAttributes } = props;
-		const blockProps = useBlockProps( { className: 'wp-carve-block' } );
+		const blockProps = useBlockProps( { className: 'wpcarve-block' } );
 		const source = attributes.carve || '';
 
 		const hasVisual = !! cfg.visualEditor;
@@ -755,7 +755,7 @@
 
 		const tabs = el(
 			'div',
-			{ className: 'wp-carve-modes' },
+			{ className: 'wpcarve-modes' },
 			el(
 				ButtonGroup,
 				null,
@@ -778,7 +778,7 @@
 				{
 					size: 'small',
 					variant: 'tertiary',
-					className: 'wp-carve-fullscreen-toggle',
+					className: 'wpcarve-fullscreen-toggle',
 					isPressed: fullscreen,
 					onClick: () => setFullscreen( ! fullscreen ),
 					icon: fullscreen ? 'fullscreen-exit-alt' : 'fullscreen-alt',
@@ -804,7 +804,7 @@
 
 		const sourceField = el( 'textarea', {
 			ref: taRef,
-			className: 'wp-carve-source',
+			className: 'wpcarve-source',
 			'aria-label': __( 'Carve source', 'carve-markup' ),
 			value: source,
 			spellCheck: false,
@@ -817,7 +817,7 @@
 
 		const previewField = el( 'div', {
 			ref: previewRef,
-			className: 'wp-carve wp-carve-preview',
+			className: 'wpcarve wpcarve-preview',
 			dangerouslySetInnerHTML: { __html: html },
 		} );
 
@@ -833,7 +833,7 @@
 		} else if ( mode === 'preview' ) {
 			body = previewField;
 		} else if ( mode === 'split' ) {
-			body = el( 'div', { className: 'wp-carve-split' }, sourceField, previewField );
+			body = el( 'div', { className: 'wpcarve-split' }, sourceField, previewField );
 		} else {
 			body = sourceField;
 		}
@@ -865,7 +865,7 @@
 						onChange: ( profile ) => setAttributes( { profile } ),
 						__nextHasNoMarginBottom: true,
 					} ),
-					el( 'p', { className: 'wp-carve-count' }, words + ' ' + __( 'words', 'carve-markup' ) ),
+					el( 'p', { className: 'wpcarve-count' }, words + ' ' + __( 'words', 'carve-markup' ) ),
 					cfg.pasteIngest &&
 						el(
 							Button,
@@ -884,7 +884,7 @@
 					{ title: __( 'Carve syntax', 'carve-markup' ), initialOpen: false },
 					el(
 						'ul',
-						{ className: 'wp-carve-cheat' },
+						{ className: 'wpcarve-cheat' },
 						[
 							'*strong*  /emphasis/  _underline_  `code`',
 							'# Heading   > quote   --- divider',
@@ -902,7 +902,7 @@
 					{ title: __( 'Keyboard shortcuts', 'carve-markup' ), initialOpen: false },
 					el(
 						'ul',
-						{ className: 'wp-carve-cheat' },
+						{ className: 'wpcarve-cheat' },
 						[
 							[ 'Ctrl/Cmd + B', __( 'Strong', 'carve-markup' ) ],
 							[ 'Ctrl/Cmd + I', __( 'Emphasis', 'carve-markup' ) ],
@@ -989,7 +989,7 @@
 	function SlidesEdit( props ) {
 		const { attributes, setAttributes } = props;
 		const blockProps = useBlockProps( {
-			className: 'wp-carve-slides-editor',
+			className: 'wpcarve-slides-editor',
 		} );
 
 		return el(
@@ -1035,7 +1035,7 @@
 			} ),
 			el(
 				'div',
-				{ className: 'wp-carve-slides-preview-frame' },
+				{ className: 'wpcarve-slides-preview-frame' },
 				el( ServerSideRender, {
 					block: 'carve/slides',
 					attributes,

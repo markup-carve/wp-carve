@@ -7,11 +7,11 @@
 		}
 		deck.dataset.wpCarveSlidesReady = '1';
 
-		const slides = Array.prototype.slice.call(deck.querySelectorAll('.wp-carve-slide'));
-		const current = deck.querySelector('[data-wp-carve-slide-current]');
-		const prev = deck.querySelector('.wp-carve-slides-prev');
-		const next = deck.querySelector('.wp-carve-slides-next');
-		const fullscreen = deck.querySelector('.wp-carve-slides-fullscreen');
+		const slides = Array.prototype.slice.call(deck.querySelectorAll('.wpcarve-slide'));
+		const current = deck.querySelector('[data-wpcarve-slide-current]');
+		const prev = deck.querySelector('.wpcarve-slides-prev');
+		const next = deck.querySelector('.wpcarve-slides-next');
+		const fullscreen = deck.querySelector('.wpcarve-slides-fullscreen');
 		let index = Math.max(0, Number(deck.dataset.current || 1) - 1);
 
 		function show(nextIndex) {
@@ -87,7 +87,7 @@
 	}
 
 	function init(root) {
-		(root || document).querySelectorAll('[data-wp-carve-slides]').forEach(setupDeck);
+		(root || document).querySelectorAll('[data-wpcarve-slides]').forEach(setupDeck);
 	}
 
 	document.addEventListener('DOMContentLoaded', function () {

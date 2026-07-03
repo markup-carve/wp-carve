@@ -5,7 +5,7 @@
 	'use strict';
 
 	function each( sel, fn ) {
-		document.querySelectorAll( '.wp-carve ' + sel ).forEach( function ( el, i ) {
+		document.querySelectorAll( '.wpcarve ' + sel ).forEach( function ( el, i ) {
 			if ( el.dataset.carveRendered ) {
 				return;
 			}
@@ -29,7 +29,7 @@
 		if ( window.mermaid ) {
 			try {
 				window.mermaid.initialize( { startOnLoad: false, theme: 'default' } );
-				window.mermaid.run( { querySelector: '.wp-carve .mermaid' } );
+				window.mermaid.run( { querySelector: '.wpcarve .mermaid' } );
 			} catch ( e ) {
 				window.console && console.error( 'carve mermaid:', e );
 			}
@@ -100,7 +100,7 @@
 	// run() is idempotent, so a single trigger renders everything present.
 	function lazyRun() {
 		var targets = document.querySelectorAll(
-			'.wp-carve .mermaid, .wp-carve .chart, .wp-carve .vega-lite, .wp-carve .graphviz, .wp-carve .wavedrom, .wp-carve .abc'
+			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc'
 		);
 		if ( ! targets.length ) {
 			return;

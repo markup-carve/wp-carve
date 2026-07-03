@@ -1,50 +1,50 @@
 /* Carve settings screen: tabbed card grid. */
 
-.wp-carve-settings .wp-carve-intro {
+.wpcarve-settings .wpcarve-intro {
 	max-width: 60em;
 	margin: 0.5em 0 1em;
 	color: #50575e;
 	font-size: 14px;
 }
 
-.wp-carve-tabs {
+.wpcarve-tabs {
 	margin-bottom: 1.5em;
 }
 
-.wp-carve-panel {
+.wpcarve-panel {
 	display: none;
 }
 
-.wp-carve-panel.is-active {
+.wpcarve-panel.is-active {
 	display: block;
 }
 
-.wp-carve-group {
+.wpcarve-group {
 	margin: 1.6em 0 0.2em;
 	font-size: 14px;
 	font-weight: 600;
 	color: #1d2327;
 }
 
-.wp-carve-group:first-of-type {
+.wpcarve-group:first-of-type {
 	margin-top: 0.4em;
 }
 
-.wp-carve-group-desc {
+.wpcarve-group-desc {
 	margin: 0 0 0.6em;
 	color: #646970;
 	font-size: 13px;
 }
 
 /* Responsive grid that fills the wide admin area. */
-.wp-carve-grid {
+.wpcarve-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 	gap: 12px;
 	margin: 0.6em 0 0.4em;
 }
 
-.wp-carve-card {
+.wpcarve-card {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
@@ -55,25 +55,25 @@
 	transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
-.wp-carve-card:hover {
+.wpcarve-card:hover {
 	border-color: #c3c4c7;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.wp-carve-card-label {
+.wpcarve-card-label {
 	font-weight: 600;
 	font-size: 13.5px;
 	color: #1d2327;
 }
 
-.wp-carve-card-desc {
+.wpcarve-card-desc {
 	margin: 0;
 	color: #646970;
 	font-size: 12.5px;
 	line-height: 1.5;
 }
 
-.wp-carve-card-desc code {
+.wpcarve-card-desc code {
 	padding: 1px 5px;
 	font-size: 11.5px;
 	background: #f0f0f1;
@@ -81,21 +81,21 @@
 }
 
 /* Toggle switch (restyled checkbox). */
-.wp-carve-toggle {
+.wpcarve-toggle {
 	display: flex;
 	align-items: center;
 	gap: 9px;
 	cursor: pointer;
 }
 
-.wp-carve-toggle input {
+.wpcarve-toggle input {
 	position: absolute;
 	opacity: 0;
 	width: 0;
 	height: 0;
 }
 
-.wp-carve-switch {
+.wpcarve-switch {
 	position: relative;
 	flex: 0 0 auto;
 	width: 34px;
@@ -105,7 +105,7 @@
 	transition: background-color 0.15s ease;
 }
 
-.wp-carve-switch::after {
+.wpcarve-switch::after {
 	content: "";
 	position: absolute;
 	top: 2px;
@@ -117,35 +117,35 @@
 	transition: transform 0.15s ease;
 }
 
-.wp-carve-toggle input:checked + .wp-carve-switch {
+.wpcarve-toggle input:checked + .wpcarve-switch {
 	background: #2271b1;
 }
 
-.wp-carve-toggle input:checked + .wp-carve-switch::after {
+.wpcarve-toggle input:checked + .wpcarve-switch::after {
 	transform: translateX(16px);
 }
 
-.wp-carve-toggle input:focus-visible + .wp-carve-switch {
+.wpcarve-toggle input:focus-visible + .wpcarve-switch {
 	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2271b1;
 }
 
 /* Field cards (select / number / text). */
-.wp-carve-field select,
-.wp-carve-field input {
+.wpcarve-field select,
+.wpcarve-field input {
 	max-width: 100%;
 }
 
 /* Dependent rows hidden when their parent is off (JS adds this). */
-.wp-carve-card.is-hidden {
+.wpcarve-card.is-hidden {
 	display: none;
 }
 
 /* Diagram cards: toggle + fence hint + size badge + preview. */
-.wp-carve-diagram {
+.wpcarve-diagram {
 	position: relative;
 }
 
-.wp-carve-card-foot {
+.wpcarve-card-foot {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -153,7 +153,7 @@
 	margin-top: auto;
 }
 
-.wp-carve-badge {
+.wpcarve-badge {
 	padding: 1px 7px;
 	font-size: 11px;
 	font-weight: 600;
@@ -163,13 +163,13 @@
 }
 
 /* Option C: eye + project-link icons; the eye reveals a preview on hover/focus. */
-.wp-carve-actions {
+.wpcarve-actions {
 	display: flex;
 	align-items: center;
 	gap: 2px;
 }
 
-.wp-carve-icon {
+.wpcarve-icon {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -181,22 +181,22 @@
 	cursor: pointer;
 }
 
-.wp-carve-icon.dashicons {
+.wpcarve-icon.dashicons {
 	font-size: 18px;
 }
 
-.wp-carve-icon:hover,
-.wp-carve-preview:focus-within .wp-carve-icon {
+.wpcarve-icon:hover,
+.wpcarve-preview:focus-within .wpcarve-icon {
 	color: #2271b1;
 	background: #f0f0f1;
 }
 
-.wp-carve-preview {
+.wpcarve-preview {
 	position: relative;
 	display: inline-flex;
 }
 
-.wp-carve-pop {
+.wpcarve-pop {
 	position: absolute;
 	right: 0;
 	bottom: 100%;
@@ -212,7 +212,7 @@
 }
 
 /* A transparent bridge so the pointer can cross the gap into the popover. */
-.wp-carve-pop::after {
+.wpcarve-pop::after {
 	content: "";
 	position: absolute;
 	top: 100%;
@@ -221,12 +221,12 @@
 	height: 8px;
 }
 
-.wp-carve-preview:hover .wp-carve-pop,
-.wp-carve-preview:focus-within .wp-carve-pop {
+.wpcarve-preview:hover .wpcarve-pop,
+.wpcarve-preview:focus-within .wpcarve-pop {
 	display: block;
 }
 
-.wp-carve-pop img {
+.wpcarve-pop img {
 	display: block;
 	width: 100%;
 	max-height: 170px;
@@ -235,7 +235,7 @@
 	border-radius: 4px;
 }
 
-.wp-carve-pop code {
+.wpcarve-pop code {
 	display: block;
 	margin-top: 7px;
 	padding: 2px 6px;

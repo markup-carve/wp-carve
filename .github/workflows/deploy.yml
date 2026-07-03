@@ -19,8 +19,8 @@ jobs:
       - name: Validate version consistency
         run: |
           TAG="${{ github.event.release.tag_name }}"
-          HEADER_VERSION=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' wp-carve.php)
-          CONSTANT_VERSION=$(grep -oP "define\('WP_CARVE_VERSION',\s*'\K[0-9]+\.[0-9]+\.[0-9]+" wp-carve.php)
+          HEADER_VERSION=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' carve-markup.php)
+          CONSTANT_VERSION=$(grep -oP "define\('WPCARVE_VERSION',\s*'\K[0-9]+\.[0-9]+\.[0-9]+" carve-markup.php)
           STABLE_TAG=$(grep -oP '^Stable tag:\s*\K[0-9]+\.[0-9]+\.[0-9]+' readme.txt)
 
           echo "Release tag:      $TAG"
@@ -30,7 +30,7 @@ jobs:
 
           ERRORS=0
           if [ "$HEADER_VERSION" != "$CONSTANT_VERSION" ]; then
-            echo "::error::Plugin header version ($HEADER_VERSION) does not match WP_CARVE_VERSION constant ($CONSTANT_VERSION)"
+            echo "::error::Plugin header version ($HEADER_VERSION) does not match WPCARVE_VERSION constant ($CONSTANT_VERSION)"
             ERRORS=1
           fi
           if [ "$HEADER_VERSION" != "$STABLE_TAG" ]; then
@@ -58,7 +58,7 @@ jobs:
       - name: Check PHP syntax
         run: |
           find src -name "*.php" -exec php -l {} \;
-          php -l wp-carve.php
+          php -l carve-markup.php
           php -l uninstall.php
 
       - name: Run PHPStan

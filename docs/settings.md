@@ -1,6 +1,6 @@
 # Settings
 
-All options live in a single `wp_carve_settings` option (see
+All options live in a single `wpcarve_settings` option (see
 `WpCarve\Settings`). Defaults are typed; the stored array is merged over them, so
 reads always get a fully-populated value. Configure under **Settings → Carve
 Markup**.
@@ -50,7 +50,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (safe `<a>` link under safe mode). |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
 
-Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wp_carve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
+Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |

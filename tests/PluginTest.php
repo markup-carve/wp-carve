@@ -17,19 +17,19 @@ class PluginTest extends TestCase
 {
     protected function setUp(): void
     {
-        $GLOBALS['_wp_carve_test_options'] = [];
-        $GLOBALS['_wp_carve_test_caps'] = [];
+        $GLOBALS['_wpcarve_test_options'] = [];
+        $GLOBALS['_wpcarve_test_caps'] = [];
     }
 
     protected function tearDown(): void
     {
-        unset($GLOBALS['_wp_carve_test_options'], $GLOBALS['_wp_carve_test_caps']);
+        unset($GLOBALS['_wpcarve_test_options'], $GLOBALS['_wpcarve_test_caps']);
     }
 
     public function testSafeModeOnAlwaysForcesSafe(): void
     {
-        $GLOBALS['_wp_carve_test_options'][Settings::OPTION] = ['safe_mode' => true];
-        $GLOBALS['_wp_carve_test_caps'][5] = ['unfiltered_html' => true];
+        $GLOBALS['_wpcarve_test_options'][Settings::OPTION] = ['safe_mode' => true];
+        $GLOBALS['_wpcarve_test_caps'][5] = ['unfiltered_html' => true];
 
         // Even a trusted author is safe while the setting is on.
         $this->assertTrue(Plugin::safeForAuthor(5));
@@ -37,7 +37,7 @@ class PluginTest extends TestCase
 
     public function testSafeModeOffStillSafeForUntrustedAuthor(): void
     {
-        $GLOBALS['_wp_carve_test_options'][Settings::OPTION] = ['safe_mode' => false];
+        $GLOBALS['_wpcarve_test_options'][Settings::OPTION] = ['safe_mode' => false];
 
         // No unfiltered_html capability -> still forced safe.
         $this->assertTrue(Plugin::safeForAuthor(7));
@@ -45,15 +45,15 @@ class PluginTest extends TestCase
 
     public function testSafeModeOffAllowsRawForTrustedAuthor(): void
     {
-        $GLOBALS['_wp_carve_test_options'][Settings::OPTION] = ['safe_mode' => false];
-        $GLOBALS['_wp_carve_test_caps'][9] = ['unfiltered_html' => true];
+        $GLOBALS['_wpcarve_test_options'][Settings::OPTION] = ['safe_mode' => false];
+        $GLOBALS['_wpcarve_test_caps'][9] = ['unfiltered_html' => true];
 
         $this->assertFalse(Plugin::safeForAuthor(9));
     }
 
     public function testUnknownAuthorIsSafe(): void
     {
-        $GLOBALS['_wp_carve_test_options'][Settings::OPTION] = ['safe_mode' => false];
+        $GLOBALS['_wpcarve_test_options'][Settings::OPTION] = ['safe_mode' => false];
 
         // Author id 0 (no post context) fails closed to safe.
         $this->assertTrue(Plugin::safeForAuthor(0));

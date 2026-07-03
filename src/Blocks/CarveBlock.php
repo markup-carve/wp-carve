@@ -29,7 +29,7 @@ class CarveBlock
 
     public function registerType(): void
     {
-        register_block_type(WP_CARVE_DIR . 'assets/blocks/carve', [
+        register_block_type(WPCARVE_DIR . 'assets/blocks/carve', [
             'render_callback' => [$this, 'render'],
         ]);
     }
@@ -48,6 +48,6 @@ class CarveBlock
         $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
         $html = $this->converter->toHtml($carve, 'post', $profile !== '' ? $profile : null, $safe);
 
-        return sprintf('<div class="wp-carve">%s</div>', $html);
+        return sprintf('<div class="wpcarve">%s</div>', $html);
     }
 }

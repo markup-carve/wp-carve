@@ -18,7 +18,7 @@ use WP_Post;
  *
  * Non-destructive by design: it sets the excerpt only when empty, writes SEO
  * description/canonical to common SEO plugins when present, and stores the full
- * frontmatter as `_wp_carve_frontmatter` for theme/plugin use. It never silently
+ * frontmatter as `_wpcarve_frontmatter` for theme/plugin use. It never silently
  * overwrites the post title or slug.
  */
 class FrontmatterMeta
@@ -33,21 +33,21 @@ class FrontmatterMeta
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
             return;
         }
-        if (wp_is_post_revision($postId) || !get_post_meta($postId, '_wp_carve_enabled', true)) {
+        if (wp_is_post_revision($postId) || !get_post_meta($postId, '_wpcarve_enabled', true)) {
             return;
         }
 
         $data = $this->extract($post->post_content);
         if ($data === []) {
-            delete_post_meta($postId, '_wp_carve_frontmatter');
+            delete_post_meta($postId, '_wpcarve_frontmatter');
 
             return;
         }
 
-        update_post_meta($postId, '_wp_carve_frontmatter', wp_json_encode($data));
+        update_post_meta($postId, '_wpcarve_frontmatter', wp_json_encode($data));
 
         if (!empty($data['excerpt']) && trim((string)$post->post_excerpt) === '') {
-            update_post_meta($postId, '_wp_carve_excerpt', sanitize_text_field((string)$data['excerpt']));
+            update_post_meta($postId, '_wpcarve_excerpt', sanitize_text_field((string)$data['excerpt']));
         }
 
         $description = (string)($data['description'] ?? $data['seo_description'] ?? '');
@@ -56,7 +56,7 @@ class FrontmatterMeta
         }
 
         if (!empty($data['canonical'])) {
-            update_post_meta($postId, '_wp_carve_canonical', esc_url_raw((string)$data['canonical']));
+            update_post_meta($postId, '_wpcarve_canonical', esc_url_raw((string)$data['canonical']));
         }
     }
 
@@ -108,7 +108,7 @@ class FrontmatterMeta
 
     private function writeSeoDescription(int $postId, string $description): void
     {
-        update_post_meta($postId, '_wp_carve_seo_description', $description);
+        update_post_meta($postId, '_wpcarve_seo_description', $description);
         // Best-effort hand-off to common SEO plugins when active.
         if (defined('WPSEO_VERSION')) {
             update_post_meta($postId, '_yoast_wpseo_metadesc', $description);

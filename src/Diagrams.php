@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
  * loaded only when the type is enabled AND a page actually uses it.
  *
  * The registry is filterable: an add-on can register a new diagram type with
- * the `wp_carve_diagram_renderers` filter and automatically gets a settings
+ * the `wpcarve_diagram_renderers` filter and automatically gets a settings
  * toggle, conditional script loading, and extension registration.
  *
  * Entry shape:
@@ -94,7 +94,7 @@ class Diagrams
          *
          * @param array<string, array<string, mixed>> $builtin
          */
-        $renderers = apply_filters('wp_carve_diagram_renderers', $builtin);
+        $renderers = apply_filters('wpcarve_diagram_renderers', $builtin);
 
         return is_array($renderers) ? $renderers : $builtin;
     }

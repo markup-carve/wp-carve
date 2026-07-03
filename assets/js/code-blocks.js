@@ -16,7 +16,7 @@
 		'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
 	ready( function () {
-		document.querySelectorAll( '.wp-carve pre > code' ).forEach( function ( code ) {
+		document.querySelectorAll( '.wpcarve pre > code' ).forEach( function ( code ) {
 			const pre = code.parentElement;
 			if ( ! pre || pre.dataset.carveEnhanced ) {
 				return;
@@ -37,7 +37,7 @@
 			// Copy button (icon).
 			const btn = document.createElement( 'button' );
 			btn.type = 'button';
-			btn.className = 'wp-carve-copy';
+			btn.className = 'wpcarve-copy';
 			btn.setAttribute( 'aria-label', 'Copy code' );
 			btn.title = 'Copy code';
 			btn.innerHTML = ICON_COPY;
@@ -57,7 +57,7 @@
 			if ( pre.classList.contains( 'line-numbers' ) && ! code.classList.contains( 'torchlight' ) ) {
 				const lines = code.innerHTML.replace( /\n$/, '' ).split( '\n' ).length;
 				const gutter = document.createElement( 'span' );
-				gutter.className = 'wp-carve-line-numbers';
+				gutter.className = 'wpcarve-line-numbers';
 				gutter.setAttribute( 'aria-hidden', 'true' );
 				for ( let i = 1; i <= lines; i++ ) {
 					gutter.appendChild( document.createElement( 'span' ) );

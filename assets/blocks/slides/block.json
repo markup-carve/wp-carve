@@ -27,6 +27,6 @@
             "default": "standard"
         }
     },
-    "editorScript": "wp-carve-editor",
-    "style": "wp-carve"
+    "editorScript": "wpcarve-editor",
+    "style": "wpcarve"
 }

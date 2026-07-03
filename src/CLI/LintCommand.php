@@ -137,7 +137,7 @@ class LintCommand
     private function carveSources(WP_Post $post): array
     {
         $sources = [];
-        if (get_post_meta($post->ID, '_wp_carve_enabled', true)) {
+        if (get_post_meta($post->ID, '_wpcarve_enabled', true)) {
             $sources[] = (string)$post->post_content;
         }
 

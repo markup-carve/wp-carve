@@ -22,17 +22,17 @@ class RenderCache
     /**
      * @var string
      */
-    private const META_KEY = '_wp_carve_html';
+    private const META_KEY = '_wpcarve_html';
 
     /**
      * @var string
      */
-    private const VERSION_KEY = '_wp_carve_html_version';
+    private const VERSION_KEY = '_wpcarve_html_version';
 
     /**
      * @var string
      */
-    private const SAFE_KEY = '_wp_carve_html_safe';
+    private const SAFE_KEY = '_wpcarve_html_safe';
 
     public function __construct(private Converter $converter)
     {
@@ -55,7 +55,7 @@ class RenderCache
         if (wp_is_post_revision($postId)) {
             return;
         }
-        if (!get_post_meta($postId, '_wp_carve_enabled', true)) {
+        if (!get_post_meta($postId, '_wpcarve_enabled', true)) {
             delete_post_meta($postId, self::META_KEY);
 
             return;
@@ -70,7 +70,7 @@ class RenderCache
         // storing; without wp_slash a single backslash (e.g. the `\(` math
         // delimiters carve-php emits) would be eaten. wp_slash protects them.
         update_post_meta($postId, self::META_KEY, wp_slash($html));
-        update_post_meta($postId, self::VERSION_KEY, WP_CARVE_VERSION);
+        update_post_meta($postId, self::VERSION_KEY, WPCARVE_VERSION);
         update_post_meta($postId, self::SAFE_KEY, $safe ? '1' : '0');
     }
 
@@ -87,7 +87,7 @@ class RenderCache
         if (!Settings::get('render_cache')) {
             return null;
         }
-        if (get_post_meta($postId, self::VERSION_KEY, true) !== WP_CARVE_VERSION) {
+        if (get_post_meta($postId, self::VERSION_KEY, true) !== WPCARVE_VERSION) {
             // Engine/plugin changed since caching; re-render on the fly.
             return null;
         }

@@ -4,7 +4,7 @@
 // wraps it in eval() where a strict_types declaration is illegal.
 
 /**
- * Integration checks for Carve Markup (wp-carve).
+ * Integration checks for Carve Markup (wpcarve).
  *
  * Runs inside a real WordPress via `wp eval-file` (see the "WP Integration" CI
  * job), so WordPress core and the activated plugin are fully loaded. Unlike the
@@ -30,7 +30,7 @@ $carve_check = static function (string $name, bool $passed, string $detail = '')
 $carve_snippet = static fn (string $html): string => trim(preg_replace('/\s+/', ' ', substr($html, 0, 160)) ?? '');
 
 // --- Plugin loaded + active ---------------------------------------------------
-$carve_check('plugin constant defined', defined('WP_CARVE_VERSION'));
+$carve_check('plugin constant defined', defined('WPCARVE_VERSION'));
 $carve_check('shortcode registered', shortcode_exists('carve'));
 
 // --- Shortcode renders Carve to HTML -----------------------------------------
@@ -57,7 +57,7 @@ $postId = wp_insert_post([
     'post_status' => 'publish',
     'post_content' => "## Sub heading\n\nSome /emphasis/ and *strong* text.",
 ]);
-update_post_meta($postId, '_wp_carve_enabled', '1');
+update_post_meta($postId, '_wpcarve_enabled', '1');
 $GLOBALS['post'] = get_post($postId);
 $content = apply_filters('the_content', get_post($postId)->post_content);
 $carve_check(
@@ -75,6 +75,33 @@ if (class_exists(\WpCarve\Converter::class)) {
         'comment context does not emit a raw <script>',
         !str_contains($commentHtml, '<script>alert'),
         $carve_snippet($commentHtml),
+    );
+}
+
+// --- Safe-mode wp_kses layer ---------------------------------------------------
+if (class_exists(\WpCarve\Converter::class)) {
+    $converter = new \WpCarve\Converter(['safe_mode' => true]);
+
+    // Generated markup the allowlist must keep: task-list checkboxes.
+    $taskHtml = $converter->toHtml("- [x] done\n- [ ] open");
+    $carve_check(
+        'safe mode keeps task-list checkboxes through wp_kses',
+        str_contains($taskHtml, '<input') && str_contains($taskHtml, 'checkbox'),
+        $carve_snippet($taskHtml),
+    );
+
+    // Hostile markup the layer must drop, even if the engine ever regressed.
+    $evilHtml = $converter->toHtml("text\n\n<div onclick=\"alert(1)\">x</div>\n\n<script>alert(2)</script>");
+    $carve_check(
+        'safe mode strips event handlers and scripts via wp_kses',
+        !str_contains($evilHtml, 'onclick') && !str_contains($evilHtml, '<script>'),
+        $carve_snippet($evilHtml),
+    );
+
+    // wp_kses runs inside toHtml, so cached/pre-filter output is already clean.
+    $carve_check(
+        'Converter::sanitizeHtml drops disallowed attributes',
+        !str_contains(\WpCarve\Converter::sanitizeHtml('<p onclick="x()">hi</p>'), 'onclick'),
     );
 }
 

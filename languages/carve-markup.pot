@@ -3,7 +3,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Carve Markup 0.1.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wpc\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/carve-markup\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "X-Domain: carve-markup\n"
 
 #. Plugin Name of the plugin
-#: wp-carve.php
+#: carve-markup.php
 #: src/Admin/SettingsPage.php:37
 #: src/Admin/SettingsPage.php:38
 #: src/Admin/SettingsPage.php:99
@@ -23,22 +23,22 @@ msgid "Carve Markup"
 msgstr ""
 
 #. Plugin URI of the plugin
-#: wp-carve.php
+#: carve-markup.php
 msgid "https://github.com/markup-carve/wp-carve"
 msgstr ""
 
 #. Description of the plugin
-#: wp-carve.php
+#: carve-markup.php
 msgid "Write posts, pages and comments in the Carve markup language. Live in-browser preview, multi-format paste, frontmatter-to-meta, render caching and a REST API."
 msgstr ""
 
 #. Author of the plugin
-#: wp-carve.php
+#: carve-markup.php
 msgid "Mark Scherer"
 msgstr ""
 
 #. Author URI of the plugin
-#: wp-carve.php
+#: carve-markup.php
 msgid "https://www.dereuromark.de"
 msgstr ""
 
@@ -394,7 +394,7 @@ msgstr ""
 msgid "Toggle fullscreen"
 msgstr ""
 
-#: wp-carve.php:39
+#: carve-markup.php:39
 msgid "Carve Markup: run \"composer install\" in the plugin directory (the carve-php engine is missing)."
 msgstr ""
 

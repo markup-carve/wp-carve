@@ -45,7 +45,7 @@ auto-migrated:
 | `html` | yes | HTML source; converted via `HtmlToCarve`. |
 
 The plugin's own `[carve]` shortcode does **not** count as a blocking
-shortcode. Migrated posts get `_wp_carve_enabled = 1` so the `the_content`
+shortcode. Migrated posts get `_wpcarve_enabled = 1` so the `the_content`
 filter renders them as Carve.
 
 ## `wp carve lint`

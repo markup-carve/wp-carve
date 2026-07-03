@@ -50,7 +50,7 @@ exact. When nothing would change, Visual mode opens straight away.
 | --- | --- |
 | `carve-grammars/tiptap` (npm) | **Shared** `CarveKit` extension bundle + `serializeToCarve` - the round-trip core, maintained upstream and used by carve-wysiwyg too. |
 | `assets/js/tiptap/visual-editor.js` | wp-carve editor shell: mounts Tiptap with `CarveKit` + the keymap, wires change events. |
-| `assets/js/tiptap/extensions/carve-keymap.js` | wp-carve-local keyboard map (Ctrl/Cmd+1-6 headings, clear, Enter reset). |
+| `assets/js/tiptap/extensions/carve-keymap.js` | wpcarve-local keyboard map (Ctrl/Cmd+1-6 headings, clear, Enter reset). |
 | `assets/blocks/carve/index.js` | The block UI: mode tabs, WordPress block toolbar, gating modal, context controls. |
 
 ## Coverage
@@ -67,5 +67,5 @@ benefits.
 
 Add or improve editor constructs in the shared **`carve-grammars`** repo
 (`tiptap/extensions/` + the serializer). wp-carve picks them up on the next
-`carve-grammars` bump + `npm run build:editor`. wp-carve-local additions are
+`carve-grammars` bump + `npm run build:editor`. wpcarve-local additions are
 limited to WordPress glue (the block UI, keymap, gating).

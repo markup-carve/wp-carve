@@ -31,7 +31,7 @@ class SlidesBlock
 
     public function registerType(): void
     {
-        register_block_type(WP_CARVE_DIR . 'assets/blocks/slides', [
+        register_block_type(WPCARVE_DIR . 'assets/blocks/slides', [
             'render_callback' => [$this, 'render'],
         ]);
     }
@@ -50,7 +50,7 @@ class SlidesBlock
         $layout = $this->layout((string)($attributes['layout'] ?? 'standard'));
         $align = $this->align((string)($attributes['align'] ?? ''));
         $classes = trim(sprintf(
-            'wp-carve wp-carve-slides wp-carve-slides--%s wp-carve-slides--%s %s',
+            'wpcarve wpcarve-slides wpcarve-slides--%s wpcarve-slides--%s %s',
             $theme,
             $layout,
             $align,
@@ -63,7 +63,7 @@ class SlidesBlock
         foreach ($slides as $index => $slide) {
             $html = $this->converter->toHtml($slide, 'post', null, $safe);
             $sections[] = sprintf(
-                '<section class="wp-carve-slide%s" data-slide="%d" aria-label="%s">%s</section>',
+                '<section class="wpcarve-slide%s" data-slide="%d" aria-label="%s">%s</section>',
                 $index === 0 ? ' is-active' : '',
                 $index + 1,
                 /* translators: 1: current slide number, 2: total slides. */
@@ -73,7 +73,7 @@ class SlidesBlock
         }
 
         return sprintf(
-            '<div class="%s" data-wp-carve-slides data-current="1" data-count="%d" tabindex="0">%s%s</div>',
+            '<div class="%s" data-wpcarve-slides data-current="1" data-count="%d" tabindex="0">%s%s</div>',
             esc_attr($classes),
             $count,
             implode('', $sections),
@@ -84,7 +84,7 @@ class SlidesBlock
     private function controls(int $count): string
     {
         return sprintf(
-            '<div class="wp-carve-slides-controls" aria-label="%s"><button type="button" class="wp-carve-slides-prev" aria-label="%s">&lsaquo;</button><span class="wp-carve-slides-count"><span data-wp-carve-slide-current>1</span> / <span>%d</span></span><button type="button" class="wp-carve-slides-next" aria-label="%s">&rsaquo;</button><button type="button" class="wp-carve-slides-fullscreen" aria-label="%s">[]</button></div>',
+            '<div class="wpcarve-slides-controls" aria-label="%s"><button type="button" class="wpcarve-slides-prev" aria-label="%s">&lsaquo;</button><span class="wpcarve-slides-count"><span data-wpcarve-slide-current>1</span> / <span>%d</span></span><button type="button" class="wpcarve-slides-next" aria-label="%s">&rsaquo;</button><button type="button" class="wpcarve-slides-fullscreen" aria-label="%s">[]</button></div>',
             esc_attr__('Slide controls', 'carve-markup'),
             esc_attr__('Previous slide', 'carve-markup'),
             $count,

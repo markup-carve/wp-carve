@@ -2,54 +2,66 @@
 
 ## Filters
 
-### `wp_carve_source`
+### `wpcarve_source`
 
 Filter the raw Carve source **before** conversion (e.g. inject snippets, expand
 tokens). Runs before abbreviation defs are prepended.
 
 ```php
-add_filter('wp_carve_source', function (string $carve, string $context): string {
+add_filter('wpcarve_source', function (string $carve, string $context): string {
     return str_replace('{{year}}', gmdate('Y'), $carve);
 }, 10, 2);
 ```
 
-### `wp_carve_rendered_html`
+### `wpcarve_rendered_html`
 
 Filter the rendered HTML before it is returned to WordPress.
 
 ```php
-add_filter('wp_carve_rendered_html', function (string $html, string $carve, string $context): string {
+add_filter('wpcarve_rendered_html', function (string $html, string $carve, string $context): string {
     // $context is 'post', 'comment', or 'editor' (the visual-editor seed - see below).
     return $html;
 }, 10, 3);
 ```
 
-### `wp_carve_media_oembed`
+### `wpcarve_allowed_html`
+
+Filter the wp_kses allowlist applied to rendered Carve HTML in safe mode. Starts
+from the core `post` allowlist plus task-list checkboxes and media-embed iframes.
+
+```php
+add_filter('wpcarve_allowed_html', function (array $allowed): array {
+    $allowed['video'] = ['src' => true, 'controls' => true];
+    return $allowed;
+});
+```
+
+### `wpcarve_media_oembed`
 
 Return `false` to disable the WordPress oEmbed fallback for standalone
 `:youtube[…]` / `:vimeo[…]` / `:media[…]` when the media-embed extension is off.
 
 ```php
-add_filter('wp_carve_media_oembed', '__return_false');
+add_filter('wpcarve_media_oembed', '__return_false');
 ```
 
-### `wp_carve_auto_og_image`
+### `wpcarve_auto_og_image`
 
 Return `false` to suppress the automatic `og:image` (first `![](url)` in a Carve
 post without a featured image).
 
 ```php
-add_filter('wp_carve_auto_og_image', '__return_false');
+add_filter('wpcarve_auto_og_image', '__return_false');
 ```
 
-### `wp_carve_diagram_renderers`
+### `wpcarve_diagram_renderers`
 
 Register a custom diagram renderer (or modify a built-in). Each entry gets a
 `{name}_enabled` setting, conditional script loading, and a `FencedRenderExtension`
 registration automatically - no plugin change.
 
 ```php
-add_filter('wp_carve_diagram_renderers', function (array $renderers): array {
+add_filter('wpcarve_diagram_renderers', function (array $renderers): array {
     $renderers['nomnoml'] = [
         'label'  => 'nomnoml UML',
         'class'  => 'nomnoml',          // fence word + CSS class
@@ -57,7 +69,7 @@ add_filter('wp_carve_diagram_renderers', function (array $renderers): array {
         'mode'   => 'text',              // 'text' | 'json'
         'libs'   => [],                  // file names under assets/js/vendor/
         'src'    => ['https://example.test/graphre.js', 'https://example.test/nomnoml.js'],
-        'init'   => '/* JS that renders .wp-carve .nomnoml elements */',
+        'init'   => '/* JS that renders .wpcarve .nomnoml elements */',
         'url'    => 'https://nomnoml.com',          // shown as a link icon on the card
         'preview'=> 'https://example.test/nomnoml.svg', // popover thumbnail
     ];
@@ -68,28 +80,28 @@ add_filter('wp_carve_diagram_renderers', function (array $renderers): array {
 The built-in types (mermaid, chart, vega, graphviz, wavedrom, abc) are the default
 contents of this same array.
 
-### `wp_carve_diagram_src`
+### `wpcarve_diagram_src`
 
 Override a diagram library URL (e.g. point a built-in renderer at a CDN). Receives
 the default URL, the renderer name, and the library file name.
 
 ```php
-add_filter('wp_carve_diagram_src', function (string $url, string $name, string $lib): string {
+add_filter('wpcarve_diagram_src', function (string $url, string $name, string $lib): string {
     return $name === 'mermaid' ? 'https://example.test/mermaid.min.js' : $url;
 }, 10, 3);
 ```
 
-### `wp_carve_katex_base`
+### `wpcarve_katex_base`
 
 Override the base URL for KaTeX assets (css / js / `contrib/auto-render.min.js`).
 
 ```php
-add_filter('wp_carve_katex_base', fn (string $base): string => 'https://example.test/katex');
+add_filter('wpcarve_katex_base', fn (string $base): string => 'https://example.test/katex');
 ```
 
 ## Actions
 
-### `wp_carve_converter`
+### `wpcarve_converter`
 
 Register additional carve-php extensions on the converter as it is built (once
 per context).
@@ -111,7 +123,7 @@ extensions that **inject generated markup** for `post` only.
 ```php
 use MarkupCarve\Carve\CarveConverter;
 
-add_action('wp_carve_converter', function (CarveConverter $converter, string $context): void {
+add_action('wpcarve_converter', function (CarveConverter $converter, string $context): void {
     // Round-trippable content extension: also wanted in the visual editor.
     if (in_array($context, ['post', 'editor'], true)) {
         $converter->addExtension(new MyContentExtension());

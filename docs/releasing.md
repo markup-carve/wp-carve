@@ -26,7 +26,7 @@ triggers an automated deploy to the WordPress.org plugin SVN.
    ./scripts/version.sh 0.1.0
    ```
 
-   It updates `wp-carve.php` (header `Version:` and the `WP_CARVE_VERSION`
+   It updates `carve-markup.php` (header `Version:` and the `WPCARVE_VERSION`
    constant), `readme.txt` (`Stable tag:`), `package.json`, and each
    `assets/blocks/*/index.asset.php` version.
 

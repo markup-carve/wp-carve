@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Plugin settings store. Wraps a single `wp_carve_settings` option with typed
+ * Plugin settings store. Wraps a single `wpcarve_settings` option with typed
  * defaults so the rest of the plugin reads a fully-populated array.
  */
 class Settings
@@ -17,7 +17,7 @@ class Settings
     /**
      * @var string
      */
-    public const OPTION = 'wp_carve_settings';
+    public const OPTION = 'wpcarve_settings';
 
     /**
      * @return array<string, mixed>

@@ -25,8 +25,8 @@ class SlidesBlockTest extends TestCase
             'theme' => 'night',
         ]);
 
-        $this->assertStringContainsString('wp-carve-slides--night', $html);
-        $this->assertStringContainsString('wp-carve-slides--wide', $html);
+        $this->assertStringContainsString('wpcarve-slides--night', $html);
+        $this->assertStringContainsString('wpcarve-slides--wide', $html);
         $this->assertStringContainsString('alignwide', $html);
         $this->assertStringContainsString('data-count="2"', $html);
         $this->assertSame(2, substr_count($html, 'data-slide="'));

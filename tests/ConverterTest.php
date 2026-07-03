@@ -42,6 +42,30 @@ class ConverterTest extends TestCase
         $this->assertStringNotContainsString('<script>', $html);
     }
 
+    public function testAllowedHtmlExtendsCoreAllowlistWithCarveExtras(): void
+    {
+        $allowed = Converter::allowedHtml();
+
+        // Base allowlist from wp_kses_allowed_html('post') is preserved.
+        $this->assertArrayHasKey('a', $allowed);
+        $this->assertArrayHasKey('pre', $allowed);
+        // Carve-specific extras: task-list checkboxes and media-embed iframes.
+        $this->assertArrayHasKey('input', $allowed);
+        $this->assertTrue($allowed['input']['checked']);
+        $this->assertArrayHasKey('label', $allowed);
+        $this->assertArrayHasKey('iframe', $allowed);
+        $this->assertTrue($allowed['iframe']['allowfullscreen']);
+    }
+
+    public function testSanitizeHtmlIsNoopWithoutWpKses(): void
+    {
+        // The unit suite has no wp_kses(); the sanitizer must pass HTML through
+        // untouched instead of failing (WordPress always provides it at runtime).
+        $html = '<p onclick="x()">hi</p>';
+
+        $this->assertSame($html, Converter::sanitizeHtml($html));
+    }
+
     public function testTableOfContentsExtensionEmitsTocList(): void
     {
         $converter = new Converter([

@@ -14,8 +14,8 @@ class MigratorTest extends TestCase
 {
     protected function setUp(): void
     {
-        $GLOBALS['_wp_carve_test_posts'] = [];
-        $GLOBALS['_wp_carve_test_meta'] = [];
+        $GLOBALS['_wpcarve_test_posts'] = [];
+        $GLOBALS['_wpcarve_test_meta'] = [];
     }
 
     public function testMissingPostCannotMigrate(): void
@@ -28,7 +28,7 @@ class MigratorTest extends TestCase
 
     public function testEmptyContentCannotMigrate(): void
     {
-        wp_carve_test_set_post(1, ['post_content' => '   ']);
+        wpcarve_test_set_post(1, ['post_content' => '   ']);
 
         $analysis = (new Migrator())->analyze(1);
 
@@ -38,7 +38,7 @@ class MigratorTest extends TestCase
 
     public function testBlockEditorContentIsSkipped(): void
     {
-        wp_carve_test_set_post(2, ['post_content' => "<!-- wp:paragraph -->\n<p>Hi</p>\n<!-- /wp:paragraph -->"]);
+        wpcarve_test_set_post(2, ['post_content' => "<!-- wp:paragraph -->\n<p>Hi</p>\n<!-- /wp:paragraph -->"]);
 
         $analysis = (new Migrator())->analyze(2);
 
@@ -48,7 +48,7 @@ class MigratorTest extends TestCase
 
     public function testForeignShortcodeIsSkipped(): void
     {
-        wp_carve_test_set_post(3, ['post_content' => 'Before [gallery ids="1,2"] after']);
+        wpcarve_test_set_post(3, ['post_content' => 'Before [gallery ids="1,2"] after']);
 
         $analysis = (new Migrator())->analyze(3);
 
@@ -58,7 +58,7 @@ class MigratorTest extends TestCase
 
     public function testOwnCarveShortcodeIsNotComplex(): void
     {
-        wp_carve_test_set_post(4, ['post_content' => "# Heading\n\n[carve]more[/carve]"]);
+        wpcarve_test_set_post(4, ['post_content' => "# Heading\n\n[carve]more[/carve]"]);
 
         $analysis = (new Migrator())->analyze(4);
 
@@ -67,7 +67,7 @@ class MigratorTest extends TestCase
 
     public function testMarkdownIsDetected(): void
     {
-        wp_carve_test_set_post(5, ['post_content' => "# Heading\n\n- a\n- b\n\n**bold**"]);
+        wpcarve_test_set_post(5, ['post_content' => "# Heading\n\n- a\n- b\n\n**bold**"]);
 
         $analysis = (new Migrator())->analyze(5);
 
@@ -77,7 +77,7 @@ class MigratorTest extends TestCase
 
     public function testHtmlIsDetected(): void
     {
-        wp_carve_test_set_post(6, ['post_content' => '<p>Just a <strong>paragraph</strong>.</p>']);
+        wpcarve_test_set_post(6, ['post_content' => '<p>Just a <strong>paragraph</strong>.</p>']);
 
         $analysis = (new Migrator())->analyze(6);
 
@@ -86,18 +86,18 @@ class MigratorTest extends TestCase
 
     public function testMigrateConvertsAndFlagsPost(): void
     {
-        wp_carve_test_set_post(7, ['post_content' => "# Heading\n\nsome **text**"]);
+        wpcarve_test_set_post(7, ['post_content' => "# Heading\n\nsome **text**"]);
 
         $len = (new Migrator())->migrate(7);
 
         $this->assertNotNull($len);
         $this->assertGreaterThan(0, $len);
-        $this->assertSame(1, $GLOBALS['_wp_carve_test_meta'][7]['_wp_carve_enabled']);
+        $this->assertSame(1, $GLOBALS['_wpcarve_test_meta'][7]['_wpcarve_enabled']);
     }
 
     public function testMigrateReturnsNullForBlockPostWithoutForce(): void
     {
-        wp_carve_test_set_post(8, ['post_content' => '<!-- wp:paragraph --><p>x</p><!-- /wp:paragraph -->']);
+        wpcarve_test_set_post(8, ['post_content' => '<!-- wp:paragraph --><p>x</p><!-- /wp:paragraph -->']);
 
         $this->assertNull((new Migrator())->migrate(8));
     }

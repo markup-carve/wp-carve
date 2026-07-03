@@ -15,7 +15,7 @@
 	if ( ! textarea ) {
 		return;
 	}
-	const preview = document.getElementById( 'wp-carve-live-preview' );
+	const preview = document.getElementById( 'wpcarve-live-preview' );
 
 	// Always render the preview server-side: the endpoint applies the post
 	// author's safe-mode policy (raw HTML is escaped unless the author may post

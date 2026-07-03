@@ -1,7 +1,7 @@
-/* wp-carve front-end + editor styles */
+/* wpcarve front-end + editor styles */
 
 /* Carve block editor: mode tabs, source field, split view, cheat sheet. */
-.wp-carve-modes {
+.wpcarve-modes {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -10,7 +10,7 @@
 }
 
 /* Distraction-free / full-screen Write mode. */
-.wp-carve-block.is-carve-fullscreen {
+.wpcarve-block.is-carve-fullscreen {
 	position: fixed;
 	inset: 0;
 	z-index: 100000;
@@ -21,16 +21,16 @@
 	overflow: auto;
 }
 
-.wp-carve-block.is-carve-fullscreen .wp-carve-source {
+.wpcarve-block.is-carve-fullscreen .wpcarve-source {
 	min-height: 70vh;
 }
 
 /* In-block code-language picker (carve-grammars NodeView). */
-.wp-carve-ve-surface pre {
+.wpcarve-ve-surface pre {
 	position: relative;
 }
 
-.wp-carve-ve-surface pre > .carve-code-lang {
+.wpcarve-ve-surface pre > .carve-code-lang {
 	position: absolute;
 	top: 6px;
 	right: 6px;
@@ -47,19 +47,19 @@
 	cursor: pointer;
 }
 
-.wp-carve-ve-surface pre:hover > .carve-code-lang,
-.wp-carve-ve-surface pre > .carve-code-lang:focus {
+.wpcarve-ve-surface pre:hover > .carve-code-lang,
+.wpcarve-ve-surface pre > .carve-code-lang:focus {
 	opacity: 1;
 }
 
 /* In-block media embed "Edit" control (carve-grammars NodeView). */
-.wp-carve-ve-surface .wpcarve-embed {
+.wpcarve-ve-surface .wpcarve-embed {
 	position: relative;
 	display: inline-block;
 	max-width: 100%;
 }
 
-.wp-carve-ve-surface .carve-embed-edit {
+.wpcarve-ve-surface .carve-embed-edit {
 	position: absolute;
 	top: 6px;
 	right: 6px;
@@ -76,41 +76,41 @@
 	transition: opacity 0.15s ease;
 }
 
-.wp-carve-ve-surface .wpcarve-embed:hover .carve-embed-edit,
-.wp-carve-ve-surface .carve-embed-edit:focus {
+.wpcarve-ve-surface .wpcarve-embed:hover .carve-embed-edit,
+.wpcarve-ve-surface .carve-embed-edit:focus {
 	opacity: 1;
 }
 
 /* Task lists (Tiptap): keep the checkbox and its text on one line. Without this
    the block <div><p> drops below the inline <label>, looking like a leading
    newline before the text. */
-.wp-carve-ve-surface ul[data-type="taskList"] {
+.wpcarve-ve-surface ul[data-type="taskList"] {
 	list-style: none;
 	padding-left: 0;
 }
 
-.wp-carve-ve-surface ul[data-type="taskList"] li {
+.wpcarve-ve-surface ul[data-type="taskList"] li {
 	display: flex;
 	align-items: flex-start;
 	gap: 0.5em;
 }
 
-.wp-carve-ve-surface ul[data-type="taskList"] li > label {
+.wpcarve-ve-surface ul[data-type="taskList"] li > label {
 	flex: 0 0 auto;
 	margin-top: 0.15em;
 	user-select: none;
 }
 
-.wp-carve-ve-surface ul[data-type="taskList"] li > div {
+.wpcarve-ve-surface ul[data-type="taskList"] li > div {
 	flex: 1 1 auto;
 	min-width: 0;
 }
 
-.wp-carve-ve-surface ul[data-type="taskList"] li > div > p {
+.wpcarve-ve-surface ul[data-type="taskList"] li > div > p {
 	margin: 0;
 }
 
-.wp-carve-source {
+.wpcarve-source {
 	width: 100%;
 	font-family: Menlo, Consolas, monospace;
 	font-size: 13px;
@@ -124,66 +124,66 @@
 	box-sizing: border-box;
 }
 
-.wp-carve-split {
+.wpcarve-split {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 12px;
 	align-items: stretch;
 }
 
-.wp-carve-split .wp-carve-source {
+.wpcarve-split .wpcarve-source {
 	min-height: 28em;
 	resize: vertical;
 }
 
-.wp-carve-split .wp-carve-preview {
+.wpcarve-split .wpcarve-preview {
 	margin-top: 0;
 	min-height: 28em;
 	max-height: 70vh;
 	overflow: auto;
 }
 
-.wp-carve-block.is-carve-fullscreen .wp-carve-split .wp-carve-source,
-.wp-carve-block.is-carve-fullscreen .wp-carve-split .wp-carve-preview {
+.wpcarve-block.is-carve-fullscreen .wpcarve-split .wpcarve-source,
+.wpcarve-block.is-carve-fullscreen .wpcarve-split .wpcarve-preview {
 	min-height: 78vh;
 	max-height: none;
 }
 
-.wp-carve-cheat {
+.wpcarve-cheat {
 	margin: 0;
 	list-style: none;
 }
 
-.wp-carve-cheat li {
+.wpcarve-cheat li {
 	margin: 0 0 4px;
 }
 
-.wp-carve-cheat code {
+.wpcarve-cheat code {
 	font-size: 12px;
 }
 
-.wp-carve-count {
+.wpcarve-count {
 	margin-top: 0;
 	color: #646970;
 }
 
 /* Whole-post Carve mode: live preview under the classic code editor. */
-.wp-carve-live-preview-wrap {
+.wpcarve-live-preview-wrap {
 	margin-top: 16px;
 }
 
-.wp-carve-live-preview-wrap > .description {
+.wpcarve-live-preview-wrap > .description {
 	margin: 0 0 6px;
 }
 
-#wp-carve-live-preview {
+#wpcarve-live-preview {
 	padding: 12px 16px;
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
 	background: #fff;
 }
 
-.wp-carve-preview {
+.wpcarve-preview {
 	margin-top: 12px;
 	padding: 12px 16px;
 	border: 1px solid #e0e0e0;
@@ -193,16 +193,16 @@
 	-moz-tab-size: 2;
 }
 
-.wp-carve pre,
-.wp-carve-preview pre {
+.wpcarve pre,
+.wpcarve-preview pre {
 	tab-size: 2;
 	-moz-tab-size: 2;
 	overflow-x: auto;
 }
 
 /* Code blocks: readable defaults (mermaid and slides reset these below). */
-.wp-carve pre:not(.mermaid),
-.wp-carve-preview pre:not(.mermaid) {
+.wpcarve pre:not(.mermaid),
+.wpcarve-preview pre:not(.mermaid) {
 	margin: 1em 0;
 	padding: 1em;
 	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
@@ -212,8 +212,8 @@
 	border-radius: 6px;
 }
 
-.wp-carve pre:not(.mermaid) > code,
-.wp-carve-preview pre:not(.mermaid) > code {
+.wpcarve pre:not(.mermaid) > code,
+.wpcarve-preview pre:not(.mermaid) > code {
 	padding: 0;
 	font-size: inherit;
 	background: transparent;
@@ -223,7 +223,7 @@
 /* Carve admonitions: the 8 canonical types render as <aside class="admonition
    TYPE">. carve-php emits no title unless the author sets {title=...}, so an
    icon + type label is generated in CSS for the untitled default. */
-.wp-carve .admonition {
+.wpcarve .admonition {
 	--carve-accent: #6b7280;
 	margin: 1em 0;
 	padding: 0.75em 1em;
@@ -232,112 +232,112 @@
 	background: #f3f4f6;
 }
 
-.wp-carve .admonition.note    { --carve-accent: #3b82f6; background: #eff6ff; }
-.wp-carve .admonition.tip     { --carve-accent: #10b981; background: #ecfdf5; }
-.wp-carve .admonition.warning { --carve-accent: #d97706; background: #fffbeb; }
-.wp-carve .admonition.danger  { --carve-accent: #ef4444; background: #fef2f2; }
-.wp-carve .admonition.info    { --carve-accent: #0891b2; background: #ecfeff; }
-.wp-carve .admonition.success { --carve-accent: #16a34a; background: #f0fdf4; }
-.wp-carve .admonition.example { --carve-accent: #8b5cf6; background: #f5f3ff; }
-.wp-carve .admonition.quote   { --carve-accent: #64748b; background: #f8fafc; }
+.wpcarve .admonition.note    { --carve-accent: #3b82f6; background: #eff6ff; }
+.wpcarve .admonition.tip     { --carve-accent: #10b981; background: #ecfdf5; }
+.wpcarve .admonition.warning { --carve-accent: #d97706; background: #fffbeb; }
+.wpcarve .admonition.danger  { --carve-accent: #ef4444; background: #fef2f2; }
+.wpcarve .admonition.info    { --carve-accent: #0891b2; background: #ecfeff; }
+.wpcarve .admonition.success { --carve-accent: #16a34a; background: #f0fdf4; }
+.wpcarve .admonition.example { --carve-accent: #8b5cf6; background: #f5f3ff; }
+.wpcarve .admonition.quote   { --carve-accent: #64748b; background: #f8fafc; }
 
 /* Auto title (icon + type name) - only when there is no explicit title. */
-.wp-carve .admonition:not(:has(.admonition-title))::before {
+.wpcarve .admonition:not(:has(.admonition-title))::before {
 	display: block;
 	margin-bottom: 0.4em;
 	font-weight: 600;
 	color: var(--carve-accent);
 }
-.wp-carve .admonition.note:not(:has(.admonition-title))::before    { content: "\1F4DD  Note"; }
-.wp-carve .admonition.tip:not(:has(.admonition-title))::before     { content: "\1F4A1  Tip"; }
-.wp-carve .admonition.warning:not(:has(.admonition-title))::before { content: "\26A0\FE0F  Warning"; }
-.wp-carve .admonition.danger:not(:has(.admonition-title))::before  { content: "\1F6D1  Danger"; }
-.wp-carve .admonition.info:not(:has(.admonition-title))::before    { content: "\2139\FE0F  Info"; }
-.wp-carve .admonition.success:not(:has(.admonition-title))::before { content: "\2705  Success"; }
-.wp-carve .admonition.example:not(:has(.admonition-title))::before { content: "\1F9EA  Example"; }
-.wp-carve .admonition.quote:not(:has(.admonition-title))::before   { content: "\275D  Quote"; }
+.wpcarve .admonition.note:not(:has(.admonition-title))::before    { content: "\1F4DD  Note"; }
+.wpcarve .admonition.tip:not(:has(.admonition-title))::before     { content: "\1F4A1  Tip"; }
+.wpcarve .admonition.warning:not(:has(.admonition-title))::before { content: "\26A0\FE0F  Warning"; }
+.wpcarve .admonition.danger:not(:has(.admonition-title))::before  { content: "\1F6D1  Danger"; }
+.wpcarve .admonition.info:not(:has(.admonition-title))::before    { content: "\2139\FE0F  Info"; }
+.wpcarve .admonition.success:not(:has(.admonition-title))::before { content: "\2705  Success"; }
+.wpcarve .admonition.example:not(:has(.admonition-title))::before { content: "\1F9EA  Example"; }
+.wpcarve .admonition.quote:not(:has(.admonition-title))::before   { content: "\275D  Quote"; }
 
-.wp-carve .admonition-title {
+.wpcarve .admonition-title {
 	margin: 0 0 0.4em;
 	font-weight: 600;
 	color: var(--carve-accent);
 }
 
-.wp-carve .admonition > :last-child {
+.wpcarve .admonition > :last-child {
 	margin-bottom: 0;
 }
 
 /* Footnotes (carve-php emits <section role="doc-endnotes"> + doc-noteref /
    doc-backlink links). */
-.wp-carve [role="doc-noteref"] {
+.wpcarve [role="doc-noteref"] {
 	text-decoration: none;
 	font-weight: 600;
 	padding: 0 0.15em;
 }
 
-.wp-carve [role="doc-endnotes"] {
+.wpcarve [role="doc-endnotes"] {
 	margin-top: 2em;
 	font-size: 0.9em;
 	color: #4b5563;
 }
 
-.wp-carve [role="doc-endnotes"] hr {
+.wpcarve [role="doc-endnotes"] hr {
 	margin: 0 0 1em;
 	border: none;
 	border-top: 1px solid #e5e7eb;
 }
 
-.wp-carve [role="doc-endnotes"] ol {
+.wpcarve [role="doc-endnotes"] ol {
 	padding-left: 1.2em;
 }
 
-.wp-carve [role="doc-backlink"] {
+.wpcarve [role="doc-backlink"] {
 	text-decoration: none;
 	margin-left: 0.3em;
 }
 
-.wp-carve [role="doc-endnotes"] li:target {
+.wpcarve [role="doc-endnotes"] li:target {
 	background: #fffbeb;
 }
 
 /* Heading permalinks (HeadingPermalinksExtension emits .permalink-wrapper > a.permalink). */
-.wp-carve .permalink-wrapper {
+.wpcarve .permalink-wrapper {
 	opacity: 0;
 	margin-left: 0.3em;
 	transition: opacity 0.15s ease;
 }
 
-.wp-carve .permalink {
+.wpcarve .permalink {
 	text-decoration: none;
 }
 
-.wp-carve :is(h1, h2, h3, h4, h5, h6):hover .permalink-wrapper {
+.wpcarve :is(h1, h2, h3, h4, h5, h6):hover .permalink-wrapper {
 	opacity: 0.6;
 }
 
 /* Tables: borders, padding, header + caption. */
-.wp-carve table {
+.wpcarve table {
 	border-collapse: collapse;
 	width: 100%;
 	margin: 1em 0;
 }
 
-.wp-carve :is(th, td) {
+.wpcarve :is(th, td) {
 	border: 1px solid #d1d5db;
 	padding: 0.4em 0.7em;
 	text-align: left;
 }
 
-.wp-carve thead th {
+.wpcarve thead th {
 	background: #f3f4f6;
 	font-weight: 600;
 }
 
-.wp-carve tbody tr:nth-child(even) {
+.wpcarve tbody tr:nth-child(even) {
 	background: #fafafa;
 }
 
-.wp-carve caption {
+.wpcarve caption {
 	caption-side: top;
 	padding: 0.2em 0;
 	color: #6b7280;
@@ -346,7 +346,7 @@
 }
 
 /* Blockquotes: left rule, muted; attribution small/right. */
-.wp-carve blockquote {
+.wpcarve blockquote {
 	margin: 1em 0;
 	padding: 0.4em 1em;
 	border-left: 4px solid #d1d5db;
@@ -354,7 +354,7 @@
 	font-style: italic;
 }
 
-.wp-carve blockquote > :is(footer, cite, figcaption) {
+.wpcarve blockquote > :is(footer, cite, figcaption) {
 	display: block;
 	margin-top: 0.4em;
 	font-style: normal;
@@ -364,47 +364,47 @@
 }
 
 /* Figures + captions. */
-.wp-carve figure {
+.wpcarve figure {
 	margin: 1em 0;
 }
 
-.wp-carve figcaption {
+.wpcarve figcaption {
 	margin-top: 0.4em;
 	font-size: 0.9em;
 	color: #6b7280;
 }
 
 /* Image/table captions: centered under the media. */
-.wp-carve figure:has(> img) > figcaption,
-.wp-carve figure:has(> table) > figcaption {
+.wpcarve figure:has(> img) > figcaption,
+.wpcarve figure:has(> table) > figcaption {
 	text-align: center;
 }
 
 /* Quote attribution: a `^ — name` caption on a blockquote. Aligns right,
    under the quote, not centered like an image caption. */
-.wp-carve figure:has(> blockquote) {
+.wpcarve figure:has(> blockquote) {
 	margin: 1em 0;
 }
 
-.wp-carve figure:has(> blockquote) > blockquote {
+.wpcarve figure:has(> blockquote) > blockquote {
 	margin-bottom: 0;
 }
 
-.wp-carve figure:has(> blockquote) > figcaption {
+.wpcarve figure:has(> blockquote) > figcaption {
 	margin: 0.3em 1em 0 0;
 	text-align: right;
 	font-style: normal;
 }
 
 /* Task lists: drop the bullet next to the checkbox. */
-.wp-carve li:has(> input[type="checkbox"]) {
+.wpcarve li:has(> input[type="checkbox"]) {
 	list-style: none;
 	margin-left: -1.2em;
 }
 
 /* Disabled task checkboxes are grayed by the UA, so draw our own: a neutral box
    while open, a soft green check when done. */
-.wp-carve li > input[type="checkbox"] {
+.wpcarve li > input[type="checkbox"] {
 	appearance: none;
 	-webkit-appearance: none;
 	margin-right: 0.45em;
@@ -418,12 +418,12 @@
 	cursor: default;
 }
 
-.wp-carve li > input[type="checkbox"]:checked {
+.wpcarve li > input[type="checkbox"]:checked {
 	border-color: #22c55e;
 	background: #22c55e;
 }
 
-.wp-carve li > input[type="checkbox"]:checked::after {
+.wpcarve li > input[type="checkbox"]:checked::after {
 	content: "";
 	position: absolute;
 	left: 0.28em;
@@ -436,7 +436,7 @@
 }
 
 /* Table of contents box. */
-.wp-carve .toc {
+.wpcarve .toc {
 	margin: 1em 0;
 	padding: 0.6em 1em;
 	border: 1px solid #e5e7eb;
@@ -445,12 +445,12 @@
 	font-size: 0.95em;
 }
 
-.wp-carve .toc > :first-child {
+.wpcarve .toc > :first-child {
 	margin-top: 0;
 }
 
 /* Math: center display blocks. */
-.wp-carve .math.display {
+.wpcarve .math.display {
 	display: block;
 	overflow-x: auto;
 	text-align: center;
@@ -458,23 +458,23 @@
 }
 
 /* Mermaid: no code styling; hide the raw source until the SVG is drawn. */
-.wp-carve pre.mermaid {
+.wpcarve pre.mermaid {
 	background: none;
 	border: 0;
 	padding: 0;
 	text-align: center;
 }
 
-.wp-carve pre.mermaid:not([data-processed="true"]) {
+.wpcarve pre.mermaid:not([data-processed="true"]) {
 	color: transparent;
 }
 
 /* Code-block copy button. */
-.wp-carve pre {
+.wpcarve pre {
 	position: relative;
 }
 
-.wp-carve-copy {
+.wpcarve-copy {
 	position: absolute;
 	top: 0.45em;
 	right: 0.6em;
@@ -494,26 +494,26 @@
 	transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
-.wp-carve pre:hover .wp-carve-copy {
+.wpcarve pre:hover .wpcarve-copy {
 	opacity: 1;
 }
 
-.wp-carve-copy:hover {
+.wpcarve-copy:hover {
 	color: #24292f;
 	background: #fff;
 }
 
-.wp-carve-copy.is-copied {
+.wpcarve-copy.is-copied {
 	color: #1a7f37;
 	border-color: #1a7f37;
 }
 
 /* Title / filename header bar (data-title from the preceding attribute line). */
-.wp-carve pre[data-title] {
+.wpcarve pre[data-title] {
 	padding-top: 2.75em;
 }
 
-.wp-carve pre[data-title]::before {
+.wpcarve pre[data-title]::before {
 	content: attr(data-title);
 	position: absolute;
 	top: 0;
@@ -529,7 +529,7 @@
 }
 
 /* Language pill (top-right; sits inside the title bar when one is present). */
-.wp-carve pre[data-lang]::after {
+.wpcarve pre[data-lang]::after {
 	content: attr(data-lang);
 	position: absolute;
 	top: 0.5em;
@@ -550,12 +550,12 @@
 }
 
 /* On hover the copy icon takes the corner, so fade the language pill out. */
-.wp-carve pre[data-lang]:hover::after {
+.wpcarve pre[data-lang]:hover::after {
 	opacity: 0;
 }
 
 /* ---- Torchlight / Phiki highlighted output ---- */
-.wp-carve pre code.torchlight {
+.wpcarve pre code.torchlight {
 	display: block;
 	min-width: max-content;
 	padding: 0.5rem 0;
@@ -564,13 +564,13 @@
 
 /* Every rendered line is a full-width block with its own horizontal padding so
    highlight/diff backgrounds span the whole block. */
-.wp-carve pre code.torchlight .line {
+.wpcarve pre code.torchlight .line {
 	display: block;
 	padding: 0 1rem;
 }
 
 /* Line-number gutter. */
-.wp-carve pre code.torchlight .line-number {
+.wpcarve pre code.torchlight .line-number {
 	display: inline-block;
 	width: 2.5em;
 	margin-right: 1em;
@@ -581,39 +581,39 @@
 
 /* Highlighted line. The engine emits a near-invisible inline background on a
    light theme, so override it and add a left accent bar. */
-.wp-carve pre code.torchlight .line-highlight {
+.wpcarve pre code.torchlight .line-highlight {
 	background: rgba(255, 209, 102, 0.22) !important;
 	box-shadow: inset 3px 0 0 #e0a800;
 }
 
 /* Diff lines: keep the engine's inline green/red wash, add a gutter accent. */
-.wp-carve pre code.torchlight .line-add {
+.wpcarve pre code.torchlight .line-add {
 	box-shadow: inset 3px 0 0 #2ea043;
 }
 
-.wp-carve pre code.torchlight .line-remove {
+.wpcarve pre code.torchlight .line-remove {
 	box-shadow: inset 3px 0 0 #cf222e;
 }
 
 /* Focus mode: dim every line except the focused one(s); reveal on hover. */
-.wp-carve pre code.torchlight.has-focus-lines .line:not(.line-focus) {
+.wpcarve pre code.torchlight.has-focus-lines .line:not(.line-focus) {
 	opacity: 0.5;
 	filter: blur(0.03rem);
 	transition: opacity 0.25s, filter 0.25s;
 }
 
-.wp-carve pre code.torchlight.has-focus-lines:hover .line:not(.line-focus) {
+.wpcarve pre code.torchlight.has-focus-lines:hover .line:not(.line-focus) {
 	opacity: 1;
 	filter: none;
 }
 
 /* ---- Plain (non-Torchlight) line-number fallback ---- */
-.wp-carve pre.line-numbers {
+.wpcarve pre.line-numbers {
 	display: flex;
 	flex-wrap: wrap;
 }
 
-.wp-carve-line-numbers {
+.wpcarve-line-numbers {
 	display: flex;
 	flex-direction: column;
 	padding-right: 0.8em;
@@ -625,13 +625,13 @@
 	counter-reset: ln;
 }
 
-.wp-carve-line-numbers span::before {
+.wpcarve-line-numbers span::before {
 	counter-increment: ln;
 	content: counter(ln);
 }
 
 /* ---- Code groups (tabbed code blocks, CSS-only via radio inputs) ---- */
-.wp-carve .code-group {
+.wpcarve .code-group {
 	display: flex;
 	flex-wrap: wrap;
 	margin: 1em 0;
@@ -640,11 +640,11 @@
 	overflow: hidden;
 }
 
-.wp-carve .code-group-radio {
+.wpcarve .code-group-radio {
 	display: none;
 }
 
-.wp-carve .code-group-label {
+.wpcarve .code-group-label {
 	padding: 0.5em 1em;
 	font-size: 0.8em;
 	font-weight: 500;
@@ -655,47 +655,47 @@
 	transition: color 0.15s, border-color 0.15s, background-color 0.15s;
 }
 
-.wp-carve .code-group-label:hover {
+.wpcarve .code-group-label:hover {
 	color: #24292f;
 	background: #eef1f4;
 }
 
-.wp-carve .code-group-radio:checked + .code-group-label {
+.wpcarve .code-group-radio:checked + .code-group-label {
 	color: #24292f;
 	background: #fff;
 	border-bottom-color: #fd8c73;
 }
 
-.wp-carve .code-group-panel {
+.wpcarve .code-group-panel {
 	display: none;
 	order: 1;
 	width: 100%;
 }
 
-.wp-carve .code-group-panel pre:not(.mermaid) {
+.wpcarve .code-group-panel pre:not(.mermaid) {
 	margin: 0;
 	border: none;
 	border-top: 1px solid #d0d7de;
 	border-radius: 0;
 }
 
-.wp-carve .code-group-radio:nth-of-type(1):checked ~ .code-group-panel:nth-of-type(1),
-.wp-carve .code-group-radio:nth-of-type(2):checked ~ .code-group-panel:nth-of-type(2),
-.wp-carve .code-group-radio:nth-of-type(3):checked ~ .code-group-panel:nth-of-type(3),
-.wp-carve .code-group-radio:nth-of-type(4):checked ~ .code-group-panel:nth-of-type(4),
-.wp-carve .code-group-radio:nth-of-type(5):checked ~ .code-group-panel:nth-of-type(5) {
+.wpcarve .code-group-radio:nth-of-type(1):checked ~ .code-group-panel:nth-of-type(1),
+.wpcarve .code-group-radio:nth-of-type(2):checked ~ .code-group-panel:nth-of-type(2),
+.wpcarve .code-group-radio:nth-of-type(3):checked ~ .code-group-panel:nth-of-type(3),
+.wpcarve .code-group-radio:nth-of-type(4):checked ~ .code-group-panel:nth-of-type(4),
+.wpcarve .code-group-radio:nth-of-type(5):checked ~ .code-group-panel:nth-of-type(5) {
 	display: block;
 }
 
 /* Comment toolbar. */
-.wp-carve-comment-toolbar {
+.wpcarve-comment-toolbar {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.3em;
 	margin-bottom: 0.5em;
 }
 
-.wp-carve-comment-toolbar button {
+.wpcarve-comment-toolbar button {
 	padding: 0.2em 0.6em;
 	font-size: 0.85em;
 	border: 1px solid #d1d5db;
@@ -704,7 +704,7 @@
 	cursor: pointer;
 }
 
-.wp-carve-comment-toolbar button:hover {
+.wpcarve-comment-toolbar button:hover {
 	background: #f3f4f6;
 }
 
@@ -713,7 +713,7 @@
 }
 
 /* --- Visual editor (Tiptap foundation) --- */
-.wp-carve-ve-lossy .wp-carve-ve-diff {
+.wpcarve-ve-lossy .wpcarve-ve-diff {
 	margin: 0.5em 0 0;
 	max-height: 12em;
 	overflow: auto;
@@ -723,15 +723,15 @@
 	word-break: break-word;
 }
 
-.wp-carve-diff-del {
+.wpcarve-diff-del {
 	color: #cf222e;
 }
 
-.wp-carve-diff-add {
+.wpcarve-diff-add {
 	color: #1a7f37;
 }
 
-.wp-carve-ve-modal .wp-carve-ve-diff {
+.wpcarve-ve-modal .wpcarve-ve-diff {
 	max-height: 16em;
 	overflow: auto;
 	padding: 8px 10px;
@@ -742,13 +742,13 @@
 	word-break: break-word;
 }
 
-.wp-carve-ve-modal-actions {
+.wpcarve-ve-modal-actions {
 	margin-top: 1em;
 	text-align: right;
 }
 
 /* Read-only footnote section inside the visual editor. */
-.wp-carve-ve-footnotes {
+.wpcarve-ve-footnotes {
 	margin-top: 1.5em;
 	padding-top: 0.5em;
 	font-size: 0.9em;
@@ -756,7 +756,7 @@
 	opacity: 0.85;
 }
 
-.wp-carve-ve-surface {
+.wpcarve-ve-surface {
 	min-height: 200px;
 	padding: 12px 14px;
 	border: 1px solid #dcdcde;
@@ -767,71 +767,71 @@
 /* Editor-surface typography. The admin flattens headings (weight 400, near
    body size), so give them an explicit hierarchy inside our editor panels.
    Front-end headings inherit the theme and are left alone. */
-.wp-carve-ve-surface .ProseMirror,
-.wp-carve-preview,
-#wp-carve-live-preview {
+.wpcarve-ve-surface .ProseMirror,
+.wpcarve-preview,
+#wpcarve-live-preview {
 	font-size: 15px;
 	line-height: 1.6;
 }
 
-.wp-carve-ve-surface .ProseMirror :is(h1, h2, h3, h4, h5, h6),
-.wp-carve-preview :is(h1, h2, h3, h4, h5, h6),
-#wp-carve-live-preview :is(h1, h2, h3, h4, h5, h6) {
+.wpcarve-ve-surface .ProseMirror :is(h1, h2, h3, h4, h5, h6),
+.wpcarve-preview :is(h1, h2, h3, h4, h5, h6),
+#wpcarve-live-preview :is(h1, h2, h3, h4, h5, h6) {
 	font-weight: 700;
 	line-height: 1.25;
 	margin: 1.1em 0 0.4em;
 }
 
-.wp-carve-ve-surface .ProseMirror h1,
-.wp-carve-preview h1,
-#wp-carve-live-preview h1 {
+.wpcarve-ve-surface .ProseMirror h1,
+.wpcarve-preview h1,
+#wpcarve-live-preview h1 {
 	font-size: 2em;
 }
 
-.wp-carve-ve-surface .ProseMirror h2,
-.wp-carve-preview h2,
-#wp-carve-live-preview h2 {
+.wpcarve-ve-surface .ProseMirror h2,
+.wpcarve-preview h2,
+#wpcarve-live-preview h2 {
 	font-size: 1.6em;
 }
 
-.wp-carve-ve-surface .ProseMirror h3,
-.wp-carve-preview h3,
-#wp-carve-live-preview h3 {
+.wpcarve-ve-surface .ProseMirror h3,
+.wpcarve-preview h3,
+#wpcarve-live-preview h3 {
 	font-size: 1.3em;
 }
 
-.wp-carve-ve-surface .ProseMirror h4,
-.wp-carve-preview h4,
-#wp-carve-live-preview h4 {
+.wpcarve-ve-surface .ProseMirror h4,
+.wpcarve-preview h4,
+#wpcarve-live-preview h4 {
 	font-size: 1.1em;
 }
 
-.wp-carve-ve-surface .ProseMirror h5,
-.wp-carve-preview h5,
-#wp-carve-live-preview h5 {
+.wpcarve-ve-surface .ProseMirror h5,
+.wpcarve-preview h5,
+#wpcarve-live-preview h5 {
 	font-size: 1em;
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
 	color: #57606a;
 }
 
-.wp-carve-ve-surface .ProseMirror h6,
-.wp-carve-preview h6,
-#wp-carve-live-preview h6 {
+.wpcarve-ve-surface .ProseMirror h6,
+.wpcarve-preview h6,
+#wpcarve-live-preview h6 {
 	font-size: 0.9em;
 	color: #57606a;
 }
 
-.wp-carve-ve-surface:focus-within {
+.wpcarve-ve-surface:focus-within {
 	border-color: #3858e9;
 	box-shadow: 0 0 0 1px #3858e9;
 }
 
-.wp-carve-ve-surface .ProseMirror:focus {
+.wpcarve-ve-surface .ProseMirror:focus {
 	outline: none;
 }
 
-.wp-carve-ve-surface p.is-editor-empty:first-child::before {
+.wpcarve-ve-surface p.is-editor-empty:first-child::before {
 	content: attr(data-placeholder);
 	color: #8c8f94;
 	float: left;
@@ -840,96 +840,96 @@
 }
 
 /* --- Slides block --- */
-.wp-carve-slides-editor textarea {
+.wpcarve-slides-editor textarea {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
-.wp-carve-slides-preview-frame {
+.wpcarve-slides-preview-frame {
 	margin-top: 14px;
 }
 
-.wp-carve-slides {
-	--wp-carve-slide-bg: #f8fafc;
-	--wp-carve-slide-panel: #ffffff;
-	--wp-carve-slide-ink: #172033;
-	--wp-carve-slide-muted: #64748b;
-	--wp-carve-slide-accent: #0f766e;
-	--wp-carve-slide-accent-2: #b42318;
-	--wp-carve-slide-border: rgba(23, 32, 51, 0.14);
+.wpcarve-slides {
+	--wpcarve-slide-bg: #f8fafc;
+	--wpcarve-slide-panel: #ffffff;
+	--wpcarve-slide-ink: #172033;
+	--wpcarve-slide-muted: #64748b;
+	--wpcarve-slide-accent: #0f766e;
+	--wpcarve-slide-accent-2: #b42318;
+	--wpcarve-slide-border: rgba(23, 32, 51, 0.14);
 	position: relative;
 	overflow: hidden;
 	min-height: min(72vh, 760px);
 	aspect-ratio: 16 / 9;
-	border: 1px solid var(--wp-carve-slide-border);
+	border: 1px solid var(--wpcarve-slide-border);
 	border-radius: 8px;
 	background:
-		linear-gradient(135deg, color-mix(in srgb, var(--wp-carve-slide-accent) 15%, transparent), transparent 34%),
-		linear-gradient(315deg, color-mix(in srgb, var(--wp-carve-slide-accent-2) 14%, transparent), transparent 30%),
-		var(--wp-carve-slide-bg);
-	color: var(--wp-carve-slide-ink);
+		linear-gradient(135deg, color-mix(in srgb, var(--wpcarve-slide-accent) 15%, transparent), transparent 34%),
+		linear-gradient(315deg, color-mix(in srgb, var(--wpcarve-slide-accent-2) 14%, transparent), transparent 30%),
+		var(--wpcarve-slide-bg);
+	color: var(--wpcarve-slide-ink);
 	box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
 }
 
-.wp-carve-slides:focus {
-	outline: 2px solid color-mix(in srgb, var(--wp-carve-slide-accent) 70%, #ffffff);
+.wpcarve-slides:focus {
+	outline: 2px solid color-mix(in srgb, var(--wpcarve-slide-accent) 70%, #ffffff);
 	outline-offset: 3px;
 }
 
-.wp-carve-slides--paper {
-	--wp-carve-slide-bg: #fbfaf7;
-	--wp-carve-slide-panel: #ffffff;
-	--wp-carve-slide-ink: #24211c;
-	--wp-carve-slide-muted: #706a60;
-	--wp-carve-slide-accent: #006d77;
-	--wp-carve-slide-accent-2: #9b2226;
-	--wp-carve-slide-border: rgba(36, 33, 28, 0.16);
+.wpcarve-slides--paper {
+	--wpcarve-slide-bg: #fbfaf7;
+	--wpcarve-slide-panel: #ffffff;
+	--wpcarve-slide-ink: #24211c;
+	--wpcarve-slide-muted: #706a60;
+	--wpcarve-slide-accent: #006d77;
+	--wpcarve-slide-accent-2: #9b2226;
+	--wpcarve-slide-border: rgba(36, 33, 28, 0.16);
 }
 
-.wp-carve-slides--night {
-	--wp-carve-slide-bg: #111827;
-	--wp-carve-slide-panel: #172033;
-	--wp-carve-slide-ink: #f8fafc;
-	--wp-carve-slide-muted: #cbd5e1;
-	--wp-carve-slide-accent: #38bdf8;
-	--wp-carve-slide-accent-2: #f97316;
-	--wp-carve-slide-border: rgba(248, 250, 252, 0.18);
+.wpcarve-slides--night {
+	--wpcarve-slide-bg: #111827;
+	--wpcarve-slide-panel: #172033;
+	--wpcarve-slide-ink: #f8fafc;
+	--wpcarve-slide-muted: #cbd5e1;
+	--wpcarve-slide-accent: #38bdf8;
+	--wpcarve-slide-accent-2: #f97316;
+	--wpcarve-slide-border: rgba(248, 250, 252, 0.18);
 }
 
-.wp-carve-slide {
+.wpcarve-slide {
 	position: absolute;
 	inset: 0;
 	display: none;
 	overflow: auto;
 	padding: clamp(28px, 5vw, 72px) clamp(28px, 5vw, 72px) clamp(86px, 8vw, 104px);
 	background:
-		linear-gradient(180deg, color-mix(in srgb, var(--wp-carve-slide-panel) 74%, transparent), transparent),
+		linear-gradient(180deg, color-mix(in srgb, var(--wpcarve-slide-panel) 74%, transparent), transparent),
 		transparent;
 }
 
-.wp-carve-slide.is-active {
+.wpcarve-slide.is-active {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 }
 
-.wp-carve-slides--wide .wp-carve-slide {
+.wpcarve-slides--wide .wpcarve-slide {
 	padding-inline: clamp(26px, 4vw, 56px);
 }
 
-.wp-carve-slides--compact .wp-carve-slide {
+.wpcarve-slides--compact .wpcarve-slide {
 	padding: clamp(22px, 4vw, 44px);
 }
 
-.wp-carve-slide > :first-child {
+.wpcarve-slide > :first-child {
 	margin-top: 0;
 }
 
-.wp-carve-slide > :last-child {
+.wpcarve-slide > :last-child {
 	margin-bottom: 0;
 }
 
-.wp-carve-slide h1,
-.wp-carve-slide h2 {
+.wpcarve-slide h1,
+.wpcarve-slide h2 {
 	max-width: 16ch;
 	margin-bottom: 0.35em;
 	font-size: clamp(2rem, 5.2vw, 4.25rem);
@@ -937,57 +937,57 @@
 	letter-spacing: 0;
 }
 
-.wp-carve-slide h3 {
+.wpcarve-slide h3 {
 	font-size: clamp(1.55rem, 4vw, 3.2rem);
 	line-height: 1.05;
 	letter-spacing: 0;
 }
 
-.wp-carve-slide p,
-.wp-carve-slide li {
+.wpcarve-slide p,
+.wpcarve-slide li {
 	max-width: 72ch;
 	font-size: clamp(1rem, 1.55vw, 1.35rem);
 	line-height: 1.45;
 }
 
-.wp-carve-slide > p:first-child {
-	color: var(--wp-carve-slide-muted);
+.wpcarve-slide > p:first-child {
+	color: var(--wpcarve-slide-muted);
 	font-size: clamp(1.12rem, 2vw, 1.65rem);
 }
 
-.wp-carve-slide a {
-	color: var(--wp-carve-slide-accent);
+.wpcarve-slide a {
+	color: var(--wpcarve-slide-accent);
 }
 
-.wp-carve-slide table {
-	background: color-mix(in srgb, var(--wp-carve-slide-panel) 86%, transparent);
+.wpcarve-slide table {
+	background: color-mix(in srgb, var(--wpcarve-slide-panel) 86%, transparent);
 }
 
-.wp-carve-slide :is(th, td) {
-	border-color: var(--wp-carve-slide-border);
+.wpcarve-slide :is(th, td) {
+	border-color: var(--wpcarve-slide-border);
 }
 
-.wp-carve-slide thead th {
-	background: color-mix(in srgb, var(--wp-carve-slide-accent) 14%, var(--wp-carve-slide-panel));
+.wpcarve-slide thead th {
+	background: color-mix(in srgb, var(--wpcarve-slide-accent) 14%, var(--wpcarve-slide-panel));
 }
 
-.wp-carve-slide pre {
+.wpcarve-slide pre {
 	max-width: 100%;
 	padding: 1em;
-	border: 1px solid var(--wp-carve-slide-border);
+	border: 1px solid var(--wpcarve-slide-border);
 	border-radius: 8px;
-	background: color-mix(in srgb, #020617 88%, var(--wp-carve-slide-accent));
+	background: color-mix(in srgb, #020617 88%, var(--wpcarve-slide-accent));
 	color: #f8fafc;
 	font-size: clamp(0.82rem, 1.5vw, 1.05rem);
 }
 
-.wp-carve-slide .admonition {
+.wpcarve-slide .admonition {
 	border-radius: 8px;
-	background: color-mix(in srgb, var(--wp-carve-slide-panel) 88%, transparent);
+	background: color-mix(in srgb, var(--wpcarve-slide-panel) 88%, transparent);
 	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
-.wp-carve-slides-controls {
+.wpcarve-slides-controls {
 	position: absolute;
 	left: 50%;
 	bottom: 18px;
@@ -996,15 +996,15 @@
 	align-items: center;
 	gap: 8px;
 	padding: 7px;
-	border: 1px solid var(--wp-carve-slide-border);
+	border: 1px solid var(--wpcarve-slide-border);
 	border-radius: 999px;
-	background: color-mix(in srgb, var(--wp-carve-slide-panel) 88%, transparent);
+	background: color-mix(in srgb, var(--wpcarve-slide-panel) 88%, transparent);
 	box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
 	transform: translateX(-50%);
 	backdrop-filter: blur(14px);
 }
 
-.wp-carve-slides-controls button {
+.wpcarve-slides-controls button {
 	display: inline-grid;
 	place-items: center;
 	width: 34px;
@@ -1012,27 +1012,27 @@
 	padding: 0;
 	border: 0;
 	border-radius: 999px;
-	background: var(--wp-carve-slide-ink);
-	color: var(--wp-carve-slide-panel);
+	background: var(--wpcarve-slide-ink);
+	color: var(--wpcarve-slide-panel);
 	font: inherit;
 	line-height: 1;
 	cursor: pointer;
 }
 
-.wp-carve-slides-controls button:disabled {
+.wpcarve-slides-controls button:disabled {
 	opacity: 0.35;
 	cursor: default;
 }
 
-.wp-carve-slides-count {
+.wpcarve-slides-count {
 	min-width: 54px;
-	color: var(--wp-carve-slide-muted);
+	color: var(--wpcarve-slide-muted);
 	font-size: 0.85rem;
 	font-variant-numeric: tabular-nums;
 	text-align: center;
 }
 
-.wp-carve-slides:fullscreen {
+.wpcarve-slides:fullscreen {
 	width: 100vw;
 	height: 100vh;
 	aspect-ratio: auto;
@@ -1041,46 +1041,46 @@
 }
 
 @media (max-width: 700px) {
-	.wp-carve-slides {
+	.wpcarve-slides {
 		min-height: 560px;
 		aspect-ratio: 9 / 14;
 	}
 
-	.wp-carve-slide {
+	.wpcarve-slide {
 		padding: 26px 20px 78px;
 	}
 
-	.wp-carve-slide h1,
-	.wp-carve-slide h2 {
+	.wpcarve-slide h1,
+	.wpcarve-slide h2 {
 		max-width: none;
 	}
 }
 
 /* High-contrast preference: strengthen admonition edges + de-mute text. */
 @media (prefers-contrast: more) {
-	.wp-carve .admonition {
+	.wpcarve .admonition {
 		border-left-width: 6px;
 	}
 
-	.wp-carve .admonition-title,
-	.wp-carve .admonition:not(:has(.admonition-title))::before {
+	.wpcarve .admonition-title,
+	.wpcarve .admonition:not(:has(.admonition-title))::before {
 		color: inherit;
 	}
 
-	.wp-carve blockquote,
-	.wp-carve [role="doc-endnotes"],
-	.wp-carve caption {
+	.wpcarve blockquote,
+	.wpcarve [role="doc-endnotes"],
+	.wpcarve caption {
 		color: inherit;
 	}
 
-	.wp-carve :is(th, td) {
+	.wpcarve :is(th, td) {
 		border-color: currentColor;
 	}
 }
 
 /* Reduced motion: no diagram/permalink transitions. */
 @media (prefers-reduced-motion: reduce) {
-	.wp-carve * {
+	.wpcarve * {
 		transition: none !important;
 	}
 }
@@ -1090,72 +1090,72 @@
    constructs that carry their own background are recolored. Per-type admonition
    accents come from --carve-accent and are kept. */
 @media (prefers-color-scheme: dark) {
-	.wp-carve pre:not(.mermaid),
-	.wp-carve-preview pre:not(.mermaid) {
+	.wpcarve pre:not(.mermaid),
+	.wpcarve-preview pre:not(.mermaid) {
 		background: #161b22;
 		color: #c9d1d9;
 	}
 
-	.wp-carve :not(pre) > code {
+	.wpcarve :not(pre) > code {
 		background: #262b33;
 		color: #c9d1d9;
 		border-radius: 3px;
 	}
 
-	.wp-carve .admonition {
+	.wpcarve .admonition {
 		background: #161b22;
 		color: #c9d1d9;
 	}
 
-	.wp-carve :is(th, td) {
+	.wpcarve :is(th, td) {
 		border-color: #30363d;
 	}
 
-	.wp-carve thead th {
+	.wpcarve thead th {
 		background: #161b22;
 	}
 
-	.wp-carve tbody tr:nth-child(even) {
+	.wpcarve tbody tr:nth-child(even) {
 		background: #12161c;
 	}
 
-	.wp-carve caption {
+	.wpcarve caption {
 		color: #8b949e;
 	}
 
-	.wp-carve blockquote {
+	.wpcarve blockquote {
 		border-color: #30363d;
 		color: #adbac7;
 	}
 
-	.wp-carve .toc {
+	.wpcarve .toc {
 		background: #161b22;
 		border-color: #30363d;
 	}
 
-	.wp-carve [role="doc-endnotes"] {
+	.wpcarve [role="doc-endnotes"] {
 		color: #8b949e;
 	}
 
-	.wp-carve [role="doc-endnotes"] hr {
+	.wpcarve [role="doc-endnotes"] hr {
 		border-color: #30363d;
 	}
 
-	.wp-carve [role="doc-endnotes"] li:target {
+	.wpcarve [role="doc-endnotes"] li:target {
 		background: #2d2a16;
 	}
 
 	/* Editor surfaces (block source, previews, visual editor). */
-	.wp-carve-source,
-	.wp-carve-preview,
-	#wp-carve-live-preview,
-	.wp-carve-ve-surface {
+	.wpcarve-source,
+	.wpcarve-preview,
+	#wpcarve-live-preview,
+	.wpcarve-ve-surface {
 		background: #0d1117;
 		color: #c9d1d9;
 		border-color: #30363d;
 	}
 
-	.wp-carve-block.is-carve-fullscreen {
+	.wpcarve-block.is-carve-fullscreen {
 		background: #0d1117;
 	}
 }

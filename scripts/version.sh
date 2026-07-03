@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Version update script for Carve Markup (wp-carve).
+# Version update script for Carve Markup (wpcarve).
 # Keeps the plugin header, constant, readme stable tag and asset versions in
 # sync so the release deploy workflow's consistency check passes.
 #
@@ -27,11 +27,11 @@ PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
 
 echo "Updating version to $VERSION in all files..."
 
-# wp-carve.php - Plugin header Version
-sed -i "s/^\( \* Version:\s*\)[0-9]\+\.[0-9]\+\.[0-9]\+/\1$VERSION/" "$PLUGIN_DIR/wp-carve.php"
+# carve-markup.php - Plugin header Version
+sed -i "s/^\( \* Version:\s*\)[0-9]\+\.[0-9]\+\.[0-9]\+/\1$VERSION/" "$PLUGIN_DIR/carve-markup.php"
 
-# wp-carve.php - WP_CARVE_VERSION constant
-sed -i "s/define('WP_CARVE_VERSION', '[0-9]\+\.[0-9]\+\.[0-9]\+')/define('WP_CARVE_VERSION', '$VERSION')/" "$PLUGIN_DIR/wp-carve.php"
+# carve-markup.php - WPCARVE_VERSION constant
+sed -i "s/define('WPCARVE_VERSION', '[0-9]\+\.[0-9]\+\.[0-9]\+')/define('WPCARVE_VERSION', '$VERSION')/" "$PLUGIN_DIR/carve-markup.php"
 
 # readme.txt - Stable tag
 sed -i "s/^Stable tag: [0-9]\+\.[0-9]\+\.[0-9]\+/Stable tag: $VERSION/" "$PLUGIN_DIR/readme.txt"
@@ -46,7 +46,7 @@ for asset in "$PLUGIN_DIR"/assets/blocks/*/index.asset.php; do
 done
 
 echo "Done! Updated version to $VERSION in:"
-echo "  - wp-carve.php (header and WP_CARVE_VERSION constant)"
+echo "  - carve-markup.php (header and WPCARVE_VERSION constant)"
 echo "  - readme.txt (stable tag)"
 echo "  - package.json"
 echo "  - assets/blocks/*/index.asset.php"
