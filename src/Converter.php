@@ -278,10 +278,10 @@ class Converter
         // visual editor cannot parse back (their content is lost on the round
         // trip). The editor seed keeps the raw generic <div class="..."> instead,
         // which carveDiv round-trips; the front end still gets the rich markup.
-        // Known limit shared with titled admonitions: a quoted summary seeds as
-        // an admonition-title paragraph, and carve-grammars serializes it back
-        // into the body (text kept, summary wrapper lost) - the block's lossy
-        // guard warns before such an edit is applied.
+        // A quoted summary seeds as an admonition-title paragraph, which
+        // carve-grammars' carveDiv captures as a title attribute and serializes
+        // back as ::: class "title" - titled disclosures and admonitions
+        // round-trip losslessly.
         if (!$forEditor) {
             $converter->addExtension(new CodeGroupExtension());
             $converter->addExtension(new TabsExtension());
