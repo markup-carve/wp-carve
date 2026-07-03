@@ -91,10 +91,12 @@ if (class_exists(\WpCarve\Converter::class)) {
     );
 
     // Hostile markup the layer must drop, even if the engine ever regressed.
+    // In safe mode the engine escapes raw HTML to text, so "onclick" may appear
+    // as literal escaped content - only a real tag/attribute is a failure.
     $evilHtml = $converter->toHtml("text\n\n<div onclick=\"alert(1)\">x</div>\n\n<script>alert(2)</script>");
     $carve_check(
-        'safe mode strips event handlers and scripts via wp_kses',
-        !str_contains($evilHtml, 'onclick') && !str_contains($evilHtml, '<script>'),
+        'safe mode emits no live script tag or event-handler attribute',
+        !str_contains($evilHtml, '<script') && !preg_match('/<[^>]+\son[a-z]+\s*=/i', $evilHtml),
         $carve_snippet($evilHtml),
     );
 
