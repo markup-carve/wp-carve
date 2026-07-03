@@ -307,6 +307,14 @@
 						label: __( 'Admonition', 'carve-markup' ),
 						controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: cmd( ( c ) => c.toggleCarveDiv( { class: t } ) ) } ) ),
 					} ),
+					el( ToolbarDropdownMenu, {
+						icon: 'arrow-down-alt2',
+						label: __( 'Disclosure', 'carve-markup' ),
+						controls: [
+							{ title: __( 'Details (collapsible)', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleCarveDiv( { class: 'details' } ) ) },
+							{ title: __( 'Spoiler', 'carve-markup' ), onClick: cmd( ( c ) => c.toggleCarveDiv( { class: 'spoiler' } ) ) },
+						],
+					} ),
 					el( ToolbarButton, { icon: 'format-video', title: __( 'Media embed', 'carve-markup' ), onClick: promptEmbed } ),
 					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: cmd( ( c ) => c.setHorizontalRule() ) } )
 				),

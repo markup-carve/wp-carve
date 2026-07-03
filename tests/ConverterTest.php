@@ -123,6 +123,10 @@ class ConverterTest extends TestCase
             'abbreviations'      => [['abbreviations' => 'HTML: HyperText Markup Language'], 'We use HTML often.',        '<abbr'],
             'diagram (mermaid)'  => [['mermaid_enabled' => true],           "``` mermaid\ngraph TD; A-->B;\n```",        'class="mermaid"'],
             'heading level shift' => [['heading_shift' => 2],               '# A',                                      '<h3'],
+            // Details/spoiler render <details> on the front end but the editor
+            // seed keeps the generic <div class="..."> so carveDiv round-trips.
+            'details disclosure' => [[],                                    "::: details \"More\"\nBody.\n:::",         '<details'],
+            'spoiler disclosure' => [[],                                    "::: spoiler \"Reveal\"\nSecret.\n:::",     '<details'],
         ];
     }
 

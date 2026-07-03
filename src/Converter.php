@@ -271,13 +271,23 @@ class Converter
     {
         $s = $this->settings;
 
-        // Always-on content extensions (parity with wp-djot): tabbed code groups,
-        // generic tabs, details/spoiler disclosures, and semantic inline spans.
-        $converter->addExtension(new CodeGroupExtension());
-        $converter->addExtension(new TabsExtension());
-        $converter->addExtension(new DetailsExtension());
-        $converter->addExtension(new SpoilerExtension());
+        // Semantic inline spans round-trip; always on.
         $converter->addExtension(new SemanticSpanExtension());
+
+        // These turn ::: fenced divs into HTML5 <details>/tab interfaces the
+        // visual editor cannot parse back (their content is lost on the round
+        // trip). The editor seed keeps the raw generic <div class="..."> instead,
+        // which carveDiv round-trips; the front end still gets the rich markup.
+        // Known limit shared with titled admonitions: a quoted summary seeds as
+        // an admonition-title paragraph, and carve-grammars serializes it back
+        // into the body (text kept, summary wrapper lost) - the block's lossy
+        // guard warns before such an edit is applied.
+        if (!$forEditor) {
+            $converter->addExtension(new CodeGroupExtension());
+            $converter->addExtension(new TabsExtension());
+            $converter->addExtension(new DetailsExtension());
+            $converter->addExtension(new SpoilerExtension());
+        }
 
         $shift = (int)($s['heading_shift'] ?? 0);
         if ($shift > 0 && !$forEditor) {
