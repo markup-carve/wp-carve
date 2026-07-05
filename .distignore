@@ -9,6 +9,7 @@
 /.idea
 /.vscode
 /.ddev
+/.playwright-mcp
 /.phpunit.cache
 /.distignore
 /.wp-env.json
