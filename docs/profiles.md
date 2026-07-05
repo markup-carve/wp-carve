@@ -14,13 +14,15 @@ A profile is carve-php's allow-list of which constructs are permitted. Set
 | `article` | Normal posts (default) | Headings, lists, tables, code, media, admonitions. |
 | `comment` | User comments (default) | Inline + basic blocks; no raw HTML or risky blocks. |
 | `minimal` | Tight contexts | Inline formatting only. |
-| `none` | Raw | No profile restriction (relies on safe mode alone). |
+| `none` | Raw | No profile restriction (sanitization still applies). |
 
-## Safe mode
+## Sanitization
 
-`safe_mode` enables carve-php's XSS hardening (script/style stripping, URL
-sanitization). Posts honor the setting; **comments are always rendered in safe
-mode** regardless, since their source is untrusted.
+Rendered Carve is always sanitized: carve-php's XSS hardening (script/style
+stripping, URL sanitization) runs on every surface, and the generated markup
+additionally passes through WordPress `wp_kses` with the Carve allowlist. There
+is no setting or capability that disables it - raw `<script>`/`<style>` can never
+reach output. Adjust the allowlist via the `wpcarve_allowed_html` filter.
 
 ## Line breaks
 

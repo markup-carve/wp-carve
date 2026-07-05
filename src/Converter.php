@@ -80,14 +80,11 @@ class Converter
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $html = $this->converterFor($context, $profileOverride, $safe)->convert($abbrevDefs . $carve);
 
-        // Defense in depth: in safe mode the engine already escapes raw HTML and
-        // strips event handlers, but the generated markup additionally passes
-        // through wp_kses so only allowlisted tags/attributes ever reach output.
-        // Unsafe mode is reserved for unfiltered_html authors (see
-        // Plugin::safeForAuthor()), matching how core treats their post content.
-        if ($this->resolveSafeMode($context, $safe)) {
-            $html = self::sanitizeHtml($html);
-        }
+        // Rendering is always sanitized: the engine escapes raw HTML and strips
+        // event handlers, and the generated markup additionally passes through
+        // wp_kses so only allowlisted tags/attributes ever reach output. There is
+        // no unsafe/raw-HTML passthrough - script/style can never be emitted.
+        $html = self::sanitizeHtml($html);
 
         /**
          * Filter the rendered HTML before it is returned to WordPress.
@@ -127,16 +124,14 @@ class Converter
     }
 
     /**
-     * Effective safe mode for a render: comments are always safe; elsewhere an
-     * explicit $safe wins, then the site setting (default on).
+     * Safe mode is unconditional: every render escapes raw HTML and strips event
+     * handlers, on every surface and for every author. There is no setting or
+     * capability that turns it off. Kept as a method so the intent is explicit at
+     * each call site.
      */
     private function resolveSafeMode(string $context, ?bool $safe): bool
     {
-        if ($context === 'comment') {
-            return true;
-        }
-
-        return $safe ?? (bool)($this->settings['safe_mode'] ?? true);
+        return true;
     }
 
     /**

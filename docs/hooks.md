@@ -26,8 +26,9 @@ add_filter('wpcarve_rendered_html', function (string $html, string $carve, strin
 
 ### `wpcarve_allowed_html`
 
-Filter the wp_kses allowlist applied to rendered Carve HTML in safe mode. Starts
-from the core `post` allowlist plus task-list checkboxes and media-embed iframes.
+Filter the wp_kses allowlist applied to all rendered Carve HTML (sanitization is
+unconditional). Starts from the core `post` allowlist plus task-list checkboxes
+and media-embed iframes.
 
 ```php
 add_filter('wpcarve_allowed_html', function (array $allowed): array {
@@ -109,7 +110,7 @@ per context).
 `$context` is one of:
 
 - `post` - front-end post/page rendering.
-- `comment` - comment rendering (always safe mode).
+- `comment` - comment rendering (uses the comment profile).
 - `editor` - the **visual-editor seed**. The Visual (WYSIWYG) editor renders the
   source to HTML, then serializes that HTML back to Carve on every edit. Any
   *generated* markup (a table of contents, heading permalink anchors, shifted

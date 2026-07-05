@@ -133,7 +133,6 @@ class SettingsPage
         $this->toggle($s, 'enable_comments', __('Comments', 'carve-markup'), __('Render comments as Carve (uses the comment profile).', 'carve-markup'));
         $this->toggle($s, 'enable_shortcode', __('[carve] shortcode', 'carve-markup'), __('Render Carve inside a [carve] shortcode.', 'carve-markup'));
         $this->toggle($s, 'enable_excerpts', __('Excerpts', 'carve-markup'), __('Render excerpts as Carve.', 'carve-markup'));
-        $this->toggle($s, 'safe_mode', __('Safe mode', 'carve-markup'), __('Escape raw HTML in posts and pages instead of rendering it. Event handlers and javascript: links are always removed either way. Always on for comments; raw HTML only passes through for users who can post unfiltered HTML.', 'carve-markup'));
         $this->gridEnd();
         $this->group(__('Content profiles', 'carve-markup'));
         $this->grid();

@@ -31,13 +31,22 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('<strong>strong</strong>', $html);
     }
 
-    public function testCommentContextForcesSafeMode(): void
+    public function testCommentContextStripsRawHtml(): void
     {
-        // Even with safe_mode disabled in settings, the comment context must not
-        // emit raw HTML (it is always rendered in safe mode).
-        $converter = new Converter(['safe_mode' => false, 'comment_profile' => 'comment']);
+        $converter = new Converter(['comment_profile' => 'comment']);
 
         $html = $converter->toHtml('<script>alert(1)</script>', 'comment');
+
+        $this->assertStringNotContainsString('<script>', $html);
+    }
+
+    public function testPostContextStripsRawHtml(): void
+    {
+        // Sanitization is unconditional: the post surface never emits raw HTML,
+        // regardless of any (now removed) setting or author capability.
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml('<script>alert(1)</script>', 'post');
 
         $this->assertStringNotContainsString('<script>', $html);
     }

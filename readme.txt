@@ -14,7 +14,7 @@ Write posts, pages and comments in Carve markup: a visual editor, live preview, 
 
 Carve is a post-Djot, post-Markdown markup language. This plugin renders Carve to HTML in WordPress, powered by the markup-carve/carve-php engine.
 
-Features: per-post "Render as Carve" mode, a [carve] shortcode, a Gutenberg block with a visual (WYSIWYG) editor, comment support, content profiles and safe mode, table of contents, heading permalinks, smart quotes, Mermaid, and WP-CLI migration.
+Features: per-post "Render as Carve" mode, a [carve] shortcode, a Gutenberg block with a visual (WYSIWYG) editor, comment support, content profiles, table of contents, heading permalinks, smart quotes, Mermaid, and WP-CLI migration.
 
 Beyond a typical markup plugin:
 
@@ -44,4 +44,4 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 * Initial release: render Carve in posts, pages and comments; [carve] shortcode and carve/markup + carve/slides blocks.
 * Visual (WYSIWYG) editor with Write / Split / Visual / Preview tabs, a unified toolbar, an in-block code-language picker and keyboard shortcuts.
 * Import Markdown / Djot / BBCode / HTML and export posts as .carve.
-* Live in-browser preview, frontmatter-to-meta, content profiles + safe mode, table of contents, heading permalinks, smart quotes, diagram renderers, media embeds, bundled syntax highlighting, render caching and a REST endpoint.
+* Live in-browser preview, frontmatter-to-meta, content profiles, table of contents, heading permalinks, smart quotes, diagram renderers, media embeds, bundled syntax highlighting, render caching and a REST endpoint.

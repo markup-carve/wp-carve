@@ -61,7 +61,9 @@ class SlidesBlock
         $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
 
         foreach ($slides as $index => $slide) {
-            $html = $this->converter->toHtml($slide, 'post', null, $safe);
+            // Escape each slide's rendered markup at the block render callback, so
+            // only allowlisted tags/attributes reach output.
+            $html = Converter::sanitizeHtml($this->converter->toHtml($slide, 'post', null, $safe));
             $sections[] = sprintf(
                 '<section class="wpcarve-slide%s" data-slide="%d" aria-label="%s">%s</section>',
                 $index === 0 ? ' is-active' : '',

@@ -11,7 +11,7 @@ Markup**.
 | --- | --- | --- |
 | `enable_posts` | `true` | Allow the per-post "Render as Carve" toggle on posts. |
 | `enable_pages` | `true` | Allow the toggle on pages. |
-| `enable_comments` | `false` | Render comments as Carve (always in safe mode) and show the comment toolbar. |
+| `enable_comments` | `false` | Render comments as Carve (using the comment profile) and show the comment toolbar. |
 | `enable_shortcode` | `true` | Register the `[carve]…[/carve]` shortcode. |
 | `enable_excerpts` | `true` | Render `get_the_excerpt()` from Carve source for Carve posts. |
 
@@ -19,7 +19,6 @@ Markup**.
 
 | Key | Default | What it does |
 | --- | --- | --- |
-| `safe_mode` | `true` | XSS hardening for posts (comments are always safe). |
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. |
 | `comment_profile` | `comment` | Content profile for comments. |
 | `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
@@ -47,7 +46,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `graphviz_enabled` | `false` | Render ` ```graphviz ` (DOT) blocks. |
 | `wavedrom_enabled` | `false` | Render ` ```wavedrom ` timing diagrams. |
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
-| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (safe `<a>` link under safe mode). |
+| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).

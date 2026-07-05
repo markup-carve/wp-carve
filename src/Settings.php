@@ -30,7 +30,6 @@ class Settings
             'enable_comments' => false,
             'enable_shortcode' => true,
             'enable_excerpts' => true,
-            'safe_mode' => true,
             'post_profile' => 'article',
             'comment_profile' => 'comment',
             'post_soft_break' => 'newline',
