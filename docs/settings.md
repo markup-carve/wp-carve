@@ -19,7 +19,7 @@ Markup**.
 
 | Key | Default | What it does |
 | --- | --- | --- |
-| `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. |
+| `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. Only `full` permits raw HTML (still sanitized via `wp_kses`); the others escape it. |
 | `comment_profile` | `comment` | Content profile for comments. |
 | `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
 | `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). |

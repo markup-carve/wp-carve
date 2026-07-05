@@ -136,8 +136,8 @@ class SettingsPage
         $this->gridEnd();
         $this->group(__('Content profiles', 'carve-markup'));
         $this->grid();
-        $this->select($s, 'post_profile', __('Post profile', 'carve-markup'), $profiles, __('Feature set allowed in posts and pages.', 'carve-markup'));
-        $this->select($s, 'comment_profile', __('Comment profile', 'carve-markup'), $profiles, __('Feature set allowed in comments.', 'carve-markup'));
+        $this->select($s, 'post_profile', __('Post profile', 'carve-markup'), $profiles, __('Feature set allowed in posts and pages. Only Full permits raw HTML (via =html blocks), which is still sanitized through wp_kses; Article, Comment and Minimal render raw HTML as escaped text.', 'carve-markup'));
+        $this->select($s, 'comment_profile', __('Comment profile', 'carve-markup'), $profiles, __('Feature set allowed in comments. Comments never allow raw HTML regardless of profile.', 'carve-markup'));
         $softBreaks = [
             'newline' => __('Preserve newline', 'carve-markup'),
             'space' => __('Space (join lines)', 'carve-markup'),
