@@ -120,7 +120,7 @@ class PostEditor
             esc_html__('Live Carve preview', 'carve-markup'),
             esc_url($toBlock),
             esc_html__('Move into a Carve block', 'carve-markup'),
-            Converter::sanitizeHtml($initial),
+            wp_kses($initial, Converter::allowedHtml()),
         );
     }
 
