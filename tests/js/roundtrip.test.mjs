@@ -66,6 +66,8 @@ const CASES = {
 	// Quoted container titles must survive (carve-grammars carveDiv title attr).
 	admonitionTitled: '::: note "Custom"\nBody.\n:::',
 	detailsTitled: '::: details "More"\nBody text.\n:::',
+	// A double quote in the title survives via the {title="..."} attribute line.
+	detailsQuoteTitle: '{title="Say \\"hi\\""}\n::: details\nBody text.\n:::',
 	math: 'Inline $`E=mc^2` here.',
 	footnote: 'See it.[^1]\n\n[^1]: The note.',
 	definitionList: ':: Term\n:  Definition.',
