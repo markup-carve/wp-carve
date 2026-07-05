@@ -22,6 +22,7 @@ use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\SoftBreakMode;
+use MarkupCarve\Carve\SafeMode;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use WpCarve\Extension\TorchlightExtension;
 
@@ -80,14 +81,11 @@ class Converter
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $html = $this->converterFor($context, $profileOverride, $safe)->convert($abbrevDefs . $carve);
 
-        // Defense in depth: in safe mode the engine already escapes raw HTML and
-        // strips event handlers, but the generated markup additionally passes
-        // through wp_kses so only allowlisted tags/attributes ever reach output.
-        // Unsafe mode is reserved for unfiltered_html authors (see
-        // Plugin::safeForAuthor()), matching how core treats their post content.
-        if ($this->resolveSafeMode($context, $safe)) {
-            $html = self::sanitizeHtml($html);
-        }
+        // Rendering is always sanitized: the engine escapes raw HTML and strips
+        // event handlers, and the generated markup additionally passes through
+        // wp_kses so only allowlisted tags/attributes ever reach output. There is
+        // no unsafe/raw-HTML passthrough - script/style can never be emitted.
+        $html = self::sanitizeHtml($html);
 
         /**
          * Filter the rendered HTML before it is returned to WordPress.
@@ -127,21 +125,36 @@ class Converter
     }
 
     /**
-     * Effective safe mode for a render: comments are always safe; elsewhere an
-     * explicit $safe wins, then the site setting (default on).
+     * The engine safe-mode configuration for a context. Sanitization is always
+     * on - there is no setting or capability that turns it off.
+     *
+     * Comments are untrusted: raw HTML is stripped outright (and the style
+     * attribute blocked) by the engine, before wp_kses runs.
+     *
+     * Authored surfaces (posts, pages, blocks, the editor seed) use ALLOW, so
+     * that raw HTML - written with Djot's explicit `=html` raw block / inline
+     * syntax and only permitted by a profile that allows raw nodes (the Full
+     * profile; the default Article profile still denies it) - renders instead of
+     * being escaped. That raw HTML then passes through wp_kses with the Carve
+     * allowlist (see toHtml/allowedHtml), which is the authoritative gate:
+     * <script>/<style>, event handlers and unsafe URL schemes can never reach
+     * output. This matches how core sanitizes author post content.
      */
-    private function resolveSafeMode(string $context, ?bool $safe): bool
+    private function safeModeFor(string $context): SafeMode
     {
         if ($context === 'comment') {
-            return true;
+            return SafeMode::strict();
         }
 
-        return $safe ?? (bool)($this->settings['safe_mode'] ?? true);
+        return SafeMode::defaults()->setRawHtmlMode(SafeMode::RAW_HTML_ALLOW);
     }
 
     /**
-     * Run rendered HTML through wp_kses with the Carve allowlist. No-op outside
-     * WordPress (unit tests); the engine's own safe mode still applies there.
+     * Run rendered HTML through wp_kses with the Carve allowlist. This is the
+     * authoritative sanitization gate: it strips <script>/<style>, drops event
+     * handlers, and sanitizes inline styles and URL schemes. No-op only outside
+     * WordPress (the unit suite has no wp_kses); the WP-integration checks
+     * exercise the real filter.
      */
     public static function sanitizeHtml(string $html): string
     {
@@ -214,12 +227,9 @@ class Converter
         // round trip, so the 'editor' context renders like a post but omits those
         // extensions (and the abbreviation defs, see toHtml()).
         $isEditor = $context === 'editor';
-        $safeMode = $this->resolveSafeMode($context, $safe);
-        // Key on the RESOLVED safe value (not the nullable input) so the cache
-        // can never return a converter whose safe mode differs from behavior.
+        $safeMode = $this->safeModeFor($context);
         $cacheKey = $context
-            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '')
-            . ($safeMode ? ':safe' : ':unsafe');
+            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '');
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }

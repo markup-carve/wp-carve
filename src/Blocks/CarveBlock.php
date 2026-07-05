@@ -48,6 +48,9 @@ class CarveBlock
         $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
         $html = $this->converter->toHtml($carve, 'post', $profile !== '' ? $profile : null, $safe);
 
-        return sprintf('<div class="wpcarve">%s</div>', $html);
+        // Escape the rendered markup at the block render callback's return, so
+        // only allowlisted tags/attributes reach output (wp_kses is idempotent
+        // over the already-sanitized converter output).
+        return sprintf('<div class="wpcarve">%s</div>', Converter::sanitizeHtml($html));
     }
 }

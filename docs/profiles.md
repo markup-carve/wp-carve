@@ -10,17 +10,37 @@ A profile is carve-php's allow-list of which constructs are permitted. Set
 
 | Profile | Use for | Notes |
 | --- | --- | --- |
-| `full` | Trusted authors | Everything carve-php supports. |
-| `article` | Normal posts (default) | Headings, lists, tables, code, media, admonitions. |
+| `full` | Trusted authors | Everything carve-php supports, including raw HTML (see below). |
+| `article` | Normal posts (default) | Headings, lists, tables, code, media, admonitions; no raw HTML. |
 | `comment` | User comments (default) | Inline + basic blocks; no raw HTML or risky blocks. |
 | `minimal` | Tight contexts | Inline formatting only. |
-| `none` | Raw | No profile restriction (relies on safe mode alone). |
+| `none` | Raw | No profile restriction (sanitization still applies). |
 
-## Safe mode
+## Sanitization
 
-`safe_mode` enables carve-php's XSS hardening (script/style stripping, URL
-sanitization). Posts honor the setting; **comments are always rendered in safe
-mode** regardless, since their source is untrusted.
+Rendered Carve is always sanitized - there is **no setting or capability that
+disables it**. Two layers run on every surface:
+
+1. carve-php's engine hardening: unsafe URL schemes (`javascript:`, `vbscript:`,
+   `data:`, `file:`) and `on*` event handlers are stripped from generated markup;
+   comments additionally strip raw HTML outright.
+2. WordPress `wp_kses` with the Carve allowlist, applied to the final output.
+   This is the authoritative gate: `<script>`/`<style>` and event handlers can
+   never reach output. Adjust the allowlist via the `wpcarve_allowed_html` filter.
+
+## Raw HTML
+
+Carve is Djot-based, so a literal `<div>` typed in the source is **text**, not
+HTML. Raw HTML is only produced by Djot's explicit raw syntax - a `` `=html ``
+fenced block or an inline `` `<tag>`{=html} `` span - and only when the active
+profile permits raw nodes. Only the **`full`** profile does; `article` (the
+default), `comment` and `minimal` deny it, so their raw blocks render as escaped
+text.
+
+When raw HTML is permitted, it is rendered and then filtered by `wp_kses` (layer
+2 above): safe tags and sanitized inline `style` attributes survive, while
+`<script>`, `<style>` blocks, event handlers and unsafe URLs are removed. This
+mirrors how WordPress core sanitizes author-supplied HTML in post content.
 
 ## Line breaks
 

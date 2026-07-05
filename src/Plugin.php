@@ -106,11 +106,14 @@ class Plugin
 
     /**
      * Wrap rendered Carve HTML so the `.wpcarve` stylesheet (admonitions,
-     * permalinks, code) applies on every surface.
+     * permalinks, code) applies on every surface. The rendered markup passes
+     * through wp_kses here as well, so the value returned from every content
+     * callback (the_content, [carve] shortcode, comments) is escaped at the
+     * point of output, not only inside the converter.
      */
     private function wrap(string $html): string
     {
-        return $html === '' ? '' : '<div class="wpcarve">' . $html . '</div>';
+        return $html === '' ? '' : '<div class="wpcarve">' . Converter::sanitizeHtml($html) . '</div>';
     }
 
     public function renderComment(string $text): string
@@ -337,24 +340,14 @@ class Plugin
     }
 
     /**
-     * Effective safe mode for content by a given author. Safe mode stays forced
-     * on unless the site setting is off AND the author may post unfiltered HTML
-     * - so a low-privilege author can never get raw-HTML passthrough even when
-     * an admin disabled safe mode globally.
+     * Safe mode is unconditional for every author on every surface: rendered
+     * Carve always passes through wp_kses, so raw HTML/script/style can never be
+     * emitted. Retained (always returning true) so existing call sites stay
+     * explicit about requesting a sanitized render.
      */
     public static function safeForAuthor(?int $authorId): bool
     {
-        if ((bool)Settings::get('safe_mode')) {
-            return true;
-        }
-        // Core already strips the unfiltered_html capability when this constant
-        // is set; the explicit check makes the guarantee independent of cap
-        // filtering and self-documenting.
-        if (defined('DISALLOW_UNFILTERED_HTML') && DISALLOW_UNFILTERED_HTML) {
-            return true;
-        }
-
-        return !($authorId && user_can($authorId, 'unfiltered_html'));
+        return true;
     }
 
     private function assetVersion(string $relPath): string

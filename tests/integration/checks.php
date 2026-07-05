@@ -78,26 +78,45 @@ if (class_exists(\WpCarve\Converter::class)) {
     );
 }
 
-// --- Safe-mode wp_kses layer ---------------------------------------------------
+// --- Sanitization wp_kses layer ------------------------------------------------
 if (class_exists(\WpCarve\Converter::class)) {
-    $converter = new \WpCarve\Converter(['safe_mode' => true]);
+    $converter = new \WpCarve\Converter([]);
 
     // Generated markup the allowlist must keep: task-list checkboxes.
     $taskHtml = $converter->toHtml("- [x] done\n- [ ] open");
     $carve_check(
-        'safe mode keeps task-list checkboxes through wp_kses',
+        'sanitization keeps task-list checkboxes through wp_kses',
         str_contains($taskHtml, '<input') && str_contains($taskHtml, 'checkbox'),
         $carve_snippet($taskHtml),
     );
 
-    // Hostile markup the layer must drop, even if the engine ever regressed.
-    // In safe mode the engine escapes raw HTML to text, so "onclick" may appear
-    // as literal escaped content - only a real tag/attribute is a failure.
-    $evilHtml = $converter->toHtml("text\n\n<div onclick=\"alert(1)\">x</div>\n\n<script>alert(2)</script>");
+    // Raw HTML is a Full-profile capability, written with Djot's `=html` raw
+    // block. There the engine emits author raw HTML verbatim (RAW_HTML_ALLOW), so
+    // wp_kses is the authoritative gate that must drop scripts and event handlers.
+    $fullConverter = new \WpCarve\Converter(['post_profile' => 'full']);
+    $evilHtml = $fullConverter->toHtml("```=html\n<div onclick=\"alert(1)\">x</div><script>alert(2)</script>\n```");
     $carve_check(
-        'safe mode emits no live script tag or event-handler attribute',
+        'full profile: wp_kses drops script tags and event-handler attributes',
         !str_contains($evilHtml, '<script') && !preg_match('/<[^>]+\son[a-z]+\s*=/i', $evilHtml),
         $carve_snippet($evilHtml),
+    );
+
+    // The positive half: safe authored HTML and its sanitized inline styling
+    // survive the wp_kses gate under the Full profile.
+    $rawHtml = $fullConverter->toHtml("```=html\n<div class=\"callout\" style=\"color:red\">note</div>\n```");
+    $carve_check(
+        'full profile: wp_kses keeps safe authored raw HTML and inline styles',
+        str_contains($rawHtml, '<div') && str_contains($rawHtml, 'note') && str_contains($rawHtml, 'color'),
+        $carve_snippet($rawHtml),
+    );
+
+    // The default article profile denies raw HTML at the profile level, so the
+    // same block is escaped to text - no live <script> ever reaches output.
+    $articleEvil = $converter->toHtml("```=html\n<script>alert(3)</script>\n```");
+    $carve_check(
+        'article profile: raw HTML is escaped, not rendered as a live tag',
+        !str_contains($articleEvil, '<script'),
+        $carve_snippet($articleEvil),
     );
 
     // wp_kses runs inside toHtml, so cached/pre-filter output is already clean.
