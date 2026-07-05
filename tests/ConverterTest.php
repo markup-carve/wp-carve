@@ -33,22 +33,39 @@ class ConverterTest extends TestCase
 
     public function testCommentContextStripsRawHtml(): void
     {
+        // Comments are untrusted: the engine strips raw HTML outright (strict
+        // safe mode), so nothing survives even before wp_kses runs.
         $converter = new Converter(['comment_profile' => 'comment']);
 
-        $html = $converter->toHtml('<script>alert(1)</script>', 'comment');
+        $html = $converter->toHtml('<div>hi</div><script>alert(1)</script>', 'comment');
 
         $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringNotContainsString('<div>', $html);
     }
 
-    public function testPostContextStripsRawHtml(): void
+    public function testFullProfileRendersRawHtml(): void
     {
-        // Sanitization is unconditional: the post surface never emits raw HTML,
-        // regardless of any (now removed) setting or author capability.
-        $converter = new Converter([]);
+        // Raw HTML is a Full-profile capability, written with Djot's explicit
+        // `=html` raw block. The engine renders it verbatim (RAW_HTML_ALLOW); the
+        // wp_kses gate - absent in this unit suite, covered by the WP-integration
+        // checks - then strips scripts/handlers.
+        $converter = new Converter(['post_profile' => 'full']);
 
-        $html = $converter->toHtml('<script>alert(1)</script>', 'post');
+        $html = $converter->toHtml("```=html\n<div class=\"callout\">hi</div>\n```", 'post');
 
-        $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringContainsString('<div class="callout">', $html);
+        $this->assertStringContainsString('hi', $html);
+    }
+
+    public function testArticleProfileDoesNotRenderRawHtml(): void
+    {
+        // The default article profile denies raw HTML at the profile level: the
+        // same `=html` block is escaped to text, never a live element.
+        $converter = new Converter(['post_profile' => 'article']);
+
+        $html = $converter->toHtml("```=html\n<div class=\"callout\">hi</div>\n```", 'post');
+
+        $this->assertStringNotContainsString('<div class="callout">', $html);
     }
 
     public function testAllowedHtmlExtendsCoreAllowlistWithCarveExtras(): void
