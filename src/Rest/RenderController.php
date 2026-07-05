@@ -11,7 +11,6 @@ if (!defined('ABSPATH')) {
 use WP_REST_Request;
 use WP_REST_Response;
 use WpCarve\Converter;
-use WpCarve\Plugin;
 
 /**
  * REST API: render Carve to HTML.
@@ -57,20 +56,11 @@ class RenderController
         $context = in_array($requestedContext, ['comment', 'editor'], true) ? $requestedContext : 'post';
         $profile = (string)$request->get_param('profile');
 
-        // Gate raw HTML on the requesting user's capability, not the global
-        // setting, so an edit_posts user without unfiltered_html can't render
-        // raw HTML through the endpoint even when safe mode is globally off.
-        // When rendering an existing post the caller can edit (the block-editor
-        // preview), gate on the POST AUTHOR instead - the preview then matches
-        // the published output, so a reviewer can't be XSS'd by a lower-
-        // privilege author's stored raw HTML.
-        $postId = (int)$request->get_param('post_id');
-        $safe = ($postId > 0 && current_user_can('edit_post', $postId))
-            ? Plugin::safeForAuthor((int)get_post_field('post_author', $postId))
-            : Plugin::safeForAuthor(get_current_user_id());
-
+        // Rendering is always sanitized (wp_kses on every path), so the preview
+        // returned here matches the published output and cannot emit raw
+        // script/style regardless of who requests it.
         return new WP_REST_Response([
-            'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null, $safe),
+            'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null),
         ], 200);
     }
 }

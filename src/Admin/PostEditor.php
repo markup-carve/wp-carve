@@ -120,8 +120,7 @@ class PostEditor
             esc_html__('Live Carve preview', 'carve-markup'),
             esc_url($toBlock),
             esc_html__('Move into a Carve block', 'carve-markup'),
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Rendered by the Carve engine with the post's safe mode/profile applied.
-            $initial,
+            Converter::sanitizeHtml($initial),
         );
     }
 
