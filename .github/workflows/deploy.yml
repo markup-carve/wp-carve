@@ -64,44 +64,44 @@ jobs:
       - name: Run PHPStan
         run: composer stan
 
+      - name: Stage distribution copy (runtime deps only, .distignore applied)
+        run: bash scripts/build-dist.sh
+
       - name: Downgrade PHP 8.2 syntax for WordPress.org
         run: |
-          # Rector is already installed (in require-dev)
-          # Run rector with bootstrap to define ABSPATH (prevents exit in WP plugin files)
-          # Paths are configured in rector.php - only targets packages needing downgrade
-          php -d auto_prepend_file=rector-bootstrap.php vendor/bin/rector process --no-diffs || true
+          DIST=build/dist/carve-markup
+          # Rector runs from the repo's dev vendor against the STAGED tree only.
+          # The config anchors its paths to its own location via __DIR__, so a
+          # copy inside the staged dir targets the staged vendor. The staged
+          # tree never contains dev dependencies (build-dist.sh installs with
+          # --no-dev), which is what previously leaked wp-cli into the SVN
+          # commit and made WordPress.org reset the connection.
+          cp rector.php rector-bootstrap.php "$DIST/"
+          (cd "$DIST" && php -d auto_prepend_file=rector-bootstrap.php "$GITHUB_WORKSPACE/vendor/bin/rector" process --config rector.php --no-diffs) || true
+          rm -f "$DIST/rector.php" "$DIST/rector-bootstrap.php"
 
           # Manually fix trait constants (PHP 8.2 feature not handled by Rector)
-          # Move constants from trait to a separate class
-          TRAIT_FILE="vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php"
+          TRAIT_FILE="$DIST/vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php"
           if [ -f "$TRAIT_FILE" ]; then
-            # Extract constants and create a helper class
-            php << 'PHPSCRIPT'
+            DIST="$DIST" php << 'PHPSCRIPT'
           <?php
-          $file = 'vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php';
+          $dist = getenv('DIST');
+          $file = $dist . '/vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php';
           $content = file_get_contents($file);
 
-          // Find all const declarations in the trait
           if (preg_match_all('/^\s*const\s+(\w+)\s*=\s*([^;]+);/m', $content, $matches, PREG_SET_ORDER)) {
-              // Build the helper class
               $helperClass = "<?php\n\nnamespace Torchlight\\Engine\\Generators\\Concerns;\n\nclass ProcessesFileLanguageConstants\n{\n";
               foreach ($matches as $match) {
                   $helperClass .= "    public const {$match[1]} = {$match[2]};\n";
               }
               $helperClass .= "}\n";
+              file_put_contents($dist . '/vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguageConstants.php', $helperClass);
 
-              // Write helper class
-              file_put_contents('vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguageConstants.php', $helperClass);
-
-              // Remove const declarations from trait
               $content = preg_replace('/^\s*const\s+\w+\s*=\s*[^;]+;\s*\/\/[^\n]*\n?/m', '', $content);
               $content = preg_replace('/^\s*const\s+\w+\s*=\s*[^;]+;\s*\n?/m', '', $content);
-
-              // Replace self::CONST_NAME with ProcessesFileLanguageConstants::CONST_NAME
               foreach ($matches as $match) {
                   $content = str_replace("self::{$match[1]}", "ProcessesFileLanguageConstants::{$match[1]}", $content);
               }
-
               file_put_contents($file, $content);
               echo "Fixed trait constants in ProcessesFileLanguage.php\n";
           }
@@ -110,12 +110,13 @@ jobs:
 
           # Patch phiki AnnotationsTransformer: replace enum ->value in const array with literal strings.
           # WordPress.org's SVN pre-commit PHP lint runs on an older PHP that rejects enum ->value in constant expressions.
-          PHIKI_FILE="vendor/phiki/phiki/src/Adapters/CommonMark/Transformers/AnnotationsTransformer.php"
+          PHIKI_FILE="$DIST/vendor/phiki/phiki/src/Adapters/CommonMark/Transformers/AnnotationsTransformer.php"
           if [ -f "$PHIKI_FILE" ]; then
-            php << 'PHPSCRIPT'
+            DIST="$DIST" php << 'PHPSCRIPT'
           <?php
-          $file = 'vendor/phiki/phiki/src/Adapters/CommonMark/Transformers/AnnotationsTransformer.php';
-          $grammarFile = 'vendor/phiki/phiki/src/Grammar/Grammar.php';
+          $dist = getenv('DIST');
+          $file = $dist . '/vendor/phiki/phiki/src/Adapters/CommonMark/Transformers/AnnotationsTransformer.php';
+          $grammarFile = $dist . '/vendor/phiki/phiki/src/Grammar/Grammar.php';
           $grammar = file_get_contents($grammarFile);
           preg_match_all('/case\s+(\w+)\s*=\s*\'([^\']+)\'/', $grammar, $m, PREG_SET_ORDER);
           $map = [];
@@ -129,10 +130,8 @@ jobs:
           PHPSCRIPT
           fi
 
-          # Remove dev dependencies manually (don't use composer which would re-download packages)
-          rm -rf vendor/rector vendor/phpunit vendor/phpstan vendor/sebastian vendor/php-collective/code-sniffer vendor/squizlabs vendor/dealerdirect vendor/slevomat vendor/phpcsstandards vendor/phar-io vendor/myclabs vendor/nikic vendor/theseer vendor/bin
-          # Regenerate autoloader without dev dependencies
-          composer dump-autoload --no-dev --optimize
+          # The trait patch adds a class file: regenerate the optimized classmap.
+          composer dump-autoload --working-dir="$DIST" --no-dev --optimize
 
       - name: WordPress Plugin Deploy
         id: deploy
@@ -143,6 +142,7 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: carve-markup
+          BUILD_DIR: build/dist/carve-markup
 
       - name: Upload release asset
         uses: softprops/action-gh-release@v3
