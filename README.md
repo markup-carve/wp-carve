@@ -1,6 +1,9 @@
 # Carve Markup for WordPress
 
 [![CI](https://github.com/markup-carve/wp-carve/actions/workflows/ci.yml/badge.svg)](https://github.com/markup-carve/wp-carve/actions/workflows/ci.yml)
+[![WordPress Plugin Version](https://img.shields.io/wordpress/plugin/v/carve-markup)](https://wordpress.org/plugins/carve-markup/)
+[![WordPress Plugin Downloads](https://img.shields.io/wordpress/plugin/dt/carve-markup)](https://wordpress.org/plugins/carve-markup/)
+[![WordPress Plugin Rating](https://img.shields.io/wordpress/plugin/stars/carve-markup)](https://wordpress.org/plugins/carve-markup/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](https://php.net)
 [![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org)
