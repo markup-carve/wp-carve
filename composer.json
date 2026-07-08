@@ -48,12 +48,5 @@
         "cs-fix": "phpcbf --colors --parallel=16",
         "stan": "phpstan analyze",
         "test": "phpunit"
-    },
-    "repositories": [
-        {
-            "name": "carvegrammars",
-            "type": "vcs",
-            "url": "https://github.com/markup-carve/carve-grammars.git"
-        }
-    ]
+    }
 }
