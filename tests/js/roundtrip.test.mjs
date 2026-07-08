@@ -78,7 +78,9 @@ const CASES = {
 	// inner one (:::: outside, ::: inside) or the outer closes early. Covers the
 	// carve-grammars fence-widening fix for tabs, code groups and nested divs.
 	tabs: ':::: tabs\n::: tab\nFirst.\n:::\n\n::: tab\nSecond.\n:::\n::::',
-	codeGroup: ':::: code-group\n::: tab\n```js\na = 1;\n```\n:::\n\n::: tab\n```ts\nb = 2;\n```\n:::\n::::',
+	// A code group holds fenced blocks directly (not ::: tab children); it is a
+	// single-level div, so its fence stays ::: .
+	codeGroup: '::: code-group\n```js\na = 1;\n```\n\n```ts\nb = 2;\n```\n:::',
 	nestedAdmonition: ':::: note\nOuter.\n\n::: tip\nInner.\n:::\n::::',
 };
 
