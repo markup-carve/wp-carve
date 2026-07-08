@@ -66,6 +66,6 @@ See [`docs/`](docs/README.md): [settings](docs/settings.md),
 
 ## Roadmap
 
-- Visual editor: a Tiptap WYSIWYG editor ships behind the `visual_editor_mode` setting; headings, marks, lists, quotes, code blocks, tables, math, footnotes and admonitions round-trip (see [docs/visual-editor.md](docs/visual-editor.md)). Remaining per-construct gaps: **tabs and code-groups**.
+- Visual editor: a Tiptap WYSIWYG editor ships behind the `visual_editor_mode` setting; headings, marks, lists, quotes, code blocks, tables, math, footnotes, admonitions and nested containers (tabs, code-groups) all round-trip (see [docs/visual-editor.md](docs/visual-editor.md)). Interactive per-widget editing of tabs/code-groups (a tab bar in the editor) is future work.
 - Native per-construct blocks (admonition, code-group, table-with-spans).
 - Lossless HTML ↔ Carve round-trip editing.
