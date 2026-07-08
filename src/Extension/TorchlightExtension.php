@@ -34,6 +34,14 @@ class TorchlightExtension implements ExtensionInterface
     ) {
         if (class_exists(Engine::class)) {
             $this->engine = new Engine();
+            // Register the Carve TextMate grammar so ```carve fences highlight
+            // instead of falling back to plaintext. Ships in the
+            // markup-carve/carve-grammars Composer package (parity with how
+            // wp-djot registers php-collective/djot-grammars).
+            $grammarPath = dirname(__DIR__, 2) . '/vendor/markup-carve/carve-grammars/textmate/carve.tmLanguage.json';
+            if (file_exists($grammarPath)) {
+                $this->engine->getEnvironment()->grammars->register('carve', $grammarPath);
+            }
         }
     }
 

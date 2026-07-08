@@ -263,4 +263,26 @@ CARVE;
         $this->assertStringContainsString('dracula', $html);
         $this->assertStringNotContainsString('github', $html);
     }
+
+    public function testCarveFenceHighlightsWithTorchlightWhenGrammarInstalled(): void
+    {
+        $grammar = dirname(__DIR__) . '/vendor/markup-carve/carve-grammars/textmate/carve.tmLanguage.json';
+        if (!file_exists($grammar)) {
+            $this->markTestSkipped('markup-carve/carve-grammars TextMate grammar not installed');
+        }
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('torchlight/engine not installed');
+        }
+
+        $converter = new Converter(['post_profile' => 'full', 'torchlight_enabled' => true]);
+        $html = $converter->toHtml("``` carve\n# Heading\n\n*strong* text.\n```", 'post');
+
+        // The carve grammar is registered, so the fence highlights as `carve`
+        // instead of falling back to plaintext.
+        $this->assertStringContainsString('language-carve', $html);
+        $this->assertStringContainsString('torchlight', $html);
+        // A matched grammar colors tokens distinctly; plaintext would be uniform.
+        preg_match_all('/color:\s*#?[0-9a-fA-F]{3,8}/', $html, $m);
+        $this->assertGreaterThan(1, count(array_unique($m[0])), 'expected varied token colors from the carve grammar');
+    }
 }
