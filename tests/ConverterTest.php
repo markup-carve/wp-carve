@@ -105,6 +105,34 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('toc', $html);
     }
 
+    public function testTableOfContentsIsCollapsibleDisclosure(): void
+    {
+        $converter = new Converter([
+            'toc_enabled' => true,
+            'toc_position' => 'top',
+            'permalinks_enabled' => false,
+        ]);
+
+        $html = $converter->toHtml("# One\n\n## Two\n\n## Three\n\ntext");
+
+        // The generated TOC is wrapped in a <details>/<summary> so it starts
+        // collapsed and only opens on click; the plain <nav> must be gone and no
+        // `open` attribute may leak in (closed by default).
+        $this->assertStringContainsString('<details class="toc">', $html);
+        $this->assertStringContainsString('<summary>Table of Contents</summary>', $html);
+        $this->assertStringNotContainsString('<nav class="toc"', $html);
+        $this->assertStringNotContainsString('<details class="toc" open', $html);
+        // The heading list survives inside the disclosure.
+        $this->assertStringContainsString('href="#Two"', $html);
+    }
+
+    public function testTabRadioNameSurvivesAllowlist(): void
+    {
+        // The CSS-only tabs widget groups its radios with a shared `name`; the
+        // sanitization allowlist must keep it, or panel switching breaks.
+        $this->assertArrayHasKey('name', Converter::allowedHtml()['input']);
+    }
+
     /**
      * Round-trip-safety harness for the visual-editor seed.
      *
