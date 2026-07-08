@@ -13,7 +13,8 @@
         "php": ">=8.2",
         "markup-carve/carve-php": "dev-main",
         "markup-carve/carve-php-media-embed": "^0.1.0",
-        "torchlight/engine": "^1.0"
+        "torchlight/engine": "^1.0",
+        "markup-carve/carve-grammars": "dev-main"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -47,5 +48,12 @@
         "cs-fix": "phpcbf --colors --parallel=16",
         "stan": "phpstan analyze",
         "test": "phpunit"
-    }
+    },
+    "repositories": [
+        {
+            "name": "carvegrammars",
+            "type": "vcs",
+            "url": "https://github.com/markup-carve/carve-grammars.git"
+        }
+    ]
 }
