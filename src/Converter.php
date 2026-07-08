@@ -186,6 +186,11 @@ class Converter
             'disabled' => true,
             'class' => true,
             'id' => true,
+            // Radio groups for the CSS-only tabs / code-group widgets share a
+            // `name` so exactly one panel shows at a time. Core's `post`
+            // allowlist has no global `name`, so without this wp_kses strips it,
+            // ungrouping the radios and breaking panel switching.
+            'name' => true,
         ];
         $allowed['label'] = [
             'for' => true,
@@ -311,6 +316,10 @@ class Converter
                 maxLevel: (int)($s['toc_max_level'] ?? 4),
                 listType: (string)($s['toc_list_type'] ?? 'ul'),
                 position: $position === 'none' ? null : $position,
+                // Render the TOC as a collapsible disclosure (closed by default,
+                // opens on click) so a long contents list stays out of the way.
+                collapsible: true,
+                summary: __('Table of Contents', 'carve-markup'),
             ));
         }
 

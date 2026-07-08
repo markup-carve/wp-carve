@@ -435,18 +435,49 @@
 	transform: rotate(45deg);
 }
 
-/* Table of contents box. */
+/* Table of contents: collapsible disclosure, closed by default. */
 .wpcarve .toc {
 	margin: 1em 0;
-	padding: 0.6em 1em;
 	border: 1px solid #e5e7eb;
 	border-radius: 6px;
 	background: #f9fafb;
 	font-size: 0.95em;
 }
 
-.wpcarve .toc > :first-child {
-	margin-top: 0;
+.wpcarve .toc > summary {
+	padding: 0.6em 1em;
+	font-weight: 600;
+	cursor: pointer;
+	list-style: none;
+	display: flex;
+	align-items: center;
+	gap: 0.5em;
+}
+
+.wpcarve .toc > summary::-webkit-details-marker {
+	display: none;
+}
+
+.wpcarve .toc > summary::before {
+	content: "\25B6";
+	font-size: 0.7em;
+	transition: transform 0.2s ease;
+}
+
+.wpcarve .toc[open] > summary::before {
+	transform: rotate(90deg);
+}
+
+.wpcarve .toc > ul,
+.wpcarve .toc > ol {
+	margin: 0;
+	padding: 0 1.4em 0.8em 2em;
+}
+
+.wpcarve .toc ul,
+.wpcarve .toc ol {
+	margin: 0;
+	padding-left: 1.4em;
 }
 
 /* Math: center display blocks. */
@@ -685,6 +716,112 @@
 .wpcarve .code-group-radio:nth-of-type(4):checked ~ .code-group-panel:nth-of-type(4),
 .wpcarve .code-group-radio:nth-of-type(5):checked ~ .code-group-panel:nth-of-type(5) {
 	display: block;
+}
+
+/* Content tabs (::: tabs). Pure-CSS radio switching, same mechanism as code
+   groups: one shared-name radio per tab toggles the matching panel. */
+.wpcarve .tabs {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 1em 0;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.wpcarve .tabs-radio {
+	display: none;
+}
+
+.wpcarve .tabs-label {
+	padding: 0.5em 1em;
+	font-size: 0.9em;
+	font-weight: 500;
+	color: #57606a;
+	background: #f6f8fa;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.wpcarve .tabs-label:hover {
+	color: #24292f;
+	background: #eef1f4;
+}
+
+.wpcarve .tabs-radio:checked + .tabs-label {
+	color: #24292f;
+	background: #fff;
+	border-bottom-color: #fd8c73;
+}
+
+.wpcarve .tabs-panel {
+	display: none;
+	order: 1;
+	width: 100%;
+	padding: 1em;
+	box-sizing: border-box;
+	border-top: 1px solid #d0d7de;
+}
+
+.wpcarve .tabs-panel > :first-child {
+	margin-top: 0;
+}
+
+.wpcarve .tabs-panel > :last-child {
+	margin-bottom: 0;
+}
+
+/* One rule per tab index maps the checked radio to its panel. Covers up to 20
+   tabs; a tab set larger than that is not a realistic authoring case. */
+.wpcarve .tabs-radio:nth-of-type(1):checked ~ .tabs-panel:nth-of-type(1),
+.wpcarve .tabs-radio:nth-of-type(2):checked ~ .tabs-panel:nth-of-type(2),
+.wpcarve .tabs-radio:nth-of-type(3):checked ~ .tabs-panel:nth-of-type(3),
+.wpcarve .tabs-radio:nth-of-type(4):checked ~ .tabs-panel:nth-of-type(4),
+.wpcarve .tabs-radio:nth-of-type(5):checked ~ .tabs-panel:nth-of-type(5),
+.wpcarve .tabs-radio:nth-of-type(6):checked ~ .tabs-panel:nth-of-type(6),
+.wpcarve .tabs-radio:nth-of-type(7):checked ~ .tabs-panel:nth-of-type(7),
+.wpcarve .tabs-radio:nth-of-type(8):checked ~ .tabs-panel:nth-of-type(8),
+.wpcarve .tabs-radio:nth-of-type(9):checked ~ .tabs-panel:nth-of-type(9),
+.wpcarve .tabs-radio:nth-of-type(10):checked ~ .tabs-panel:nth-of-type(10),
+.wpcarve .tabs-radio:nth-of-type(11):checked ~ .tabs-panel:nth-of-type(11),
+.wpcarve .tabs-radio:nth-of-type(12):checked ~ .tabs-panel:nth-of-type(12),
+.wpcarve .tabs-radio:nth-of-type(13):checked ~ .tabs-panel:nth-of-type(13),
+.wpcarve .tabs-radio:nth-of-type(14):checked ~ .tabs-panel:nth-of-type(14),
+.wpcarve .tabs-radio:nth-of-type(15):checked ~ .tabs-panel:nth-of-type(15),
+.wpcarve .tabs-radio:nth-of-type(16):checked ~ .tabs-panel:nth-of-type(16),
+.wpcarve .tabs-radio:nth-of-type(17):checked ~ .tabs-panel:nth-of-type(17),
+.wpcarve .tabs-radio:nth-of-type(18):checked ~ .tabs-panel:nth-of-type(18),
+.wpcarve .tabs-radio:nth-of-type(19):checked ~ .tabs-panel:nth-of-type(19),
+.wpcarve .tabs-radio:nth-of-type(20):checked ~ .tabs-panel:nth-of-type(20) {
+	display: block;
+}
+
+/* Disclosures: ::: details and ::: spoiler both render as <details>. Give them
+   a consistent box; the browser handles open/close natively. */
+.wpcarve details.spoiler,
+.wpcarve details:not(.toc) {
+	margin: 1em 0;
+	padding: 0.6em 1em;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
+	background: #f6f8fa;
+}
+
+.wpcarve details.spoiler > summary,
+.wpcarve details:not(.toc) > summary {
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.wpcarve details[open].spoiler > summary,
+.wpcarve details[open]:not(.toc) > summary {
+	margin-bottom: 0.6em;
+}
+
+.wpcarve details.spoiler > :last-child,
+.wpcarve details:not(.toc) > :last-child {
+	margin-bottom: 0;
 }
 
 /* Comment toolbar. */
