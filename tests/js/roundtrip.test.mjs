@@ -74,6 +74,12 @@ const CASES = {
 	table: '|= A |= B |\n| 1 | 2 |',
 	mentionCitation: 'A citation [@smith2020] and a #tag.',
 	span: 'A [styled span]{.mark #s1}.',
+	// Nested containers: the serializer must widen the outer fence past the
+	// inner one (:::: outside, ::: inside) or the outer closes early. Covers the
+	// carve-grammars fence-widening fix for tabs, code groups and nested divs.
+	tabs: ':::: tabs\n::: tab\nFirst.\n:::\n\n::: tab\nSecond.\n:::\n::::',
+	codeGroup: ':::: code-group\n::: tab\n```js\na = 1;\n```\n:::\n\n::: tab\n```ts\nb = 2;\n```\n:::\n::::',
+	nestedAdmonition: ':::: note\nOuter.\n\n::: tip\nInner.\n:::\n::::',
 };
 
 for (const [name, carve] of Object.entries(CASES)) {

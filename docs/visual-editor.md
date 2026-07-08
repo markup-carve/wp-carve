@@ -58,10 +58,11 @@ exact. When nothing would change, Visual mode opens straight away.
 Round-trip coverage is owned by `carve-grammars/tiptap` (headings, marks incl.
 critic insert/delete, lists incl. tasks, blockquotes, code blocks, tables with
 alignment, admonition divs, math, footnotes, definition lists, spans,
-abbreviations). Constructs it can't round-trip exactly are caught by the warning
-above rather than silently changed. New constructs are added **upstream** in
-`carve-grammars` so every consumer (wp-carve, carve-wysiwyg, the playground)
-benefits.
+abbreviations, and nested containers - tabs, code groups and
+admonition-in-admonition, whose fences widen so the outer never closes early).
+Constructs it can't round-trip exactly are caught by the warning above rather
+than silently changed. New constructs are added **upstream** in `carve-grammars`
+so every consumer (wp-carve, carve-wysiwyg, the playground) benefits.
 
 ## Extending
 
