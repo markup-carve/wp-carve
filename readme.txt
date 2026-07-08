@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,12 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.1 =
+* Fixed content tabs and code groups: added the missing tab styles and preserved the radio group name through sanitization, so panels switch correctly.
+* Inline code now has a background and images are constrained to their container width.
+* The table of contents renders as a collapsible disclosure (closed by default, opens on click).
+* The block's live preview now renders tabs, details, spoilers and code groups as interactive widgets, matching the published output.
 
 = 0.1.0 =
 * Initial release: render Carve in posts, pages and comments; [carve] shortcode and carve/markup + carve/slides blocks.

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-08
+
+### Added
+
+- Collapsible table of contents: the generated TOC renders as a
+  `<details>`/`<summary>` disclosure, closed by default and opened on click,
+  via carve-php's new opt-in `collapsible` option.
+
+### Changed
+
+- The block's live in-browser preview now renders tabs, details, spoilers and
+  code groups as interactive widgets, matching the published front-end output
+  (previously they showed as raw `<div>`s).
+
+### Fixed
+
+- Content tabs and code groups now switch correctly: added the missing tab
+  styles and allowed the radio group `name` through sanitization, so exactly
+  one panel shows at a time.
+- Inline code now has a background so it reads as code, and images are
+  constrained to their container width (`max-width: 100%`).
+
 ## [0.1.0] - 2026-07-02
 
 Initial release.
