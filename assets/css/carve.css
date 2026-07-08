@@ -220,6 +220,23 @@
 	border-radius: 0;
 }
 
+/* Inline code (outside <pre>): a subtle background chip so it reads as code. */
+.wpcarve :not(pre) > code,
+.wpcarve-preview :not(pre) > code {
+	padding: 0.15em 0.35em;
+	font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+	font-size: 0.88em;
+	background: #f3f4f6;
+	border-radius: 4px;
+}
+
+/* Images never overflow their container. */
+.wpcarve img,
+.wpcarve-preview img {
+	max-width: 100%;
+	height: auto;
+}
+
 /* Carve admonitions: the 8 canonical types render as <aside class="admonition
    TYPE">. carve-php emits no title unless the author sets {title=...}, so an
    icon + type label is generated in CSS for the untitled default. */
