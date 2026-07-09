@@ -25,7 +25,7 @@
 		// and leaves the raw JSON as the element's text. Accept both carriers,
 		// and clear the element so the raw text never shows next to the render.
 		var s = el.querySelector( 'script[type="application/json"]' );
-		var text = s ? s.textContent : el.textContent;
+		var text = el.dataset.carveJson || ( s ? s.textContent : el.textContent );
 		if ( ! text || ! text.trim() ) {
 			return null;
 		}

@@ -81,6 +81,17 @@ class Converter
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $html = $this->converterFor($context, $profileOverride, $safe)->convert($abbrevDefs . $carve);
 
+        // JSON diagram configs (chart, vega-lite) ship in a script tag the
+        // engine emits - but wp_kses strips every script tag, and wptexturize
+        // then curls the quotes of the leftover text, so the config could
+        // never reach the front-end JS intact. Move it into a data attribute:
+        // kses allows data-* globally and texturize ignores attributes.
+        $html = (string)preg_replace_callback(
+            '/(<div class="[^"]*")>\s*<script type="application\/json">(.*?)<\/script>\s*(<\/div>)/s',
+            static fn (array $m): string => $m[1] . ' data-carve-json="' . esc_attr($m[2]) . '">' . $m[3],
+            $html,
+        );
+
         // Rendering is always sanitized: the engine escapes raw HTML and strips
         // event handlers, and the generated markup additionally passes through
         // wp_kses so only allowlisted tags/attributes ever reach output. There is

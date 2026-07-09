@@ -195,6 +195,19 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('Body text.', $editor);
     }
 
+    public function testJsonDiagramConfigSurvivesAsDataAttribute(): void
+    {
+        $converter = new Converter(['chart_enabled' => true]);
+
+        $html = $converter->toHtml("``` chart\n{ \"type\": \"bar\" }\n```");
+
+        // wp_kses strips script tags, so the config must travel in a
+        // kses-safe, texturize-proof data attribute instead.
+        $this->assertStringContainsString('data-carve-json=', $html);
+        $this->assertStringContainsString('class="chart"', $html);
+        $this->assertStringNotContainsString('<script', $html);
+    }
+
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {
