@@ -12,6 +12,7 @@ use MarkupCarve\Carve\CarveConverter;
 use MarkupCarve\Carve\Event\RenderEvent;
 use MarkupCarve\Carve\Extension\ExtensionInterface;
 use MarkupCarve\Carve\Node\Block\CodeBlock;
+use Phiki\Theme\Theme;
 use Throwable;
 use Torchlight\Engine\Engine;
 use Torchlight\Engine\Options;
@@ -27,6 +28,14 @@ use Torchlight\Engine\Options;
 class TorchlightExtension implements ExtensionInterface
 {
     private ?Engine $engine = null;
+
+    /**
+     * Cache of base-theme-name => resolved theme name to render with (either a
+     * registered carve-tuned variant, or the base name when tuning is skipped).
+     *
+     * @var array<string, string>
+     */
+    private array $carveThemes = [];
 
     public function __construct(
         private string $theme = 'github-light',
@@ -71,6 +80,11 @@ class TorchlightExtension implements ExtensionInterface
             $theme = isset($attrs['theme']) && is_string($attrs['theme']) && $attrs['theme'] !== ''
                 ? $attrs['theme']
                 : $this->theme;
+            // For carve fences, use a carve-tuned variant of the theme so the
+            // inline-markup scopes (bold/italic/highlight/...) render distinctly.
+            if ($language === 'carve') {
+                $theme = $this->carveTheme($theme);
+            }
 
             try {
                 $this->engine->setTorchlightOptions(Options::default()->mergeWith($overrides));
@@ -80,6 +94,60 @@ class TorchlightExtension implements ExtensionInterface
                 // Unknown grammar / theme: leave carve-php's plain output in place.
             }
         });
+    }
+
+    /**
+     * Resolve (and lazily register) a carve-tuned variant of a base theme.
+     *
+     * phiki matches theme rules by exact scope, so a base theme's generic
+     * `markup.bold` rule never reaches carve's `markup.bold.carve` tokens - the
+     * inline-markup constructs render with no distinct style. This overlays
+     * exact-scope rules for the carve markup scopes onto the base theme so a
+     * ```carve fence shows strong/emphasis/highlight/etc the way the rendered
+     * output does. Degrades to the base theme name if it cannot be loaded/parsed.
+     */
+    private function carveTheme(string $base): string
+    {
+        if (isset($this->carveThemes[$base])) {
+            return $this->carveThemes[$base];
+        }
+
+        $fallback = $this->carveThemes[$base] = $base;
+        if ($this->engine === null || !class_exists(Theme::class)) {
+            return $fallback;
+        }
+
+        $path = dirname(__DIR__, 2) . '/vendor/torchlight/engine/resources/themes/normalized/' . $base . '.json';
+        if (!is_file($path)) {
+            return $fallback;
+        }
+        $data = json_decode((string)file_get_contents($path), true);
+        if (!is_array($data)) {
+            return $fallback;
+        }
+
+        // Give each inline-markup scope a distinct foreground so it stands out
+        // in the fence. Torchlight/phiki emits `color` reliably but drops
+        // `fontStyle`, so bold/italic/etc are distinguished by hue (plus a
+        // background for highlight, mirroring <mark>), not by weight/slant.
+        $overlay = [
+            ['scope' => ['markup.bold.carve', 'punctuation.definition.bold.carve'], 'settings' => ['foreground' => '#953800']],
+            ['scope' => ['markup.italic.carve', 'punctuation.definition.italic.carve'], 'settings' => ['foreground' => '#0550ae']],
+            ['scope' => ['markup.underline.carve', 'punctuation.definition.underline.carve'], 'settings' => ['foreground' => '#0a6c74']],
+            ['scope' => ['markup.strikethrough.carve', 'punctuation.definition.strike.carve'], 'settings' => ['foreground' => '#6a737d']],
+            ['scope' => ['markup.highlight.carve', 'punctuation.definition.highlight.carve'], 'settings' => ['foreground' => '#24292e', 'background' => '#fff8c5']],
+            ['scope' => ['markup.superscript.carve', 'markup.subscript.carve'], 'settings' => ['foreground' => '#6f42c1']],
+        ];
+        $data['tokenColors'] = array_merge($data['tokenColors'] ?? [], $overlay);
+        $name = $base . '-carve';
+
+        try {
+            $this->engine->getEnvironment()->themes->register($name, Theme::parse($data));
+        } catch (Throwable) {
+            return $fallback;
+        }
+
+        return $this->carveThemes[$base] = $name;
     }
 
     private function reapplyPreAttributes(string $html, CodeBlock $block): string
