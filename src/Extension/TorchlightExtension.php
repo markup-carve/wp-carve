@@ -137,6 +137,9 @@ class TorchlightExtension implements ExtensionInterface
             ['scope' => ['markup.strikethrough.carve', 'punctuation.definition.strike.carve'], 'settings' => ['foreground' => '#6a737d']],
             ['scope' => ['markup.highlight.carve', 'punctuation.definition.highlight.carve'], 'settings' => ['foreground' => '#24292e', 'background' => '#fff8c5']],
             ['scope' => ['markup.superscript.carve', 'markup.subscript.carve'], 'settings' => ['foreground' => '#6f42c1']],
+            // Inline code chip + links, so they read as distinctly as the marks.
+            ['scope' => ['markup.raw.inline.carve', 'punctuation.definition.raw.carve'], 'settings' => ['foreground' => '#0a3069', 'background' => '#eff1f3']],
+            ['scope' => ['string.other.link.title.carve', 'markup.underline.link.carve', 'punctuation.definition.link.carve'], 'settings' => ['foreground' => '#0969da']],
         ];
         $data['tokenColors'] = array_merge($data['tokenColors'] ?? [], $overlay);
         $name = $base . '-carve';
