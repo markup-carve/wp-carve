@@ -99,7 +99,7 @@ $focusMe();              // [tl! focus]
 | `$` ` `…` ` ` / `$$` blocks | math (KaTeX on the front end) |
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
-| `term`<br>`: definition` | definition list |
+| `:: term`<br>`:  definition` (two spaces) | definition list |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
 
 Extensions like table of contents, heading permalinks, smart quotes, Mermaid and
