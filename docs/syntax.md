@@ -14,8 +14,8 @@ dialect; the full normative spec and corpus live in the
 | `_underline_` | `<u>underline</u>` | word-boundary restricted |
 | `~strike~` | `<s>strike</s>` | |
 | `^super^` | `<sup>super</sup>` | |
-| `,,sub,,` | `<sub>sub</sub>` | |
-| `==highlight==` | `<mark>highlight</mark>` | |
+| `,sub,` | `<sub>sub</sub>` | |
+| `=highlight=` | `<mark>highlight</mark>` | |
 | `` `code` `` | `<code>code</code>` | never parsed for syntax inside |
 
 Emphasis nests (`*bold with /italic/ inside*`). Whitespace right after an opener
