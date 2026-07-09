@@ -144,6 +144,10 @@ class TorchlightExtension implements ExtensionInterface
             ['scope' => ['punctuation.definition.list.unnumbered.carve', 'punctuation.definition.list.numbered.carve', 'punctuation.definition.list.carve', 'punctuation.definition.checkbox.carve', 'constant.language.checkbox.carve'], 'settings' => ['foreground' => '#116329']],
             // Continuation marker (+), lone or with text, in bright blue.
             ['scope' => ['punctuation.definition.list.continuation.carve', 'keyword.operator.table.continuation.carve'], 'settings' => ['foreground' => '#0969da']],
+            // Tables: pipes in muted gray, structural operators (header |=,
+            // alignment, rowspan ^, colspan <) in a keyword red.
+            ['scope' => ['punctuation.separator.table.carve'], 'settings' => ['foreground' => '#6a737d']],
+            ['scope' => ['keyword.operator.table.header.carve', 'keyword.operator.table.alignment.carve', 'keyword.operator.table.rowspan.carve', 'keyword.operator.table.colspan.carve'], 'settings' => ['foreground' => '#cf222e']],
         ];
         $data['tokenColors'] = array_merge($data['tokenColors'] ?? [], $overlay);
         $name = $base . '-carve';
