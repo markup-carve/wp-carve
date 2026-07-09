@@ -237,6 +237,41 @@
 	height: auto;
 }
 
+/* Inline marks: highlight (=..=), insert ({+..+}), delete ({-..-}). Soft,
+   GitHub/CriticMarkup-style chips rather than the loud browser defaults. */
+.wpcarve mark,
+.wpcarve-preview mark {
+	background: #fff8c5;
+	color: inherit;
+	padding: 0.05em 0.2em;
+	border-radius: 3px;
+}
+
+.wpcarve ins,
+.wpcarve-preview ins {
+	background: #dafbe1;
+	color: #116329;
+	text-decoration: none;
+	padding: 0.05em 0.2em;
+	border-radius: 3px;
+}
+
+.wpcarve del,
+.wpcarve-preview del {
+	background: #ffebe9;
+	color: #82071e;
+	text-decoration: line-through;
+	padding: 0.05em 0.2em;
+	border-radius: 3px;
+}
+
+/* Abbreviations: dotted underline + the help cursor to signal the tooltip. */
+.wpcarve abbr[title],
+.wpcarve-preview abbr[title] {
+	cursor: help;
+	text-decoration: underline dotted;
+}
+
 /* Carve admonitions: the 8 canonical types render as <aside class="admonition
    TYPE">. carve-php emits no title unless the author sets {title=...}, so an
    icon + type label is generated in CSS for the untitled default. */

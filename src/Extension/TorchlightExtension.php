@@ -140,6 +140,10 @@ class TorchlightExtension implements ExtensionInterface
             // Inline code chip + links, so they read as distinctly as the marks.
             ['scope' => ['markup.raw.inline.carve', 'punctuation.definition.raw.carve'], 'settings' => ['foreground' => '#0a3069', 'background' => '#eff1f3']],
             ['scope' => ['string.other.link.title.carve', 'markup.underline.link.carve', 'punctuation.definition.link.carve'], 'settings' => ['foreground' => '#0969da']],
+            // List / task markers (green).
+            ['scope' => ['punctuation.definition.list.unnumbered.carve', 'punctuation.definition.list.numbered.carve', 'punctuation.definition.list.carve', 'punctuation.definition.checkbox.carve', 'constant.language.checkbox.carve'], 'settings' => ['foreground' => '#116329']],
+            // Continuation marker (+), lone or with text, in bright blue.
+            ['scope' => ['punctuation.definition.list.continuation.carve', 'keyword.operator.table.continuation.carve'], 'settings' => ['foreground' => '#0969da']],
         ];
         $data['tokenColors'] = array_merge($data['tokenColors'] ?? [], $overlay);
         $name = $base . '-carve';
