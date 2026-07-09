@@ -1,6 +1,6 @@
 # Carve syntax (quick reference)
 
-A short cheat sheet for the markup this plugin renders. Carve is a post-Djot
+A short cheat sheet for the markup this plugin renders. Carve is a post-Markdown
 dialect; the full normative spec and corpus live in the
 [Carve repo](https://github.com/markup-carve/carve) (`docs/examples.md`,
 `resources/grammar.ebnf`). Note the emphasis delimiters differ from Markdown.

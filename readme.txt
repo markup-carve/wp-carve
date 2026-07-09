@@ -12,7 +12,7 @@ Write posts, pages and comments in Carve markup: a visual editor, live preview, 
 
 == Description ==
 
-Carve is a post-Djot, post-Markdown markup language. This plugin renders Carve to HTML in WordPress, powered by the markup-carve/carve-php engine.
+Carve is a post-Markdown markup language. This plugin renders Carve to HTML in WordPress, powered by the markup-carve/carve-php engine.
 
 Features: per-post "Render as Carve" mode, a [carve] shortcode, a Gutenberg block with a visual (WYSIWYG) editor, comment support, content profiles, table of contents, heading permalinks, smart quotes, Mermaid, and WP-CLI migration.
 
