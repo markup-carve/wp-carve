@@ -44,7 +44,7 @@ Initial release.
   edit serializes back to canonical Carve; a render-aware guard only warns when
   visual editing would actually change the rendered output.
 - Import and export: paste or upload Markdown / Djot / BBCode / HTML and convert
-  to Carve, and export any post as a `.carve` file.
+  to Carve, and export any post as a `.crv` file.
 - Live in-browser preview using the Carve JS engine (no server round-trip).
 - Multi-format paste: convert Markdown, Djot, BBCode or HTML to Carve in place.
 - Frontmatter-to-meta mapping (yaml/json/toml) for excerpt, SEO and post meta.

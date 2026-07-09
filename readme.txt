@@ -20,7 +20,7 @@ Beyond a typical markup plugin:
 
 * Visual editor with Write / Split / Visual / Preview tabs. Edit visually or in source; every change round-trips to canonical Carve, and you are only warned when visual editing would change the rendered output.
 * Instant in-browser preview using the Carve JS engine (no server round-trip).
-* Paste or import Markdown, Djot, BBCode or HTML and convert to Carve in place; export any post as a .carve file.
+* Paste or import Markdown, Djot, BBCode or HTML and convert to Carve in place; export any post as a .crv file.
 * Map typed frontmatter (yaml/json/toml) to excerpt, SEO and post meta.
 * Cache rendered HTML at save time; render via REST for headless WordPress.
 
@@ -49,5 +49,5 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 = 0.1.0 =
 * Initial release: render Carve in posts, pages and comments; [carve] shortcode and carve/markup + carve/slides blocks.
 * Visual (WYSIWYG) editor with Write / Split / Visual / Preview tabs, a unified toolbar, an in-block code-language picker and keyboard shortcuts.
-* Import Markdown / Djot / BBCode / HTML and export posts as .carve.
+* Import Markdown / Djot / BBCode / HTML and export posts as .crv.
 * Live in-browser preview, frontmatter-to-meta, content profiles, table of contents, heading permalinks, smart quotes, diagram renderers, media embeds, bundled syntax highlighting, render caching and a REST endpoint.

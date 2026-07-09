@@ -15,7 +15,7 @@ use WP_Post;
 
 /**
  * Import a Markdown / Djot / HTML / Carve file as a new Carve post, and export a
- * post's Carve source as a `.carve` file.
+ * post's Carve source as a `.crv` file.
  *
  * Import lives on Tools -> Carve Import; export is a row action on the posts
  * list. Both are admin-post handlers guarded by nonce + capability.
@@ -60,7 +60,7 @@ class ImportExport
         echo '<input type="hidden" name="action" value="wpcarve_import">';
         echo '<table class="form-table"><tbody>';
         echo '<tr><th><label for="wpcarve_file">' . esc_html__('File', 'carve-markup') . '</label></th>';
-        echo '<td><input type="file" name="wpcarve_file" id="wpcarve_file" accept=".md,.markdown,.djot,.dj,.carve,.crv,.html,.htm,.txt" required></td></tr>';
+        echo '<td><input type="file" name="wpcarve_file" id="wpcarve_file" accept=".md,.markdown,.djot,.dj,.crv,.html,.htm,.txt" required></td></tr>';
         echo '<tr><th><label for="wpcarve_title">' . esc_html__('Title', 'carve-markup') . '</label></th>';
         echo '<td><input type="text" name="wpcarve_title" id="wpcarve_title" class="regular-text" placeholder="' . esc_attr__('Defaults to the file name', 'carve-markup') . '"></td></tr>';
         echo '</tbody></table>';
@@ -119,7 +119,7 @@ class ImportExport
             'md', 'markdown', 'txt' => (new MarkdownToCarve())->convert($raw),
             'djot', 'dj' => (new DjotToCarve())->convert($raw),
             'html', 'htm' => (new HtmlToCarve())->convert($raw),
-            default => $raw, // .carve / .crv (already Carve)
+            default => $raw, // .crv (already Carve)
         };
     }
 
@@ -165,7 +165,7 @@ class ImportExport
 
         nocache_headers();
         header('Content-Type: text/plain; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . esc_attr($slug) . '.carve"');
+        header('Content-Disposition: attachment; filename="' . esc_attr($slug) . '.crv"');
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw Carve source streamed as a text/plain file download, not HTML.
         echo $source;
         exit;
