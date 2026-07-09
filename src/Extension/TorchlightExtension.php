@@ -89,6 +89,13 @@ class TorchlightExtension implements ExtensionInterface
             try {
                 $this->engine->setTorchlightOptions(Options::default()->mergeWith($overrides));
                 $html = $this->engine->codeToHtml($code, $language, $theme);
+                // The engine glues the class attribute onto the preceding quoted
+                // style value on highlight/diff/focus lines (`style="..."class='...'`).
+                // wp_kses drops such mangled attribute runs entirely, so the line
+                // loses its `line line-highlight` classes on render. Re-insert the
+                // missing space; code content itself is entity-escaped, so the
+                // quote-followed-by-class pattern only occurs at this junction.
+                $html = preg_replace('/(["\'])class=/', '$1 class=', $html) ?? $html;
                 $event->setHtml($this->reapplyPreAttributes($html, $block));
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.

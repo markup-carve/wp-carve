@@ -14,8 +14,8 @@ dialect; the full normative spec and corpus live in the
 | `_underline_` | `<u>underline</u>` | word-boundary restricted |
 | `~strike~` | `<s>strike</s>` | |
 | `^super^` | `<sup>super</sup>` | |
-| `,,sub,,` | `<sub>sub</sub>` | |
-| `==highlight==` | `<mark>highlight</mark>` | |
+| `,sub,` | `<sub>sub</sub>` | |
+| `=highlight=` | `<mark>highlight</mark>` | |
 | `` `code` `` | `<code>code</code>` | never parsed for syntax inside |
 
 Emphasis nests (`*bold with /italic/ inside*`). Whitespace right after an opener
@@ -99,7 +99,7 @@ $focusMe();              // [tl! focus]
 | `$` ` `…` ` ` / `$$` blocks | math (KaTeX on the front end) |
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
-| `term`<br>`: definition` | definition list |
+| `:: term`<br>`:  definition` (two spaces) | definition list |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
 
 Extensions like table of contents, heading permalinks, smart quotes, Mermaid and
