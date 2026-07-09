@@ -814,6 +814,86 @@
 	display: block;
 }
 
+/* Visual-editor tab set. carve-grammars' CarveTabSet NodeView renders a tab
+   bar (buttons, one per tab) over the editable panels, tracking the active tab
+   in a `data-active` index. This is editor-only: the published front end uses
+   the pure-CSS `.tabs`/`.tabs-radio` structure above. Covers up to 12 tabs. */
+.carve-tabset {
+	margin: 1em 0;
+	border: 1px solid #d0d7de;
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.carve-tabset-bar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	background: #f6f8fa;
+	border-bottom: 1px solid #d0d7de;
+}
+
+.carve-tabset-tab {
+	padding: 0.4em 0.9em;
+	font: inherit;
+	font-size: 0.85em;
+	color: #57606a;
+	background: transparent;
+	border: none;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+}
+
+.carve-tabset-tab:hover {
+	color: #24292f;
+	background: #eef1f4;
+}
+
+.carve-tabset-panels {
+	padding: 0 1em;
+}
+
+.carve-tabset-panels > * {
+	display: none;
+}
+
+.carve-tabset-panels > :first-child {
+	margin-top: 0.8em;
+}
+
+.carve-tabset[data-active="0"] > .carve-tabset-panels > :nth-child(1),
+.carve-tabset[data-active="1"] > .carve-tabset-panels > :nth-child(2),
+.carve-tabset[data-active="2"] > .carve-tabset-panels > :nth-child(3),
+.carve-tabset[data-active="3"] > .carve-tabset-panels > :nth-child(4),
+.carve-tabset[data-active="4"] > .carve-tabset-panels > :nth-child(5),
+.carve-tabset[data-active="5"] > .carve-tabset-panels > :nth-child(6),
+.carve-tabset[data-active="6"] > .carve-tabset-panels > :nth-child(7),
+.carve-tabset[data-active="7"] > .carve-tabset-panels > :nth-child(8),
+.carve-tabset[data-active="8"] > .carve-tabset-panels > :nth-child(9),
+.carve-tabset[data-active="9"] > .carve-tabset-panels > :nth-child(10),
+.carve-tabset[data-active="10"] > .carve-tabset-panels > :nth-child(11),
+.carve-tabset[data-active="11"] > .carve-tabset-panels > :nth-child(12) {
+	display: block;
+}
+
+.carve-tabset[data-active="0"] > .carve-tabset-bar > :nth-child(1),
+.carve-tabset[data-active="1"] > .carve-tabset-bar > :nth-child(2),
+.carve-tabset[data-active="2"] > .carve-tabset-bar > :nth-child(3),
+.carve-tabset[data-active="3"] > .carve-tabset-bar > :nth-child(4),
+.carve-tabset[data-active="4"] > .carve-tabset-bar > :nth-child(5),
+.carve-tabset[data-active="5"] > .carve-tabset-bar > :nth-child(6),
+.carve-tabset[data-active="6"] > .carve-tabset-bar > :nth-child(7),
+.carve-tabset[data-active="7"] > .carve-tabset-bar > :nth-child(8),
+.carve-tabset[data-active="8"] > .carve-tabset-bar > :nth-child(9),
+.carve-tabset[data-active="9"] > .carve-tabset-bar > :nth-child(10),
+.carve-tabset[data-active="10"] > .carve-tabset-bar > :nth-child(11),
+.carve-tabset[data-active="11"] > .carve-tabset-bar > :nth-child(12) {
+	color: #24292f;
+	background: #fff;
+	border-bottom-color: #fd8c73;
+	font-weight: 600;
+}
+
 /* Disclosures: ::: details and ::: spoiler both render as <details>. Give them
    a consistent box; the browser handles open/close natively. */
 .wpcarve details.spoiler,
