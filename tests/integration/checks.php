@@ -50,6 +50,15 @@ $carve_check('carve/slides block registered', $registry->is_registered('carve/sl
 $routes = rest_get_server()->get_routes();
 $carve_check('REST render route registered', isset($routes['/carve/v1/render']));
 $carve_check('REST ingest route registered', isset($routes['/carve/v1/ingest']));
+$carve_check('REST comment-preview route registered', isset($routes['/carve/v1/preview-comment']));
+
+// --- Public comment preview renders with the comment pipeline ------------------
+$preview_request = new WP_REST_Request('POST', '/carve/v1/preview-comment');
+$preview_request->set_param('carve', 'Some *strong* text <script>alert(1)</script>');
+$preview_response = rest_get_server()->dispatch($preview_request);
+$preview_html = (string)($preview_response->get_data()['html'] ?? '');
+$carve_check('comment preview renders strong', str_contains($preview_html, '<strong>strong</strong>'));
+$carve_check('comment preview strips script', !str_contains($preview_html, '<script'));
 
 // --- the_content renders an opt-in post --------------------------------------
 $postId = wp_insert_post([
