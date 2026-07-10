@@ -105,8 +105,15 @@
 	}
 
 	document.addEventListener( 'wpcarve:scheme-change', scheduleRerender );
-	if ( window.matchMedia ) {
-		window.matchMedia( '(prefers-color-scheme: dark)' ).addEventListener( 'change', scheduleRerender );
+	var schemeQuery = window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' );
+	if ( schemeQuery ) {
+		// Older Safari exposes addListener only; an unguarded addEventListener
+		// would throw here and abort every diagram on the page.
+		if ( schemeQuery.addEventListener ) {
+			schemeQuery.addEventListener( 'change', scheduleRerender );
+		} else if ( schemeQuery.addListener ) {
+			schemeQuery.addListener( scheduleRerender );
+		}
 	}
 	window.wpCarveDiagrams = window.wpCarveDiagrams || {};
 	window.wpCarveDiagrams.rerenderCharts = rerenderCharts;
