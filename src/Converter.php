@@ -14,6 +14,7 @@ use MarkupCarve\Carve\Extension\DetailsExtension;
 use MarkupCarve\Carve\Extension\FencedRenderExtension;
 use MarkupCarve\Carve\Extension\HeadingLevelShiftExtension;
 use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
+use MarkupCarve\Carve\Extension\ListTableExtension;
 use MarkupCarve\Carve\Extension\SemanticSpanExtension;
 use MarkupCarve\Carve\Extension\SmartQuotesExtension;
 use MarkupCarve\Carve\Extension\SpoilerExtension;
@@ -313,6 +314,7 @@ class Converter
             $converter->addExtension(new TabsExtension());
             $converter->addExtension(new DetailsExtension());
             $converter->addExtension(new SpoilerExtension());
+            $converter->addExtension(new ListTableExtension());
         }
 
         $shift = (int)($s['heading_shift'] ?? 0);

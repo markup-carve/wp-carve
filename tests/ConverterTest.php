@@ -208,6 +208,19 @@ class ConverterTest extends TestCase
         $this->assertStringNotContainsString('<script', $html);
     }
 
+    public function testListTableRendersAsTable(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("{header-rows=1}\n::: list-table \"Quarterly\"\n- - Version\n  - Notes\n- - 5.4\n  - RC out.\n:::");
+
+        $this->assertStringContainsString('<table>', $html);
+        $this->assertStringContainsString('<caption>Quarterly</caption>', $html);
+        $this->assertStringContainsString('<th>Version</th>', $html);
+        $this->assertStringContainsString('<td>RC out.</td>', $html);
+        $this->assertStringNotContainsString('class="list-table"', $html);
+    }
+
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {

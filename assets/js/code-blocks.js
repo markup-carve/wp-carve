@@ -22,10 +22,9 @@
 				return;
 			}
 			pre.dataset.carveEnhanced = '1';
-			pre.style.position = pre.style.position || 'relative';
 
-			// Surface the language as data-lang so the pill (pre[data-lang]::after)
-			// shows it. Torchlight already sets data-lang; this covers plain blocks
+			// Surface the language as data-lang so the pill shows it. Torchlight
+			// already sets data-lang; this covers plain blocks
 			// (<code class="language-php">).
 			if ( ! pre.dataset.lang ) {
 				const langMatch = ( code.className || '' ).match( /language-([\w+#-]+)/ );
@@ -33,6 +32,21 @@
 					pre.dataset.lang = langMatch[ 1 ];
 				}
 			}
+
+			// The pre is the horizontal scroll container, so anything absolutely
+			// positioned inside it (copy button, language pill, title bar) would
+			// scroll away with the content. Wrap it and anchor the UI on the
+			// wrapper instead; the data attributes move along for the CSS hooks.
+			const wrap = document.createElement( 'div' );
+			wrap.className = 'wpcarve-codewrap';
+			if ( pre.dataset.title ) {
+				wrap.dataset.title = pre.dataset.title;
+			}
+			if ( pre.dataset.lang ) {
+				wrap.dataset.lang = pre.dataset.lang;
+			}
+			pre.parentNode.insertBefore( wrap, pre );
+			wrap.appendChild( pre );
 
 			// Copy button (icon).
 			const btn = document.createElement( 'button' );
@@ -51,7 +65,7 @@
 					}, 1500 );
 				} );
 			} );
-			pre.appendChild( btn );
+			wrap.appendChild( btn );
 
 			// Plain Carve fallback line numbers; Torchlight renders its own gutter.
 			if ( pre.classList.contains( 'line-numbers' ) && ! code.classList.contains( 'torchlight' ) ) {
