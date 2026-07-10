@@ -1,4 +1,7 @@
-/* Carve comment toolbar: insert common Carve syntax into the comment field. */
+/* Carve comment editor: Write/Preview tabs + formatting toolbar above the
+   comment field. Preview renders through the public preview-comment REST
+   endpoint (comment profile + strict safe mode), so commenters see exactly
+   what would be published. */
 ( function () {
 	'use strict';
 
@@ -20,6 +23,7 @@
 		ta.focus();
 		ta.selectionStart = s + before.length;
 		ta.selectionEnd = e + before.length;
+		ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 	}
 
 	function prefixLine( ta, prefix ) {
@@ -28,6 +32,7 @@
 		ta.value = ta.value.slice( 0, lineStart ) + prefix + ta.value.slice( lineStart );
 		ta.focus();
 		ta.selectionStart = ta.selectionEnd = s + prefix.length;
+		ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 	}
 
 	document.addEventListener( 'DOMContentLoaded', function () {
@@ -35,6 +40,12 @@
 		if ( ! ta || document.querySelector( '.wpcarve-comment-toolbar' ) ) {
 			return;
 		}
+
+		const cfg = window.wpCarveComment || {};
+		const hasPreview = !! cfg.previewUrl;
+		let current = 'write';
+
+		// Formatting toolbar.
 		const bar = document.createElement( 'div' );
 		bar.className = 'wpcarve-comment-toolbar';
 		BUTTONS.forEach( function ( b ) {
@@ -43,6 +54,9 @@
 			btn.textContent = b.label;
 			btn.title = b.title;
 			btn.addEventListener( 'click', function () {
+				if ( hasPreview && current !== 'write' ) {
+					switchTab( 'write' );
+				}
 				if ( b.wrap ) {
 					surround( ta, b.wrap[ 0 ], b.wrap[ 1 ] );
 				} else if ( b.line ) {
@@ -52,59 +66,107 @@
 			bar.appendChild( btn );
 		} );
 
-		// Preview toggle: renders through the public preview-comment endpoint
-		// (comment profile + strict safe mode), so what commenters see is what
-		// gets published. Config comes via wp_localize_script.
-		const cfg = window.wpCarveComment;
-		if ( cfg && cfg.previewUrl ) {
-			const pane = document.createElement( 'div' );
-			pane.className = 'wpcarve wpcarve-comment-preview';
-			pane.hidden = true;
-
-			const toggle = document.createElement( 'button' );
-			toggle.type = 'button';
-			toggle.className = 'wpcarve-comment-preview-toggle';
-			toggle.textContent = cfg.previewLabel;
-			toggle.addEventListener( 'click', function () {
-				if ( ! pane.hidden ) {
-					pane.hidden = true;
-					ta.style.display = '';
-					toggle.textContent = cfg.previewLabel;
-					ta.focus();
-					return;
-				}
-				const src = ta.value.trim();
-				pane.textContent = src ? '\u2026' : cfg.emptyText;
-				pane.hidden = false;
-				ta.style.display = 'none';
-				toggle.textContent = cfg.writeLabel;
-				if ( ! src ) {
-					return;
-				}
-				fetch( cfg.previewUrl, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify( { carve: src } ),
-				} )
-					.then( function ( r ) {
-						return r.json();
-					} )
-					.then( function ( data ) {
-						if ( pane.hidden ) {
-							return;
-						}
-						pane.innerHTML = data && data.html ? data.html : cfg.errorText;
-					} )
-					.catch( function () {
-						if ( ! pane.hidden ) {
-							pane.textContent = cfg.errorText;
-						}
-					} );
-			} );
-			bar.appendChild( toggle );
-			ta.parentNode.insertBefore( pane, ta.nextSibling );
+		if ( ! hasPreview ) {
+			ta.parentNode.insertBefore( bar, ta );
+			return;
 		}
 
+		// Write / Preview tabs (parity with wp-djot's comment editor).
+		const tabs = document.createElement( 'div' );
+		tabs.className = 'wpcarve-comment-tabs';
+		tabs.setAttribute( 'role', 'tablist' );
+
+		function makeTab( label, active ) {
+			const tab = document.createElement( 'button' );
+			tab.type = 'button';
+			tab.className = 'wpcarve-tab' + ( active ? ' is-active' : '' );
+			tab.textContent = label;
+			tab.setAttribute( 'role', 'tab' );
+			tab.setAttribute( 'aria-selected', String( active ) );
+			tabs.appendChild( tab );
+
+			return tab;
+		}
+
+		const writeTab = makeTab( cfg.writeLabel || 'Write', true );
+		const previewTab = makeTab( cfg.previewLabel || 'Preview', false );
+
+		// Preview pane: .wpcarve so rendered constructs get the same styling
+		// as published comments.
+		const pane = document.createElement( 'div' );
+		pane.className = 'wpcarve wpcarve-comment-preview';
+		pane.hidden = true;
+
+		let requestSeq = 0;
+
+		function setState( text, stateClass ) {
+			pane.innerHTML = '';
+			const p = document.createElement( 'p' );
+			p.className = stateClass;
+			p.textContent = text;
+			pane.appendChild( p );
+		}
+
+		function renderPreview() {
+			const src = ta.value.trim();
+			if ( ! src ) {
+				setState( cfg.emptyText || 'Nothing to preview yet.', 'wpcarve-preview-empty' );
+				return;
+			}
+			setState( cfg.loadingText || 'Rendering preview…', 'wpcarve-preview-loading' );
+			const seq = ++requestSeq;
+			fetch( cfg.previewUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify( { carve: src } ),
+			} )
+				.then( function ( r ) {
+					return r.json();
+				} )
+				.then( function ( data ) {
+					if ( seq !== requestSeq || current !== 'preview' ) {
+						return;
+					}
+					if ( data && data.html ) {
+						// Server response is fully wp_kses-sanitized.
+						pane.innerHTML = data.html;
+					} else {
+						setState( cfg.errorText || 'Preview failed.', 'wpcarve-preview-error' );
+					}
+				} )
+				.catch( function () {
+					if ( seq === requestSeq && current === 'preview' ) {
+						setState( cfg.errorText || 'Preview failed.', 'wpcarve-preview-error' );
+					}
+				} );
+		}
+
+		function switchTab( tab ) {
+			current = tab;
+			const isWrite = tab === 'write';
+			writeTab.classList.toggle( 'is-active', isWrite );
+			writeTab.setAttribute( 'aria-selected', String( isWrite ) );
+			previewTab.classList.toggle( 'is-active', ! isWrite );
+			previewTab.setAttribute( 'aria-selected', String( ! isWrite ) );
+			ta.style.display = isWrite ? '' : 'none';
+			bar.style.display = isWrite ? '' : 'none';
+			pane.hidden = isWrite;
+			if ( isWrite ) {
+				ta.focus();
+			} else {
+				renderPreview();
+			}
+		}
+
+		writeTab.addEventListener( 'click', function () {
+			switchTab( 'write' );
+		} );
+		previewTab.addEventListener( 'click', function () {
+			switchTab( 'preview' );
+		} );
+
+		ta.parentNode.insertBefore( tabs, ta );
 		ta.parentNode.insertBefore( bar, ta );
+		ta.parentNode.insertBefore( pane, ta.nextSibling );
 	} );
 } )();

@@ -373,6 +373,7 @@ class Plugin
                 'previewLabel' => __('Preview', 'carve-markup'),
                 'writeLabel' => __('Write', 'carve-markup'),
                 'emptyText' => __('Nothing to preview yet.', 'carve-markup'),
+                'loadingText' => __('Rendering preview…', 'carve-markup'),
                 'errorText' => __('Preview failed - please try again.', 'carve-markup'),
             ]);
         }
