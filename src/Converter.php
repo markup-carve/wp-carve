@@ -140,6 +140,7 @@ class Converter
         foreach ($datasets as $i => $set) {
             $name = is_array($set) && isset($set['label']) && is_scalar($set['label'])
                 ? (string)$set['label']
+                /* translators: %d: 1-based index of an unnamed chart data series. */
                 : sprintf(__('Series %d', 'carve-markup'), $i + 1);
             $head .= '<th scope="col">' . esc_html($name) . '</th>';
         }
