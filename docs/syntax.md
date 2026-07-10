@@ -100,6 +100,7 @@ $focusMe();              // [tl! focus]
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
 | `:: term`<br>`:  definition` (two spaces) | definition list |
+| `::: list-table` + nested list | table from list rows (attrs like `{header-rows=1}` on the preceding line) |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
 
 Extensions like table of contents, heading permalinks, smart quotes, Mermaid and

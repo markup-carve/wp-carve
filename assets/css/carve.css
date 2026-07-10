@@ -604,9 +604,16 @@
 	color: transparent;
 }
 
-/* Code-block copy button. */
-.wpcarve pre {
+/* Code-block wrapper: code-blocks.js wraps each pre so the copy button,
+   language pill and title bar anchor on a non-scrolling parent (the pre is
+   the horizontal scroll container - absolute children would scroll away). */
+.wpcarve-codewrap {
 	position: relative;
+	margin: 1em 0;
+}
+
+.wpcarve-codewrap pre:not(.mermaid) {
+	margin: 0;
 }
 
 .wpcarve-copy {
@@ -629,7 +636,9 @@
 	transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
-.wpcarve pre:hover .wpcarve-copy {
+.wpcarve pre:hover .wpcarve-copy,
+.wpcarve-codewrap:hover .wpcarve-copy,
+.wpcarve-copy:focus-visible {
 	opacity: 1;
 }
 
@@ -648,6 +657,11 @@
 	padding-top: 2.75em;
 }
 
+.wpcarve .wpcarve-codewrap[data-title] pre[data-title] {
+	padding-top: 2.75em;
+}
+
+.wpcarve .wpcarve-codewrap[data-title]::before,
 .wpcarve pre[data-title]::before {
 	content: attr(data-title);
 	position: absolute;
@@ -664,6 +678,7 @@
 }
 
 /* Language pill (top-right; sits inside the title bar when one is present). */
+.wpcarve .wpcarve-codewrap[data-lang]::after,
 .wpcarve pre[data-lang]::after {
 	content: attr(data-lang);
 	position: absolute;
@@ -686,6 +701,16 @@
 
 /* On hover the copy icon takes the corner, so fade the language pill out. */
 .wpcarve pre[data-lang]:hover::after {
+	opacity: 0;
+}
+
+/* Wrapped blocks: the wrapper renders the chrome, the pre's own copies off. */
+.wpcarve .wpcarve-codewrap pre[data-title]::before,
+.wpcarve .wpcarve-codewrap pre[data-lang]::after {
+	content: none;
+}
+
+.wpcarve .wpcarve-codewrap[data-lang]:hover::after {
 	opacity: 0;
 }
 
@@ -1027,6 +1052,120 @@
 
 .wpcarve-comment-toolbar button:hover {
 	background: #f3f4f6;
+}
+
+/* Write / Preview tabs above the comment field (parity with wp-djot). */
+.wpcarve-comment-tabs {
+	display: flex;
+	gap: 0;
+	background: #f6f8fa;
+	border: 1px solid #d0d7de;
+	border-bottom: 1px solid #d0d7de;
+	border-radius: 6px 6px 0 0;
+}
+
+/* With tabs above, the toolbar joins them as one connected header row. */
+.wpcarve-comment-tabs + .wpcarve-comment-toolbar {
+	padding: 6px 8px;
+	background: #f6f8fa;
+	border: 1px solid #d0d7de;
+	border-top: none;
+	border-radius: 0 0 6px 6px;
+}
+
+.wpcarve-tab {
+	padding: 0.5em 1.1em;
+	font: inherit;
+	font-size: 0.9em;
+	font-weight: 500;
+	color: #57606a;
+	background: transparent;
+	border: none;
+	border-bottom: 2px solid transparent;
+	border-radius: 6px 6px 0 0;
+	cursor: pointer;
+	transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.wpcarve-tab:hover,
+.wpcarve-tab:focus-visible {
+	color: #24292f;
+	background: rgba(0, 0, 0, 0.05);
+}
+
+.wpcarve-tab.is-active {
+	color: #24292f;
+	border-bottom-color: #fd8c73;
+	font-weight: 600;
+}
+
+/* Comment preview pane (Preview tab). */
+.wpcarve-comment-preview {
+	min-height: 10em;
+	margin-bottom: 0.5em;
+	padding: 12px 14px;
+	border: 1px solid #d0d7de;
+	border-radius: 0 0 6px 6px;
+	background: #fff;
+}
+
+.wpcarve-comment-preview > :first-child {
+	margin-top: 0;
+}
+
+.wpcarve-comment-preview > :last-child {
+	margin-bottom: 0;
+}
+
+.wpcarve-preview-empty,
+.wpcarve-preview-loading,
+.wpcarve-preview-error {
+	color: #57606a;
+	font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+	.wpcarve-comment-tabs,
+	.wpcarve-comment-tabs + .wpcarve-comment-toolbar {
+		background: #161b22;
+		border-color: #30363d;
+	}
+
+	.wpcarve-comment-toolbar button {
+		color: #c9d1d9;
+		background: #21262d;
+		border-color: #30363d;
+	}
+
+	.wpcarve-comment-toolbar button:hover {
+		background: #30363d;
+	}
+
+	.wpcarve-tab {
+		color: #8b949e;
+	}
+
+	.wpcarve-tab:hover,
+	.wpcarve-tab:focus-visible {
+		color: #c9d1d9;
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+	.wpcarve-tab.is-active {
+		color: #c9d1d9;
+	}
+
+	.wpcarve-comment-preview {
+		background: #0d1117;
+		border-color: #30363d;
+		color: #c9d1d9;
+	}
+
+	.wpcarve-preview-empty,
+	.wpcarve-preview-loading,
+	.wpcarve-preview-error {
+		color: #8b949e;
+	}
 }
 
 .permalink.is-copied {

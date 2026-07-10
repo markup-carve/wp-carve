@@ -45,6 +45,37 @@ class RenderController
                 'post_id' => ['type' => 'integer', 'default' => 0],
             ],
         ]);
+
+        // Public comment preview (parity with wp-djot's preview-comment): the
+        // comment context renders with the comment profile and strict safe
+        // mode - the pipeline built for untrusted input - and wp_kses runs on
+        // every path, so the preview matches exactly what would be published.
+        register_rest_route('carve/v1', '/preview-comment', [
+            'methods' => 'POST',
+            'callback' => [$this, 'previewComment'],
+            'permission_callback' => '__return_true',
+            'args' => [
+                'carve' => [
+                    'type' => 'string',
+                    'required' => true,
+                    'sanitize_callback' => 'sanitize_textarea_field',
+                ],
+            ],
+        ]);
+    }
+
+    public function previewComment(WP_REST_Request $request): WP_REST_Response
+    {
+        $carve = (string)$request->get_param('carve');
+        // Same ballpark as WordPress' own 65k comment length limit, but small
+        // enough that anonymous preview calls stay cheap.
+        if (strlen($carve) > 20000) {
+            $carve = substr($carve, 0, 20000);
+        }
+
+        return new WP_REST_Response([
+            'html' => $this->converter->toHtml($carve, 'comment'),
+        ], 200);
     }
 
     public function render(WP_REST_Request $request): WP_REST_Response
