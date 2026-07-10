@@ -53,11 +53,24 @@
 		};
 	}
 
+	// Fallback series palette (Chart.js's own default is a near-invisible
+	// gray wash); hues hold up on light and dark surfaces.
+	var PALETTE = [ '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7' ];
+
 	function drawChart( el, cfg ) {
 		var theme = inkColor( el );
 		window.Chart.defaults.color = theme.ink;
 		window.Chart.defaults.borderColor = theme.grid;
 		cfg = JSON.parse( JSON.stringify( cfg ) );
+		( ( cfg.data || {} ).datasets || [] ).forEach( function ( set, i ) {
+			var hue = PALETTE[ i % PALETTE.length ];
+			if ( set.borderColor === undefined ) {
+				set.borderColor = hue;
+			}
+			if ( set.backgroundColor === undefined ) {
+				set.backgroundColor = hue + ( cfg.type === 'line' ? '33' : 'B3' );
+			}
+		} );
 		cfg.options = Object.assign(
 			{
 				responsive: true,
