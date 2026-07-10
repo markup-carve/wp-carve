@@ -84,10 +84,16 @@
 	}
 
 	// The theme's toggle can dispatch this; the OS preference change is
-	// listened to directly.
-	document.addEventListener( 'wpcarve:scheme-change', rerenderCharts );
+	// listened to directly. Deferred past typical color transitions - reading
+	// the computed ink synchronously would capture the OLD color at t=0 of a
+	// `transition: color` on body.
+	function scheduleRerender() {
+		setTimeout( rerenderCharts, 300 );
+	}
+
+	document.addEventListener( 'wpcarve:scheme-change', scheduleRerender );
 	if ( window.matchMedia ) {
-		window.matchMedia( '(prefers-color-scheme: dark)' ).addEventListener( 'change', rerenderCharts );
+		window.matchMedia( '(prefers-color-scheme: dark)' ).addEventListener( 'change', scheduleRerender );
 	}
 	window.wpCarveDiagrams = window.wpCarveDiagrams || {};
 	window.wpCarveDiagrams.rerenderCharts = rerenderCharts;
