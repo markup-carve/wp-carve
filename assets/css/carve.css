@@ -552,9 +552,16 @@
 	color: transparent;
 }
 
-/* Code-block copy button. */
-.wpcarve pre {
+/* Code-block wrapper: code-blocks.js wraps each pre so the copy button,
+   language pill and title bar anchor on a non-scrolling parent (the pre is
+   the horizontal scroll container - absolute children would scroll away). */
+.wpcarve-codewrap {
 	position: relative;
+	margin: 1em 0;
+}
+
+.wpcarve-codewrap pre:not(.mermaid) {
+	margin: 0;
 }
 
 .wpcarve-copy {
@@ -596,6 +603,11 @@
 	padding-top: 2.75em;
 }
 
+.wpcarve .wpcarve-codewrap[data-title] pre[data-title] {
+	padding-top: 2.75em;
+}
+
+.wpcarve .wpcarve-codewrap[data-title]::before,
 .wpcarve pre[data-title]::before {
 	content: attr(data-title);
 	position: absolute;
@@ -612,6 +624,7 @@
 }
 
 /* Language pill (top-right; sits inside the title bar when one is present). */
+.wpcarve .wpcarve-codewrap[data-lang]::after,
 .wpcarve pre[data-lang]::after {
 	content: attr(data-lang);
 	position: absolute;
@@ -634,6 +647,16 @@
 
 /* On hover the copy icon takes the corner, so fade the language pill out. */
 .wpcarve pre[data-lang]:hover::after {
+	opacity: 0;
+}
+
+/* Wrapped blocks: the wrapper renders the chrome, the pre's own copies off. */
+.wpcarve .wpcarve-codewrap pre[data-title]::before,
+.wpcarve .wpcarve-codewrap pre[data-lang]::after {
+	content: none;
+}
+
+.wpcarve .wpcarve-codewrap[data-lang]:hover::after {
 	opacity: 0;
 }
 
