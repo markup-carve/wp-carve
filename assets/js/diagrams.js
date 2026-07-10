@@ -39,6 +39,85 @@
 		}
 	}
 
+	// Charts re-render on color-scheme changes, so their grid/tick colors can
+	// follow the page theme. Track what was drawn.
+	var charts = [];
+
+	function inkColor( el ) {
+		var c = getComputedStyle( el ).color;
+		var m = c.match( /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/ );
+
+		return {
+			ink: c,
+			grid: m ? 'rgba(' + m[ 1 ] + ',' + m[ 2 ] + ',' + m[ 3 ] + ',0.15)' : c,
+		};
+	}
+
+	// Fallback series palette (Chart.js's own default is a near-invisible
+	// gray wash); hues hold up on light and dark surfaces.
+	var PALETTE = [ '#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7' ];
+
+	function drawChart( el, cfg ) {
+		var theme = inkColor( el );
+		window.Chart.defaults.color = theme.ink;
+		window.Chart.defaults.borderColor = theme.grid;
+		cfg = JSON.parse( JSON.stringify( cfg ) );
+		( ( cfg.data || {} ).datasets || [] ).forEach( function ( set, i ) {
+			var hue = PALETTE[ i % PALETTE.length ];
+			if ( set.borderColor === undefined ) {
+				set.borderColor = hue;
+			}
+			if ( set.backgroundColor === undefined ) {
+				set.backgroundColor = hue + ( cfg.type === 'line' ? '33' : 'B3' );
+			}
+		} );
+		cfg.options = Object.assign(
+			{
+				responsive: true,
+				maintainAspectRatio: false,
+				interaction: { mode: 'index', intersect: false },
+			},
+			cfg.options || {}
+		);
+		var canvas = document.createElement( 'canvas' );
+		el.appendChild( canvas );
+
+		return new window.Chart( canvas, cfg );
+	}
+
+	function rerenderCharts() {
+		if ( ! window.Chart ) {
+			return;
+		}
+		charts.forEach( function ( item ) {
+			item.chart.destroy();
+			item.el.textContent = '';
+			item.chart = drawChart( item.el, item.cfg );
+		} );
+	}
+
+	// The theme's toggle can dispatch this; the OS preference change is
+	// listened to directly. Deferred past typical color transitions - reading
+	// the computed ink synchronously would capture the OLD color at t=0 of a
+	// `transition: color` on body.
+	function scheduleRerender() {
+		setTimeout( rerenderCharts, 300 );
+	}
+
+	document.addEventListener( 'wpcarve:scheme-change', scheduleRerender );
+	var schemeQuery = window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' );
+	if ( schemeQuery ) {
+		// Older Safari exposes addListener only; an unguarded addEventListener
+		// would throw here and abort every diagram on the page.
+		if ( schemeQuery.addEventListener ) {
+			schemeQuery.addEventListener( 'change', scheduleRerender );
+		} else if ( schemeQuery.addListener ) {
+			schemeQuery.addListener( scheduleRerender );
+		}
+	}
+	window.wpCarveDiagrams = window.wpCarveDiagrams || {};
+	window.wpCarveDiagrams.rerenderCharts = rerenderCharts;
+
 	function run() {
 		// Mermaid (text in <pre class="mermaid">).
 		if ( window.mermaid ) {
@@ -57,9 +136,7 @@
 				if ( ! cfg ) {
 					return;
 				}
-				var canvas = document.createElement( 'canvas' );
-				el.appendChild( canvas );
-				new window.Chart( canvas, cfg );
+				charts.push( { el: el, cfg: cfg, chart: drawChart( el, cfg ) } );
 			} );
 		}
 

@@ -208,6 +208,28 @@ class ConverterTest extends TestCase
         $this->assertStringNotContainsString('<script', $html);
     }
 
+    public function testChartConfigGetsDataTableFallback(): void
+    {
+        $converter = new Converter(['chart_enabled' => true]);
+
+        $html = $converter->toHtml("``` chart\n{ \"type\": \"bar\", \"data\": { \"labels\": [\"5.3\", \"5.4\"], \"datasets\": [{ \"label\": \"Removals\", \"data\": [15, 22] }] } }\n```");
+
+        $this->assertStringContainsString('<details class="wpcarve-chart-data">', $html);
+        $this->assertStringContainsString('<th scope="col">Removals</th>', $html);
+        $this->assertStringContainsString('<th scope="row">5.3</th>', $html);
+        $this->assertStringContainsString('<td>22</td>', $html);
+    }
+
+    public function testChartTableFallbackSkipsNonTabularConfigs(): void
+    {
+        $converter = new Converter(['chart_enabled' => true]);
+
+        $html = $converter->toHtml("``` chart\n{ \"type\": \"bar\" }\n```");
+
+        $this->assertStringContainsString('data-carve-json=', $html);
+        $this->assertStringNotContainsString('wpcarve-chart-data', $html);
+    }
+
     public function testListTableRendersAsTable(): void
     {
         $converter = new Converter([]);
