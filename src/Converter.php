@@ -86,9 +86,18 @@ class Converter
         // then curls the quotes of the leftover text, so the config could
         // never reach the front-end JS intact. Move it into a data attribute:
         // kses allows data-* globally and texturize ignores attributes.
+        // Chart.js configs additionally get their dataset appended as a plain
+        // table - readable without JS, indexable, and screen-reader friendly.
         $html = (string)preg_replace_callback(
-            '/(<div class="[^"]*")>\s*<script type="application\/json">(.*?)<\/script>\s*(<\/div>)/s',
-            static fn (array $m): string => $m[1] . ' data-carve-json="' . esc_attr($m[2]) . '">' . $m[3],
+            '/<div class="([^"]*)">\s*<script type="application\/json">(.*?)<\/script>\s*<\/div>/s',
+            static function (array $m): string {
+                $out = '<div class="' . $m[1] . '" data-carve-json="' . esc_attr($m[2]) . '"></div>';
+                if (preg_match('/(^| )chart( |$)/', $m[1]) === 1) {
+                    $out .= self::chartDataTable($m[2]);
+                }
+
+                return $out;
+            },
             $html,
         );
 
@@ -106,6 +115,48 @@ class Converter
          * @param string $context 'post', 'comment', or 'editor'.
          */
         return (string)apply_filters('wpcarve_rendered_html', $html, $carve, $context);
+    }
+
+    /**
+     * A collapsed data table for a Chart.js config: rows per label, one column
+     * per dataset. The chart itself needs JS; this fallback is always in the
+     * DOM, so the numbers stay accessible, indexable and copyable. Returns ''
+     * for configs without a labels/datasets shape (Vega specs etc.).
+     */
+    public static function chartDataTable(string $json): string
+    {
+        $config = json_decode($json, true);
+        if (!is_array($config)) {
+            return '';
+        }
+        $labels = $config['data']['labels'] ?? null;
+        $datasets = $config['data']['datasets'] ?? null;
+        if (!is_array($labels) || $labels === [] || !is_array($datasets) || $datasets === []) {
+            return '';
+        }
+
+        $head = '<th scope="col"></th>';
+        foreach ($datasets as $i => $set) {
+            $name = is_array($set) && isset($set['label']) && is_scalar($set['label'])
+                ? (string)$set['label']
+                : sprintf(__('Series %d', 'carve-markup'), $i + 1);
+            $head .= '<th scope="col">' . esc_html($name) . '</th>';
+        }
+
+        $rows = '';
+        foreach (array_values($labels) as $r => $label) {
+            $rows .= '<tr><th scope="row">' . esc_html(is_scalar($label) ? (string)$label : '') . '</th>';
+            foreach ($datasets as $set) {
+                $value = is_array($set) && isset($set['data'][$r]) && is_scalar($set['data'][$r])
+                    ? (string)$set['data'][$r]
+                    : '';
+                $rows .= '<td>' . esc_html($value) . '</td>';
+            }
+            $rows .= '</tr>';
+        }
+
+        return '<details class="wpcarve-chart-data"><summary>' . esc_html__('Chart data', 'carve-markup') . '</summary>'
+            . '<table><thead><tr>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table></details>';
     }
 
     /**

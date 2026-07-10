@@ -39,6 +39,59 @@
 		}
 	}
 
+	// Charts re-render on color-scheme changes, so their grid/tick colors can
+	// follow the page theme. Track what was drawn.
+	var charts = [];
+
+	function inkColor( el ) {
+		var c = getComputedStyle( el ).color;
+		var m = c.match( /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/ );
+
+		return {
+			ink: c,
+			grid: m ? 'rgba(' + m[ 1 ] + ',' + m[ 2 ] + ',' + m[ 3 ] + ',0.15)' : c,
+		};
+	}
+
+	function drawChart( el, cfg ) {
+		var theme = inkColor( el );
+		window.Chart.defaults.color = theme.ink;
+		window.Chart.defaults.borderColor = theme.grid;
+		cfg = JSON.parse( JSON.stringify( cfg ) );
+		cfg.options = Object.assign(
+			{
+				responsive: true,
+				maintainAspectRatio: false,
+				interaction: { mode: 'index', intersect: false },
+			},
+			cfg.options || {}
+		);
+		var canvas = document.createElement( 'canvas' );
+		el.appendChild( canvas );
+
+		return new window.Chart( canvas, cfg );
+	}
+
+	function rerenderCharts() {
+		if ( ! window.Chart ) {
+			return;
+		}
+		charts.forEach( function ( item ) {
+			item.chart.destroy();
+			item.el.textContent = '';
+			item.chart = drawChart( item.el, item.cfg );
+		} );
+	}
+
+	// The theme's toggle can dispatch this; the OS preference change is
+	// listened to directly.
+	document.addEventListener( 'wpcarve:scheme-change', rerenderCharts );
+	if ( window.matchMedia ) {
+		window.matchMedia( '(prefers-color-scheme: dark)' ).addEventListener( 'change', rerenderCharts );
+	}
+	window.wpCarveDiagrams = window.wpCarveDiagrams || {};
+	window.wpCarveDiagrams.rerenderCharts = rerenderCharts;
+
 	function run() {
 		// Mermaid (text in <pre class="mermaid">).
 		if ( window.mermaid ) {
@@ -57,9 +110,7 @@
 				if ( ! cfg ) {
 					return;
 				}
-				var canvas = document.createElement( 'canvas' );
-				el.appendChild( canvas );
-				new window.Chart( canvas, cfg );
+				charts.push( { el: el, cfg: cfg, chart: drawChart( el, cfg ) } );
 			} );
 		}
 
