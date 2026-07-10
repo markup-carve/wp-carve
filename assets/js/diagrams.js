@@ -20,8 +20,23 @@
 	}
 
 	function json( el ) {
+		// The engine emits the config in <script type="application/json">, but
+		// the render pipeline sanitizes with wp_kses, which strips script tags
+		// and leaves the raw JSON as the element's text. Accept both carriers,
+		// and clear the element so the raw text never shows next to the render.
 		var s = el.querySelector( 'script[type="application/json"]' );
-		return s ? JSON.parse( s.textContent ) : null;
+		var text = el.dataset.carveJson || ( s ? s.textContent : el.textContent );
+		if ( ! text || ! text.trim() ) {
+			return null;
+		}
+		try {
+			var cfg = JSON.parse( text );
+			el.textContent = '';
+			return cfg;
+		} catch ( e ) {
+			window.console && console.error( 'carve diagram json:', e );
+			return null;
+		}
 	}
 
 	function run() {
