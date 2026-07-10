@@ -977,6 +977,31 @@
 	background: #f3f4f6;
 }
 
+/* Comment preview pane (toggled by the toolbar's Preview button). */
+.wpcarve-comment-preview {
+	min-height: 8em;
+	margin-bottom: 0.5em;
+	padding: 10px 12px;
+	border: 1px dashed #d1d5db;
+	border-radius: 4px;
+	background: #f9fafb;
+}
+
+.wpcarve-comment-preview > :first-child {
+	margin-top: 0;
+}
+
+.wpcarve-comment-preview > :last-child {
+	margin-bottom: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	.wpcarve-comment-preview {
+		background: #161b22;
+		border-color: #30363d;
+	}
+}
+
 .permalink.is-copied {
 	color: #16a34a;
 }

@@ -368,6 +368,13 @@ class Plugin
         // Comment toolbar (independent of whether the post itself is Carve).
         if (Settings::get('enable_comments') && comments_open()) {
             wp_enqueue_script('wpcarve-comment-toolbar', WPCARVE_URL . 'assets/js/comment-toolbar.js', [], $this->assetVersion('assets/js/comment-toolbar.js'), true);
+            wp_localize_script('wpcarve-comment-toolbar', 'wpCarveComment', [
+                'previewUrl' => rest_url('carve/v1/preview-comment'),
+                'previewLabel' => __('Preview', 'carve-markup'),
+                'writeLabel' => __('Write', 'carve-markup'),
+                'emptyText' => __('Nothing to preview yet.', 'carve-markup'),
+                'errorText' => __('Preview failed - please try again.', 'carve-markup'),
+            ]);
         }
 
         $post = get_post();
