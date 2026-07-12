@@ -79,8 +79,7 @@ class BulkMigrate
             return;
         }
 
-        $action = esc_url(admin_url('admin-post.php'));
-        echo '<form method="post" action="' . $action . '">';
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
         wp_nonce_field('wpcarve_bulk_migrate');
         echo '<input type="hidden" name="action" value="wpcarve_bulk_migrate">';
         echo '<input type="hidden" name="post_type" value="' . esc_attr($postType) . '">';
@@ -98,7 +97,12 @@ class BulkMigrate
             }
             $analysis = $migrator->analyze($post->ID);
             $eligible = (bool)$analysis['can_auto_migrate'];
-            $title = $post->post_title !== '' ? $post->post_title : sprintf(__('(no title) #%d', 'carve-markup'), $post->ID);
+            if ($post->post_title !== '') {
+                $title = $post->post_title;
+            } else {
+                /* translators: %d: post ID. */
+                $title = sprintf(__('(no title) #%d', 'carve-markup'), $post->ID);
+            }
             $editLink = get_edit_post_link($post->ID);
 
             echo '<tr>';
