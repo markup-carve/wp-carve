@@ -227,4 +227,9 @@
 	} else {
 		document.addEventListener( 'DOMContentLoaded', lazyRun );
 	}
+
+	// Re-runnable entry point for dynamic surfaces (the block editor preview
+	// re-renders its pane on every keystroke). Idempotent per element via the
+	// data-carveRendered guard.
+	window.wpCarveDiagrams = { run: run };
 } )();

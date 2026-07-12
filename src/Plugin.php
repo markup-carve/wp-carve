@@ -213,6 +213,32 @@ class Plugin
         // moves on releases, which strands editors on stale block JS during
         // development and after in-place updates.
         $ver .= '-' . $this->assetVersion('assets/blocks/carve/index.js');
+        // The preview pane shows the full display render, so it needs the same
+        // client renderers as the front end: KaTeX for math and the enabled
+        // diagram libraries (Chart.js, Mermaid, ...). Content is dynamic in the
+        // editor, so enabled types load unconditionally; the preview effect in
+        // index.js re-runs the initializers after each render.
+        $katexBase = rtrim((string)apply_filters('wpcarve_katex_base', WPCARVE_URL . 'assets/js/vendor/katex'), '/');
+        wp_enqueue_style('wpcarve-katex', esc_url_raw($katexBase . '/katex.min.css'), [], WPCARVE_VERSION);
+        wp_enqueue_script('wpcarve-katex', esc_url_raw($katexBase . '/katex.min.js'), [], WPCARVE_VERSION, true);
+        wp_enqueue_script('wpcarve-katex-auto', esc_url_raw($katexBase . '/contrib/auto-render.min.js'), ['wpcarve-katex'], WPCARVE_VERSION, true);
+        $needDiagrams = false;
+        foreach (Diagrams::all() as $name => $diagram) {
+            if (!Settings::get(Diagrams::settingKey($name))) {
+                continue;
+            }
+            $needDiagrams = true;
+            $i = 0;
+            foreach ((array)($diagram['libs'] ?? []) as $lib) {
+                $src = (string)apply_filters('wpcarve_diagram_src', WPCARVE_URL . 'assets/js/vendor/' . $lib, $name, $lib);
+                wp_enqueue_script('wpcarve-diagram-' . $name . '-' . $i, esc_url_raw($src), [], WPCARVE_VERSION, true);
+                $i++;
+            }
+        }
+        if ($needDiagrams) {
+            wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], $this->assetVersion('assets/js/diagrams.js'), true);
+        }
+
         // Optional in-browser Carve engine (innovation A). Built by `npm run
         // build` into assets/js/vendor/carve.js (sets window.wpCarveEngine). When
         // absent, the editor falls back to the REST render endpoint.
