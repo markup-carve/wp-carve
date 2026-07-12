@@ -13,7 +13,6 @@
 !/assets/js/vendor/wavedrom.min.js
 !/assets/js/vendor/wavedrom-skin-default.js
 !/assets/js/vendor/abcjs-basic-min.js
-composer.lock
 package-lock.json
 .phpunit.result.cache
 .phpunit.cache/
