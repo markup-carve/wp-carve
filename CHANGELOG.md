@@ -26,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- An admonition with a custom title (`::: tip "Pro tip"`) keeps its per-type
+  icon: the icon now renders on the title line itself; previously the whole
+  icon-plus-label pseudo-element was suppressed together with the auto label.
 - `[carve]` shortcode content is now excluded from `wptexturize` (which runs
   before shortcodes on `the_content`), so a fence title like
   `::: tab "Overview"` keeps its straight quotes and parses as a fence instead

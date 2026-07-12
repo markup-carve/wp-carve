@@ -318,6 +318,17 @@
 .wpcarve .admonition.example:not(:has(.admonition-title))::before { content: "\1F9EA  Example"; }
 .wpcarve .admonition.quote:not(:has(.admonition-title))::before   { content: "\275D  Quote"; }
 
+/* Explicit title: the per-type icon stays, only the auto type label is
+   replaced by the author's text. */
+.wpcarve .admonition.note    .admonition-title::before { content: "\1F4DD  "; }
+.wpcarve .admonition.tip     .admonition-title::before { content: "\1F4A1  "; }
+.wpcarve .admonition.warning .admonition-title::before { content: "\26A0\FE0F  "; }
+.wpcarve .admonition.danger  .admonition-title::before { content: "\1F6D1  "; }
+.wpcarve .admonition.info    .admonition-title::before { content: "\2139\FE0F  "; }
+.wpcarve .admonition.success .admonition-title::before { content: "\2705  "; }
+.wpcarve .admonition.example .admonition-title::before { content: "\1F9EA  "; }
+.wpcarve .admonition.quote   .admonition-title::before { content: "\275D  "; }
+
 .wpcarve .admonition-title {
 	margin: 0 0 0.4em;
 	font-weight: 600;
