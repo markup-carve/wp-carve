@@ -48,6 +48,19 @@ The plugin's own `[carve]` shortcode does **not** count as a blocking
 shortcode. Migrated posts get `_wpcarve_enabled = 1` so the `the_content`
 filter renders them as Carve.
 
+### Bulk migrate without WP-CLI (Tools → Carve Migrate)
+
+For sites without shell access, **Tools → Carve Migrate** runs the same
+migration through the admin. It lists posts per type with the analysis above -
+the listing is the dry-run preview: each row shows the detected `source` and,
+for flagged posts, why it is skipped. Tick the posts to convert (eligible ones
+are pre-checked) and choose **Migrate selected posts**. A **Force** checkbox
+converts flagged posts too (same as `--force`; back up first).
+
+The screen requires the `edit_others_posts` capability, and each post is
+re-checked with `edit_post` before it is touched. Posts already rendering as
+Carve are omitted from the list.
+
 ## `wp carve lint`
 
 Read-only health check for Carve content. Renders every Carve-enabled post (the
