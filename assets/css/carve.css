@@ -363,7 +363,8 @@
 	text-decoration: none;
 }
 
-.wpcarve :is(h1, h2, h3, h4, h5, h6):hover .permalink-wrapper {
+.wpcarve :is(h1, h2, h3, h4, h5, h6):hover .permalink-wrapper,
+.wpcarve .permalink-wrapper:focus-within {
 	opacity: 0.6;
 }
 

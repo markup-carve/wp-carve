@@ -389,7 +389,7 @@ class Converter
         }
 
         if (!empty($s['permalinks_enabled']) && !$forEditor) {
-            $converter->addExtension(new HeadingPermalinksExtension());
+            $converter->addExtension(new HeadingPermalinksExtension(showOnHover: true));
         }
 
         if (!empty($s['smart_quotes'])) {
