@@ -209,6 +209,10 @@ class Plugin
             $deps = $data['dependencies'] ?? $deps;
             $ver = $data['version'] ?? $ver;
         }
+        // Cache-bust on file changes: the hand-maintained asset version only
+        // moves on releases, which strands editors on stale block JS during
+        // development and after in-place updates.
+        $ver .= '-' . $this->assetVersion('assets/blocks/carve/index.js');
         // Optional in-browser Carve engine (innovation A). Built by `npm run
         // build` into assets/js/vendor/carve.js (sets window.wpCarveEngine). When
         // absent, the editor falls back to the REST render endpoint.
