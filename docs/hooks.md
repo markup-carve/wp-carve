@@ -37,6 +37,20 @@ add_filter('wpcarve_allowed_html', function (array $allowed): array {
 });
 ```
 
+### `wpcarve_enqueue_styles`
+
+Filter whether the front-end stylesheet loads on the current view. It defaults
+to `true` only where Carve is rendered (a Carve post/block, a `[carve]`
+shortcode in the queried content, or an open comment form). Return `true` to
+force it - e.g. when a widget or page builder injects `[carve]` outside the
+queried post content - or `false` to suppress it.
+
+```php
+add_filter('wpcarve_enqueue_styles', function (bool $enqueue): bool {
+    return $enqueue || is_active_sidebar('footer');
+});
+```
+
 ### `wpcarve_media_oembed`
 
 Return `false` to disable the WordPress oEmbed fallback for standalone

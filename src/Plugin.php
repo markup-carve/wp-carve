@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
 
 use WP_CLI;
 use WP_Post;
+use WP_Query;
 use WpCarve\Admin\ImportExport;
 use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
@@ -357,9 +358,75 @@ class Plugin
         return $mtime ? (string)$mtime : WPCARVE_VERSION;
     }
 
+    /**
+     * Whether the current front-end view renders any Carve, so the stylesheet
+     * is worth loading. Filterable via `wpcarve_enqueue_styles` for surfaces the
+     * detection cannot see (e.g. a `[carve]` shortcode injected by a widget or
+     * page builder outside the queried post content).
+     */
+    private function shouldEnqueueStyles(): bool
+    {
+        return (bool)apply_filters('wpcarve_enqueue_styles', $this->pageUsesCarve());
+    }
+
+    private function pageUsesCarve(): bool
+    {
+        // Comment Carve needs the stylesheet on any singular page that either
+        // shows the toolbar (comments open, its preview renders into `.wpcarve`)
+        // or already displays stored Carve comments (rendered via comment_text
+        // even after the thread is closed) - independent of whether the post
+        // itself is Carve.
+        if (is_singular() && Settings::get('enable_comments') && (comments_open() || (int)get_comments_number() > 0)) {
+            return true;
+        }
+
+        $shortcode = (bool)Settings::get('enable_shortcode');
+        foreach ($this->queriedPosts() as $post) {
+            if (
+                get_post_meta($post->ID, '_wpcarve_enabled', true)
+                || has_block('carve/markup', $post)
+                || has_block('carve/slides', $post)
+            ) {
+                return true;
+            }
+            if ($shortcode && has_shortcode((string)$post->post_content, 'carve')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The posts the current request will display: the single queried post on a
+     * singular view, or the main query's loop on an archive/home listing (so a
+     * `[carve]` shortcode inside any listed post is detected).
+     *
+     * @return array<int, \WP_Post>
+     */
+    private function queriedPosts(): array
+    {
+        if (is_singular()) {
+            $post = get_post();
+
+            return $post instanceof WP_Post ? [$post] : [];
+        }
+
+        $query = $GLOBALS['wp_query'] ?? null;
+        $posts = $query instanceof WP_Query ? $query->posts : [];
+
+        return array_values(array_filter($posts, static fn ($post): bool => $post instanceof WP_Post));
+    }
+
     public function enqueueFrontendAssets(): void
     {
-        wp_enqueue_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
+        // The stylesheet used to load on every front-end view. Only enqueue it
+        // where Carve is actually rendered (a Carve post/block, a `[carve]`
+        // shortcode in the queried content, or a comment preview) so non-Carve
+        // pages ship no extra CSS.
+        if ($this->shouldEnqueueStyles()) {
+            wp_enqueue_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
+        }
 
         if (!is_singular()) {
             return;
