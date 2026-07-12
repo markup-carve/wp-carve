@@ -435,6 +435,14 @@
 			if ( mode === 'visual' || ! showPreview || ! previewRef.current ) {
 				return;
 			}
+			// The pane shows the display render: typeset math and initialize
+			// diagram canvases after every re-render (both are idempotent).
+			if ( window.renderMathInElement ) {
+				window.renderMathInElement( previewRef.current, { throwOnError: false } );
+			}
+			if ( window.wpCarveDiagrams && window.wpCarveDiagrams.run ) {
+				window.wpCarveDiagrams.run();
+			}
 			previewRef.current.querySelectorAll( 'pre > code' ).forEach( ( code ) => {
 				const pre = code.parentElement;
 				if ( ! pre || pre.dataset.lang ) {
