@@ -441,7 +441,8 @@
 				window.renderMathInElement( previewRef.current, { throwOnError: false } );
 			}
 			if ( window.wpCarveDiagrams && window.wpCarveDiagrams.run ) {
-				window.wpCarveDiagrams.run();
+				// The block canvas is an iframe: pass the preview's document.
+				window.wpCarveDiagrams.run( previewRef.current.ownerDocument );
 			}
 			previewRef.current.querySelectorAll( 'pre > code' ).forEach( ( code ) => {
 				const pre = code.parentElement;
