@@ -796,6 +796,20 @@
 			)
 		);
 
+		// In Write (stacked) mode the source grows with its content; Split mode
+		// keeps a fixed, scrollable box so the scroll-sync below works.
+		useEffect( () => {
+			const ta = taRef.current;
+			if ( ! ta || mode === 'split' ) {
+				if ( ta ) {
+					ta.style.height = '';
+				}
+				return;
+			}
+			ta.style.height = 'auto';
+			ta.style.height = ta.scrollHeight + 2 + 'px';
+		}, [ source, mode ] );
+
 		// In Split mode, scrolling the source scrolls the preview proportionally.
 		function syncScroll() {
 			if ( mode !== 'split' ) {

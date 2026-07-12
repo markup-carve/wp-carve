@@ -122,6 +122,14 @@
 	border-radius: 4px;
 	resize: vertical;
 	box-sizing: border-box;
+	/* Write mode auto-grows via JS; this is the floor, and hidden overflow
+	   avoids a phantom scrollbar while the height catches up. */
+	min-height: 18em;
+	overflow-y: hidden;
+}
+
+.wpcarve-split .wpcarve-source {
+	overflow-y: auto;
 }
 
 .wpcarve-split {
