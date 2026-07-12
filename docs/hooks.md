@@ -100,6 +100,26 @@ Override the base URL for KaTeX assets (css / js / `contrib/auto-render.min.js`)
 add_filter('wpcarve_katex_base', fn (string $base): string => 'https://example.test/katex');
 ```
 
+### `wpcarve_preview_rate_limit`
+
+Number of anonymous comment-preview requests (`POST /wp-json/carve/v1/preview-comment`)
+allowed per window before the endpoint responds `429`. Default `30`. Return a
+value `<= 0` to disable the throttle. Users who can edit posts are never
+throttled. Raise it for a site behind a shared-IP CDN or reverse proxy.
+
+```php
+add_filter('wpcarve_preview_rate_limit', fn (int $max): int => 100);
+```
+
+### `wpcarve_preview_rate_window`
+
+Length of the comment-preview rate-limit window, in seconds. Default
+`MINUTE_IN_SECONDS` (60).
+
+```php
+add_filter('wpcarve_preview_rate_window', fn (int $seconds): int => 30);
+```
+
 ## Actions
 
 ### `wpcarve_converter`

@@ -52,6 +52,18 @@ $carve_check('REST render route registered', isset($routes['/carve/v1/render']))
 $carve_check('REST ingest route registered', isset($routes['/carve/v1/ingest']));
 $carve_check('REST comment-preview route registered', isset($routes['/carve/v1/preview-comment']));
 
+// --- Public comment preview: gated on the comment setting ---------------------
+// With Carve comment rendering off (the default), the unauthenticated endpoint
+// refuses instead of running the renderer for anyone.
+update_option(\WpCarve\Settings::OPTION, ['enable_comments' => false]);
+$disabled_request = new WP_REST_Request('POST', '/carve/v1/preview-comment');
+$disabled_request->set_param('carve', '*strong*');
+$disabled_response = rest_get_server()->dispatch($disabled_request);
+$carve_check('comment preview refuses when comments disabled', $disabled_response->get_status() === 403);
+
+// Enable Carve comment rendering for the remaining preview checks.
+update_option(\WpCarve\Settings::OPTION, ['enable_comments' => true]);
+
 // --- Public comment preview renders with the comment pipeline ------------------
 $preview_request = new WP_REST_Request('POST', '/carve/v1/preview-comment');
 $preview_request->set_param('carve', 'Some *strong* text <script>alert(1)</script>');
@@ -59,6 +71,27 @@ $preview_response = rest_get_server()->dispatch($preview_request);
 $preview_html = (string)($preview_response->get_data()['html'] ?? '');
 $carve_check('comment preview renders strong', str_contains($preview_html, '<strong>strong</strong>'));
 $carve_check('comment preview strips script', !str_contains($preview_html, '<script'));
+
+// --- Public comment preview: anonymous rate limit ----------------------------
+// An unauthenticated caller with a tight allowance: the request past the limit
+// in the window is rejected with 429, so the public renderer cannot be abused
+// as a cheap CPU-amplification vector.
+$carve_prev_user = get_current_user_id();
+wp_set_current_user(0);
+delete_transient('wpcarve_pcw_' . md5(isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : 'unknown'));
+$carve_rate_limit = static fn (): int => 2;
+add_filter('wpcarve_preview_rate_limit', $carve_rate_limit);
+$carve_preview_status = static function (): int {
+    $r = new WP_REST_Request('POST', '/carve/v1/preview-comment');
+    $r->set_param('carve', 'hi');
+
+    return rest_get_server()->dispatch($r)->get_status();
+};
+$carve_check('preview allows the first request', $carve_preview_status() === 200);
+$carve_check('preview allows up to the limit', $carve_preview_status() === 200);
+$carve_check('preview throttles past the limit', $carve_preview_status() === 429);
+remove_filter('wpcarve_preview_rate_limit', $carve_rate_limit);
+wp_set_current_user($carve_prev_user);
 
 // --- the_content renders an opt-in post --------------------------------------
 $postId = wp_insert_post([
@@ -134,6 +167,48 @@ if (class_exists(\WpCarve\Converter::class)) {
         !str_contains(\WpCarve\Converter::sanitizeHtml('<p onclick="x()">hi</p>'), 'onclick'),
     );
 }
+
+// --- kses allowlist regression guards -----------------------------------------
+// The recent fixes (radio-group name for tab/code-group panels, media-embed
+// iframes, and moving diagram JSON configs into a data attribute after wp_kses
+// strips the <script> carrier) all depend on the custom allowlist keeping
+// attributes core's `post` context drops. Guard them directly at the sanitizer
+// so a future allowlist change that regresses them fails here.
+$carve_check(
+    'kses keeps the radio group name (tab / code-group panel switching)',
+    str_contains(\WpCarve\Converter::sanitizeHtml('<input type="radio" name="grp" class="c" checked>'), 'name="grp"'),
+);
+$carve_check(
+    'kses keeps label for/class',
+    str_contains(\WpCarve\Converter::sanitizeHtml('<label for="x" class="c">t</label>'), 'for="x"'),
+);
+$carve_check(
+    'kses keeps a media-embed iframe with allow/loading',
+    (static function (): bool {
+        $h = \WpCarve\Converter::sanitizeHtml('<iframe src="https://example.com/e" allow="fullscreen" loading="lazy"></iframe>');
+
+        return str_contains($h, '<iframe') && str_contains($h, 'allow="fullscreen"') && str_contains($h, 'loading="lazy"');
+    })(),
+);
+$carve_check(
+    'kses keeps the data-carve-json diagram config attribute',
+    str_contains(\WpCarve\Converter::sanitizeHtml('<div class="chart" data-carve-json="{&quot;a&quot;:1}"></div>'), 'data-carve-json'),
+);
+
+// End-to-end: a ```chart fence must survive wp_kses as a data attribute (the
+// <script> carrier is stripped) and ship the accessible data-table fallback.
+$chartConverter = new \WpCarve\Converter(['chart_enabled' => true]);
+$chartHtml = $chartConverter->toHtml("```chart\n{\"type\":\"bar\",\"data\":{\"labels\":[\"A\"],\"datasets\":[{\"label\":\"S\",\"data\":[1]}]}}\n```");
+$carve_check(
+    'chart config survives kses as a data attribute, not a script',
+    str_contains($chartHtml, 'data-carve-json') && !str_contains($chartHtml, '<script'),
+    $carve_snippet($chartHtml),
+);
+$carve_check(
+    'chart renders an accessible data-table fallback',
+    str_contains($chartHtml, 'wpcarve-chart-data') && str_contains($chartHtml, '<table'),
+    $carve_snippet($chartHtml),
+);
 
 // --- Summary ------------------------------------------------------------------
 fwrite(STDOUT, "\n");
