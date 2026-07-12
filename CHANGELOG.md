@@ -26,6 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `[carve]` shortcode content is now excluded from `wptexturize` (which runs
+  before shortcodes on `the_content`), so a fence title like
+  `::: tab "Overview"` keeps its straight quotes and parses as a fence instead
+  of degrading to a literal paragraph. As a second line of defense, typographic
+  quotes on `:::` opener lines are straightened back before parsing (they can
+  still arrive pre-curled from widgets or word-processor paste); quotes in
+  ordinary prose are left untouched.
 - The render cache now invalidates when a render-affecting setting changes (TOC,
   smart quotes, torchlight theme, diagram toggles, ...), not only on a
   plugin/engine upgrade. Previously such a change left every already-saved post

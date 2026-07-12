@@ -233,3 +233,15 @@ if (!function_exists('esc_url_raw')) {
         return $url;
     }
 }
+
+if (!function_exists('wp_strip_all_tags')) {
+    function wp_strip_all_tags(string $text, bool $removeBreaks = false): string
+    {
+        $text = strip_tags($text);
+        if ($removeBreaks) {
+            $text = trim((string)preg_replace('/[\r\n\t ]+/', ' ', $text));
+        }
+
+        return $text;
+    }
+}
