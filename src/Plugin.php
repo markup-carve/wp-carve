@@ -42,6 +42,7 @@ class Plugin
         // --- Rendering surfaces ---
         if (!empty($settings['enable_shortcode'])) {
             add_shortcode('carve', [$this, 'renderShortcode']);
+            add_filter('no_texturize_shortcodes', [$this, 'excludeShortcodeFromTexturize']);
         }
 
         if (!empty($settings['enable_comments'])) {
@@ -101,11 +102,70 @@ class Plugin
         if ($content === null) {
             return '';
         }
-        // Shortcode content arrives texturized/auto-paragraphed; undo that.
-        $raw = html_entity_decode(wp_strip_all_tags($content, false), ENT_QUOTES, 'UTF-8');
+        $raw = self::restoreShortcodeSource($content);
         $safe = self::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
 
         return $this->wrap($this->converter->toHtml($raw, 'post', null, $safe));
+    }
+
+    /**
+     * wptexturize runs on the_content at priority 10, before shortcodes
+     * execute at 11 - without this exclusion it curls the straight quotes of
+     * a fence title (`::: tab "Overview"`), the line stops being a fence, and
+     * the whole block degrades to a literal paragraph.
+     *
+     * @param array<string> $shortcodes
+     *
+     * @return array<string>
+     */
+    public function excludeShortcodeFromTexturize(array $shortcodes): array
+    {
+        $shortcodes[] = 'carve';
+
+        return $shortcodes;
+    }
+
+    /**
+     * Undo what the_content filters did to `[carve]` shortcode content before
+     * the shortcode ran: wpautop's tags, entity encoding, and - on fence
+     * opener lines only - typographic quotes. The no_texturize_shortcodes
+     * exclusion prevents the curling on this site, but content can still
+     * arrive pre-curled (widgets calling do_shortcode on texturized text, or
+     * quotes pasted from a word processor); on a `:::` line a typographic
+     * quote is never intended, so straightening is lossless there.
+     */
+    public static function restoreShortcodeSource(string $content): string
+    {
+        $raw = html_entity_decode(wp_strip_all_tags($content, false), ENT_QUOTES, 'UTF-8');
+
+        // Straighten quotes on `:::` lines outside fenced code blocks only -
+        // a code sample documenting a curly-quoted fence line must stay
+        // verbatim.
+        $lines = explode("\n", $raw);
+        $codeFence = null;
+        foreach ($lines as $i => $line) {
+            if ($codeFence !== null) {
+                if (
+                    preg_match('/^[ \t]*(`{3,}|~{3,})[ \t]*$/', $line, $m) === 1
+                    && $m[1][0] === $codeFence[0]
+                    && strlen($m[1]) >= strlen($codeFence)
+                ) {
+                    $codeFence = null;
+                }
+
+                continue;
+            }
+            if (preg_match('/^[ \t]*(`{3,}|~{3,})/', $line, $m) === 1) {
+                $codeFence = $m[1];
+
+                continue;
+            }
+            if (preg_match('/^[ \t]*:{3,}/', $line) === 1) {
+                $lines[$i] = str_replace(['“', '”', '„'], '"', $line);
+            }
+        }
+
+        return implode("\n", $lines);
     }
 
     /**
