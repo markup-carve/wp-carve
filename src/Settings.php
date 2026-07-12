@@ -93,6 +93,51 @@ class Settings
     }
 
     /**
+     * Settings that never change the post HTML the render cache stores: surface
+     * gates, admin/editor features, and comment-only rendering options (the
+     * cache is written and read for the 'post' context only, so comment profile
+     * and soft-break settings cannot affect it). Excluded from the render
+     * signature so toggling them does not needlessly invalidate cached renders.
+     *
+     * @var array<int, string>
+     */
+    private const NON_RENDER_KEYS = [
+        'enable_posts',
+        'enable_pages',
+        'enable_comments',
+        'enable_shortcode',
+        'enable_excerpts',
+        'live_preview',
+        'visual_editor_mode',
+        'paste_ingest',
+        'frontmatter_meta',
+        'render_cache',
+        'comment_profile',
+        'comment_soft_break',
+    ];
+
+    /**
+     * A short, stable fingerprint of every setting that influences rendered
+     * output (profiles, soft breaks, abbreviations, TOC, permalinks, smart
+     * quotes, torchlight, diagram toggles, ...). Folded into the render cache
+     * key so changing any render-affecting setting invalidates stale cached
+     * HTML - surface/editor-only toggles (see NON_RENDER_KEYS) do not.
+     *
+     * A denylist rather than an allowlist so a newly added render setting is
+     * covered by default (fresh render) instead of silently serving stale HTML.
+     */
+    public static function renderSignature(): string
+    {
+        $settings = self::all();
+        foreach (self::NON_RENDER_KEYS as $key) {
+            unset($settings[$key]);
+        }
+        ksort($settings);
+
+        return substr(md5((string)json_encode($settings)), 0, 12);
+    }
+
+    /**
      * @param array<string, mixed> $values
      */
     public static function update(array $values): void

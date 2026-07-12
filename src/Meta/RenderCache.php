@@ -70,8 +70,21 @@ class RenderCache
         // storing; without wp_slash a single backslash (e.g. the `\(` math
         // delimiters carve-php emits) would be eaten. wp_slash protects them.
         update_post_meta($postId, self::META_KEY, wp_slash($html));
-        update_post_meta($postId, self::VERSION_KEY, WPCARVE_VERSION);
+        update_post_meta($postId, self::VERSION_KEY, self::signature());
         update_post_meta($postId, self::SAFE_KEY, $safe ? '1' : '0');
+    }
+
+    /**
+     * Cache fingerprint: the plugin version plus a hash of every
+     * render-affecting setting. A plugin/engine upgrade OR any change to a
+     * rendering setting (TOC, smart quotes, torchlight theme, diagram toggles,
+     * ...) changes this, so read() treats the stored HTML as stale and
+     * re-renders on the fly - fixing the case where a settings change left every
+     * already-saved post serving its old cached output.
+     */
+    private static function signature(): string
+    {
+        return WPCARVE_VERSION . ':' . Settings::renderSignature();
     }
 
     /**
@@ -87,8 +100,9 @@ class RenderCache
         if (!Settings::get('render_cache')) {
             return null;
         }
-        if (get_post_meta($postId, self::VERSION_KEY, true) !== WPCARVE_VERSION) {
-            // Engine/plugin changed since caching; re-render on the fly.
+        if (get_post_meta($postId, self::VERSION_KEY, true) !== self::signature()) {
+            // Engine/plugin upgraded, or a render-affecting setting changed since
+            // caching; re-render on the fly.
             return null;
         }
         if ($expectedSafe !== null && (get_post_meta($postId, self::SAFE_KEY, true) === '1') !== $expectedSafe) {
