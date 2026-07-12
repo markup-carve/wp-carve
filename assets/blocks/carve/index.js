@@ -812,12 +812,27 @@
 			if ( ! ta || mode === 'split' ) {
 				if ( ta ) {
 					ta.style.height = '';
+					ta.style.overflowY = '';
 				}
 				return;
 			}
-			ta.style.height = 'auto';
-			ta.style.height = ta.scrollHeight + 2 + 'px';
-		}, [ source, mode ] );
+			const grow = () => {
+				ta.style.height = 'auto';
+				// Cap the autogrow so a long document does not stretch the block
+				// past the viewport and push the mode tabs far above the edit
+				// point. Beyond the cap the textarea scrolls internally. The
+				// floor matches the CSS min-height (18em); full screen gets more
+				// room since that mode is for focused, long-form editing.
+				const cap = Math.max( 288, ( fullscreen ? 0.85 : 0.6 ) * window.innerHeight );
+				const full = ta.scrollHeight + 2;
+				ta.style.height = Math.min( full, cap ) + 'px';
+				ta.style.overflowY = full > cap ? 'auto' : 'hidden';
+			};
+			grow();
+			// Recompute against the current viewport height on resize.
+			window.addEventListener( 'resize', grow );
+			return () => window.removeEventListener( 'resize', grow );
+		}, [ source, mode, fullscreen ] );
 
 		// In Split mode, scrolling the source scrolls the preview proportionally.
 		function syncScroll() {
