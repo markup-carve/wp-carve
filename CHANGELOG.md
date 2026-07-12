@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Bulk migration without WP-CLI: a **Tools → Carve Migrate** screen runs the
+  same analysis and conversion as `wp carve migrate`. The post list is the
+  dry-run preview (detected source per post, flagged posts explained), eligible
+  posts are pre-checked, and an optional Force converts block-editor/shortcode
+  posts too. Guarded by nonce and the `edit_others_posts` capability.
+
 ### Security
 
 - The public comment-preview REST endpoint (`POST /carve/v1/preview-comment`)
