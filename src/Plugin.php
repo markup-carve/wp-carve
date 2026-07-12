@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 use WP_CLI;
 use WP_Post;
 use WP_Query;
+use WpCarve\Admin\BulkMigrate;
 use WpCarve\Admin\ImportExport;
 use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
@@ -80,6 +81,7 @@ class Plugin
             // instead of the rich-text/block editor.
             (new PostEditor($this->converter))->register();
             (new ImportExport())->register();
+            (new BulkMigrate())->register();
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
