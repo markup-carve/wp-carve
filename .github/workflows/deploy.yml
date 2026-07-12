@@ -52,8 +52,8 @@ jobs:
           php-version: '8.2'
           tools: composer:v2
 
-      - name: Update dependencies
-        run: composer update --prefer-dist --no-progress
+      - name: Install locked dependencies
+        run: composer install --prefer-dist --no-progress
 
       - name: Check PHP syntax
         run: |
