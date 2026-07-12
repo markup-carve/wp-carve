@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- The public comment-preview REST endpoint (`POST /carve/v1/preview-comment`)
+  now refuses when Carve comment rendering is disabled and throttles anonymous
+  callers with a per-IP fixed-window rate limit (default 30/minute, filterable
+  via `wpcarve_preview_rate_limit` / `wpcarve_preview_rate_window`), so the
+  unauthenticated renderer can no longer be abused as a CPU-amplification
+  vector. Users who can edit posts are exempt.
+
+### Fixed
+
+- The render cache now invalidates when a render-affecting setting changes (TOC,
+  smart quotes, torchlight theme, diagram toggles, ...), not only on a
+  plugin/engine upgrade. Previously such a change left every already-saved post
+  serving its stale cached HTML until re-saved.
+
+### Changed
+
+- The front-end stylesheet loads only on views that actually render Carve (a
+  Carve post/block, a `[carve]` shortcode in the queried content, or a comment
+  surface) instead of on every page. The new `wpcarve_enqueue_styles` filter
+  forces it on or off for surfaces the detection cannot see.
+
 ## [0.1.1] - 2026-07-08
 
 ### Added
