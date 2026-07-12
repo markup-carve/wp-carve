@@ -425,7 +425,11 @@ class Converter
             $converter->addExtension(new MediaEmbedExtension());
         }
 
-        if (!empty($s['torchlight_enabled']) && class_exists(TorchlightExtension::class)) {
+        // Torchlight rewrites <pre> blocks into highlighted line spans that the
+        // visual editor cannot fold back into a code block - the whole fence
+        // degrades to inline-code lines on round-trip. Editor ingest needs the
+        // plain fence, like the other display-only extensions above.
+        if (!empty($s['torchlight_enabled']) && !$forEditor && class_exists(TorchlightExtension::class)) {
             $converter->addExtension(new TorchlightExtension(
                 (string)($s['torchlight_theme'] ?? 'github-light'),
                 (bool)($s['torchlight_line_numbers'] ?? false),
