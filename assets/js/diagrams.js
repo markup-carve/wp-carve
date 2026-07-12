@@ -4,8 +4,10 @@
 ( function () {
 	'use strict';
 
+	var rootDoc = document;
+
 	function each( sel, fn ) {
-		document.querySelectorAll( '.wpcarve ' + sel ).forEach( function ( el, i ) {
+		rootDoc.querySelectorAll( '.wpcarve ' + sel ).forEach( function ( el, i ) {
 			if ( el.dataset.carveRendered ) {
 				return;
 			}
@@ -123,7 +125,7 @@
 		if ( window.mermaid ) {
 			try {
 				window.mermaid.initialize( { startOnLoad: false, theme: 'default' } );
-				window.mermaid.run( { querySelector: '.wpcarve .mermaid' } );
+				window.mermaid.run( { nodes: rootDoc.querySelectorAll( '.wpcarve .mermaid' ) } );
 			} catch ( e ) {
 				window.console && console.error( 'carve mermaid:', e );
 			}
@@ -229,7 +231,17 @@
 	}
 
 	// Re-runnable entry point for dynamic surfaces (the block editor preview
-	// re-renders its pane on every keystroke). Idempotent per element via the
-	// data-carveRendered guard.
-	window.wpCarveDiagrams = { run: run };
+	// re-renders its pane on every keystroke - inside the editor-canvas
+	// iframe, so callers pass their document). Idempotent per element via
+	// the data-carveRendered guard.
+	window.wpCarveDiagrams = {
+		run: function ( doc ) {
+			rootDoc = doc || document;
+			try {
+				run();
+			} finally {
+				rootDoc = document;
+			}
+		},
+	};
 } )();

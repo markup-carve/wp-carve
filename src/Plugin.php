@@ -84,6 +84,7 @@ class Plugin
             (new BulkMigrate())->register();
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
+        add_action('enqueue_block_assets', [$this, 'enqueueEditorCanvasStyles']);
         add_action('wp_enqueue_scripts', [$this, 'enqueueFrontendAssets']);
         add_filter('script_loader_tag', [$this, 'deferFrontendScripts'], 10, 2);
         add_action('wp_head', [$this, 'autoOgImage'], 5);
@@ -199,6 +200,21 @@ class Plugin
         return $this->wrap($rendered);
     }
 
+    /**
+     * Styles that must exist INSIDE the editor-canvas iframe. Styles from
+     * enqueue_block_editor_assets land in the parent admin document only;
+     * without KaTeX's stylesheet in the iframe the MathML fallback renders
+     * visibly next to the typeset math in the preview pane.
+     */
+    public function enqueueEditorCanvasStyles(): void
+    {
+        if (!is_admin()) {
+            return;
+        }
+        $katexBase = rtrim((string)apply_filters('wpcarve_katex_base', WPCARVE_URL . 'assets/js/vendor/katex'), '/');
+        wp_enqueue_style('wpcarve-katex', esc_url_raw($katexBase . '/katex.min.css'), [], WPCARVE_VERSION);
+    }
+
     public function enqueueEditorAssets(): void
     {
         $asset = WPCARVE_DIR . 'assets/blocks/carve/index.asset.php';
@@ -219,7 +235,6 @@ class Plugin
         // editor, so enabled types load unconditionally; the preview effect in
         // index.js re-runs the initializers after each render.
         $katexBase = rtrim((string)apply_filters('wpcarve_katex_base', WPCARVE_URL . 'assets/js/vendor/katex'), '/');
-        wp_enqueue_style('wpcarve-katex', esc_url_raw($katexBase . '/katex.min.css'), [], WPCARVE_VERSION);
         wp_enqueue_script('wpcarve-katex', esc_url_raw($katexBase . '/katex.min.js'), [], WPCARVE_VERSION, true);
         wp_enqueue_script('wpcarve-katex-auto', esc_url_raw($katexBase . '/contrib/auto-render.min.js'), ['wpcarve-katex'], WPCARVE_VERSION, true);
         $needDiagrams = false;
