@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Excerpts for carve/markup block posts: they previously fell through to
+  core, which drops the dynamic block (empty excerpt) - or, when the block
+  comment is malformed (an unescaped `-->` inside the attribute JSON ends
+  the comment early), leaks the raw serialized block markup into archive
+  pages. The excerpt now renders from the carve source, salvaging the
+  attribute JSON even from malformed comments.
 - Carve code fences no longer paint GitHub-light token colors onto dark base
   themes: the carve-tuned overlay now ships a dark palette and picks it by the
   base theme's background luminance (the normalized theme `type` field is

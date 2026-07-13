@@ -234,6 +234,35 @@ if (!function_exists('esc_url_raw')) {
     }
 }
 
+if (!function_exists('parse_blocks')) {
+    /**
+     * Minimal mirror of core's comment-delimited block parser: enough for
+     * well-formed `<!-- wp:name {json} /-->` blocks; anything else is
+     * freeform (blockName null), matching how core treats malformed input.
+     *
+     * @return array<int, array{blockName: ?string, attrs: array<string, mixed>}>
+     */
+    function parse_blocks(string $content): array
+    {
+        $blocks = [];
+        $pattern = '/<!--\s+wp:([a-z][a-z0-9_-]*\/)?([a-z][a-z0-9_-]*)\s+({(?:(?!}\s+\/?-->).)*})\s+\/?-->/s';
+        if (preg_match_all($pattern, $content, $m, PREG_SET_ORDER)) {
+            foreach ($m as $match) {
+                $attrs = json_decode($match[3], true);
+                if (!is_array($attrs)) {
+                    continue;
+                }
+                $blocks[] = ['blockName' => rtrim($match[1], '/') . '/' . $match[2], 'attrs' => $attrs];
+            }
+        }
+        if ($blocks === []) {
+            $blocks[] = ['blockName' => null, 'attrs' => []];
+        }
+
+        return $blocks;
+    }
+}
+
 if (!function_exists('wp_strip_all_tags')) {
     function wp_strip_all_tags(string $text, bool $removeBreaks = false): string
     {
