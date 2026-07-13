@@ -62,6 +62,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The conditional front-end stylesheet also loads when a post references a
   synced/reusable block (`core/block`), which may contain Carve the block and
   shortcode sniff cannot see in the stored content.
+- Fence-title quote straightening handles CRLF content: the code-fence closing
+  regex tolerates a trailing carriage return, so a fenced block in
+  Windows-newline `[carve]` content closes instead of running to the end.
 
 ### Added
 
