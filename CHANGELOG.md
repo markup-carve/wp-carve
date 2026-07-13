@@ -25,7 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Optional dark-mode code theme (`torchlight_theme_dark` setting): when set,
   code blocks render both palettes in one markup (phiki dual-theme custom
-  properties) and switch by the visitor's `prefers-color-scheme`.
+  properties) and switch by the visitor's `prefers-color-scheme`. A site-level
+  toggle wins over the OS preference in both directions via the de-facto
+  `<html data-theme="dark|light">` convention.
+- The carve overlay now covers every language construct: bold-italic, math,
+  mentions, tags, attribute lines, captions, inner fence markers and language
+  words, admonition fences, headings, footnote references, images, and
+  sub/superscript delimiters - previously these fell back to the base theme
+  (often unstyled).
 
 ## [0.1.2] - 2026-07-13
 

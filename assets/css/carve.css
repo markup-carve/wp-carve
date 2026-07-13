@@ -796,11 +796,13 @@
 
 /* ---- Torchlight / Phiki highlighted output ---- */
 /* Dual-theme code blocks: when a dark-mode theme is configured, phiki emits
-   both palettes in one markup (--phiki-dark-* custom properties) and this
-   switch activates the dark set for visitors who prefer dark. */
+   both palettes in one markup (--phiki-dark-* custom properties). The dark
+   set activates for visitors who prefer dark (OS setting), and a site-level
+   toggle wins over the OS in both directions via the de-facto
+   `<html data-theme="dark|light">` convention. */
 @media (prefers-color-scheme: dark) {
-	.wpcarve pre code.phiki-themes,
-	.wpcarve pre code.phiki-themes span.token {
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes,
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes span.token {
 		color: var(--phiki-dark-color) !important;
 		background-color: var(--phiki-dark-background-color) !important;
 	}
@@ -808,9 +810,19 @@
 	/* Annotated lines ([tl! highlight] / ++ / --) carry their dark line
 	   background as --phiki-dark-background on the .line div; lines without
 	   the variable fall back to transparent (invalid var() unsets). */
-	.wpcarve pre code.phiki-themes .line {
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes .line {
 		background-color: var(--phiki-dark-background) !important;
 	}
+}
+
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes,
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes span.token {
+	color: var(--phiki-dark-color) !important;
+	background-color: var(--phiki-dark-background-color) !important;
+}
+
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes .line {
+	background-color: var(--phiki-dark-background) !important;
 }
 
 .wpcarve pre code.torchlight {
