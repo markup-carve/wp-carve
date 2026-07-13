@@ -210,6 +210,28 @@ $carve_check(
     $carve_snippet($chartHtml),
 );
 
+// --- Paste ingest: converts, and caps oversize input --------------------------
+// The ingest route needs edit_posts; run it as the admin user.
+$carve_prev_ingest_user = get_current_user_id();
+wp_set_current_user(1);
+
+$ingest_ok = new WP_REST_Request('POST', '/carve/v1/ingest');
+$ingest_ok->set_param('source', '# Hello world');
+$ingest_ok->set_param('from', 'markdown');
+$ingest_ok_res = rest_get_server()->dispatch($ingest_ok);
+$carve_check(
+    'ingest converts a small Markdown paste',
+    $ingest_ok_res->get_status() === 200 && str_contains((string)($ingest_ok_res->get_data()['carve'] ?? ''), 'Hello world'),
+    $carve_snippet((string)($ingest_ok_res->get_data()['carve'] ?? '')),
+);
+
+$ingest_big = new WP_REST_Request('POST', '/carve/v1/ingest');
+$ingest_big->set_param('source', str_repeat('a', 512001));
+$ingest_big_res = rest_get_server()->dispatch($ingest_big);
+$carve_check('ingest rejects an oversize paste with 413', $ingest_big_res->get_status() === 413);
+
+wp_set_current_user($carve_prev_ingest_user);
+
 // --- Summary ------------------------------------------------------------------
 fwrite(STDOUT, "\n");
 if ($carve_failures !== []) {

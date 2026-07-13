@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Diagram export: hovering a rendered diagram on the front end reveals a
+  **Download** control (and **Copy SVG** for the SVG renderers - Mermaid,
+  Graphviz, WaveDrom, ABC). SVG diagrams save as `.svg`; canvas renderers
+  (Chart.js, Vega-Lite) save as `.png`.
 - Bulk migration without WP-CLI: a **Tools → Carve Migrate** screen runs the
   same analysis and conversion as `wp carve migrate`. The post list is the
   dry-run preview (detected source per post, flagged posts explained), eligible
@@ -17,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- The paste-ingest endpoint (`POST /carve/v1/ingest`) now rejects input over
+  512 KB with a `413`, bounding the conversion work an authenticated editor can
+  trigger.
 - The public comment-preview REST endpoint (`POST /carve/v1/preview-comment`)
   now refuses when Carve comment rendering is disabled and throttles anonymous
   callers with a per-IP fixed-window rate limit (default 30/minute, filterable
@@ -26,6 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `window.wpCarveDiagrams.rerenderCharts` is no longer dropped: the object was
+  reassigned wholesale when `run` was attached, removing the chart theme
+  re-render helper set earlier.
 - An admonition with a custom title (`::: tip "Pro tip"`) keeps its per-type
   icon: the icon now renders on the title line itself; previously the whole
   icon-plus-label pseudo-element was suppressed together with the auto label.
@@ -43,6 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Minimum WordPress raised to **6.3** (from 6.0): the blocks use Block API v3,
+  which requires 6.3, so the previous floor was inaccurate.
 - The front-end stylesheet loads only on views that actually render Carve (a
   Carve post/block, a `[carve]` shortcode in the queried content, or a comment
   surface) instead of on every page. The new `wpcarve_enqueue_styles` filter

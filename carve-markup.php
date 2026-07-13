@@ -9,7 +9,7 @@ use WpCarve\Plugin;
  * Plugin URI: https://github.com/markup-carve/wp-carve
  * Description: Write posts, pages and comments in the Carve markup language. Live in-browser preview, multi-format paste, frontmatter-to-meta, render caching and a REST API.
  * Version: 0.1.1
- * Requires at least: 6.0
+ * Requires at least: 6.3
  * Requires PHP: 8.2
  * Author: Mark Scherer
  * Author URI: https://www.dereuromark.de

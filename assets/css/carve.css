@@ -158,6 +158,65 @@
 	max-height: none;
 }
 
+/* Diagram export controls (copy / download), revealed on hover. */
+.wpcarve .mermaid,
+.wpcarve .chart,
+.wpcarve .vega-lite,
+.wpcarve .graphviz,
+.wpcarve .wavedrom,
+.wpcarve .abc {
+	position: relative;
+}
+
+.wpcarve-diagram-tools {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 2;
+	display: flex;
+	gap: 4px;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.wpcarve .mermaid:hover .wpcarve-diagram-tools,
+.wpcarve .chart:hover .wpcarve-diagram-tools,
+.wpcarve .vega-lite:hover .wpcarve-diagram-tools,
+.wpcarve .graphviz:hover .wpcarve-diagram-tools,
+.wpcarve .wavedrom:hover .wpcarve-diagram-tools,
+.wpcarve .abc:hover .wpcarve-diagram-tools,
+.wpcarve-diagram-tools:focus-within {
+	opacity: 1;
+}
+
+.wpcarve-diagram-btn {
+	font: inherit;
+	font-size: 11px;
+	line-height: 1.4;
+	padding: 2px 8px;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 4px;
+	background: rgba(255, 255, 255, 0.92);
+	color: #1e1e1e;
+	cursor: pointer;
+}
+
+.wpcarve-diagram-btn:hover {
+	border-color: rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+	.wpcarve-diagram-btn {
+		background: rgba(30, 30, 30, 0.92);
+		color: #ededed;
+		border-color: rgba(255, 255, 255, 0.22);
+	}
+
+	.wpcarve-diagram-btn:hover {
+		border-color: rgba(255, 255, 255, 0.5);
+	}
+}
+
 .wpcarve-cheat {
 	margin: 0;
 	list-style: none;
