@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-13
+
 ### Added
 
 - Diagram export (opt-in via the `diagram_export` setting, off by default):
@@ -115,5 +117,7 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.0...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.2...HEAD
+[0.1.2]: https://github.com/markup-carve/wp-carve/compare/0.1.1...0.1.2
+[0.1.1]: https://github.com/markup-carve/wp-carve/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/markup-carve/wp-carve/releases/tag/0.1.0

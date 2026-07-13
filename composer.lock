@@ -161,16 +161,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.8.2",
+            "version": "2.8.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "59fb075d2101740c337c7216e3f32b36c204218b"
+                "reference": "1902f60f984235023acbe03db6ad614a37b3c3e7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/59fb075d2101740c337c7216e3f32b36c204218b",
-                "reference": "59fb075d2101740c337c7216e3f32b36c204218b",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/1902f60f984235023acbe03db6ad614a37b3c3e7",
+                "reference": "1902f60f984235023acbe03db6ad614a37b3c3e7",
                 "shasum": ""
             },
             "require": {
@@ -192,8 +192,8 @@
                 "github/gfm": "0.29.0",
                 "michelf/php-markdown": "^1.4 || ^2.0",
                 "nyholm/psr7": "^1.5",
-                "phpstan/phpstan": "^1.8.2",
-                "phpunit/phpunit": "^9.5.21 || ^10.5.9 || ^11.0.0",
+                "phpstan/phpstan": "^2.0.0",
+                "phpunit/phpunit": "^9.5.21 || ^10.5.9 || ^11.0.0 || ^12.0.0 || ^13.0.0",
                 "scrutinizer/ocular": "^1.8.1",
                 "symfony/finder": "^5.3 | ^6.0 | ^7.0 || ^8.0",
                 "symfony/process": "^5.4 | ^6.0 | ^7.0 || ^8.0",
@@ -264,7 +264,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-19T13:16:38+00:00"
+            "time": "2026-07-12T15:29:16+00:00"
         },
         {
             "name": "league/config",
@@ -354,12 +354,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "b8b09bdc5e336411b51dc2278a63b865fc9f5ab5"
+                "reference": "955553212e9ffc89ac41105afbc386472f1c34cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/b8b09bdc5e336411b51dc2278a63b865fc9f5ab5",
-                "reference": "b8b09bdc5e336411b51dc2278a63b865fc9f5ab5",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/955553212e9ffc89ac41105afbc386472f1c34cb",
+                "reference": "955553212e9ffc89ac41105afbc386472f1c34cb",
                 "shasum": ""
             },
             "require": {
@@ -391,7 +391,7 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-07-09T12:55:44+00:00"
+            "time": "2026-07-12T22:10:46+00:00"
         },
         {
             "name": "markup-carve/carve-php",
@@ -399,12 +399,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "ff989a8d8d49d7719db4129c76e2db974b0f4181"
+                "reference": "88a897804ad1c88ea1f006f7e958dc01338609be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/ff989a8d8d49d7719db4129c76e2db974b0f4181",
-                "reference": "ff989a8d8d49d7719db4129c76e2db974b0f4181",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/88a897804ad1c88ea1f006f7e958dc01338609be",
+                "reference": "88a897804ad1c88ea1f006f7e958dc01338609be",
                 "shasum": ""
             },
             "require": {
@@ -461,7 +461,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-07-11T20:04:43+00:00"
+            "time": "2026-07-13T07:44:31+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
@@ -2407,16 +2407,16 @@
         },
         {
             "name": "rector/rector",
-            "version": "2.5.5",
+            "version": "2.5.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "9718a72e7f1aacacbdcb6eeed07a47147bce802e"
+                "reference": "c329e210d17f86d70424f2688e1294495f44c670"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/9718a72e7f1aacacbdcb6eeed07a47147bce802e",
-                "reference": "9718a72e7f1aacacbdcb6eeed07a47147bce802e",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/c329e210d17f86d70424f2688e1294495f44c670",
+                "reference": "c329e210d17f86d70424f2688e1294495f44c670",
                 "shasum": ""
             },
             "require": {
@@ -2455,7 +2455,7 @@
             ],
             "support": {
                 "issues": "https://github.com/rectorphp/rector/issues",
-                "source": "https://github.com/rectorphp/rector/tree/2.5.5"
+                "source": "https://github.com/rectorphp/rector/tree/2.5.6"
             },
             "funding": [
                 {
@@ -2463,7 +2463,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-07-09T09:48:44+00:00"
+            "time": "2026-07-12T10:21:06+00:00"
         },
         {
             "name": "sebastian/cli-parser",
