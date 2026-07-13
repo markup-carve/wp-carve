@@ -31,7 +31,12 @@ if (!is_file($file)) {
     exit(0);
 }
 
-$content = (string)file_get_contents($file);
+$content = file_get_contents($file);
+
+if ($content === false) {
+    fwrite(STDERR, "patch-phiki-offsets: failed to read {$file}.\n");
+    exit(1);
+}
 
 if (str_contains($content, 'wpcarve-capture-offset-patch')) {
     echo "patch-phiki-offsets: already applied.\n";
@@ -98,5 +103,9 @@ $content = str_replace(
     $content,
 );
 
-file_put_contents($file, $content);
+if (file_put_contents($file, $content) === false) {
+    fwrite(STDERR, "patch-phiki-offsets: failed to write {$file}.\n");
+    exit(1);
+}
+
 echo "patch-phiki-offsets: applied.\n";

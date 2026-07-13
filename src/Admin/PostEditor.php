@@ -83,7 +83,7 @@ class PostEditor
 
         $engine = WPCARVE_DIR . 'assets/js/vendor/carve.js';
         if (Settings::get('live_preview') && is_readable($engine)) {
-            wp_enqueue_script('wpcarve-engine', WPCARVE_URL . 'assets/js/vendor/carve.js', [], WPCARVE_VERSION, true);
+            wp_enqueue_script('wpcarve-engine', WPCARVE_URL . 'assets/js/vendor/carve.js', [], $this->assetVersion('assets/js/vendor/carve.js'), true);
             $deps[] = 'wpcarve-engine';
         }
 
