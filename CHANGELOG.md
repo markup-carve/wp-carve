@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Mermaid diagrams follow the effective color scheme: the initial render
+  picks the mermaid theme from the site toggle (or OS preference) instead of
+  always rendering light, and diagrams re-render on scheme changes alongside
+  charts.
 - All plugin dark-mode surface styles (admonitions, tabs, code groups, TOC
   boxes, comment tabs) now honor a site-level `<html data-theme="dark|light">`
   toggle in both directions, instead of only the OS color-scheme preference -
