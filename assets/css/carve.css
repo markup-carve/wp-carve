@@ -206,16 +206,27 @@
 }
 
 @media (prefers-color-scheme: dark) {
-	.wpcarve-diagram-btn {
+:root:not([data-theme="light"]) .wpcarve-diagram-btn {
 		background: rgba(30, 30, 30, 0.92);
 		color: #ededed;
 		border-color: rgba(255, 255, 255, 0.22);
 	}
 
-	.wpcarve-diagram-btn:hover {
+:root:not([data-theme="light"]) .wpcarve-diagram-btn:hover {
 		border-color: rgba(255, 255, 255, 0.5);
 	}
 }
+
+/* Site toggle forces dark regardless of the OS preference. */
+:root[data-theme="dark"] .wpcarve-diagram-btn {
+		background: rgba(30, 30, 30, 0.92);
+		color: #ededed;
+		border-color: rgba(255, 255, 255, 0.22);
+	}
+
+:root[data-theme="dark"] .wpcarve-diagram-btn:hover {
+		border-color: rgba(255, 255, 255, 0.5);
+	}
 
 .wpcarve-cheat {
 	margin: 0;
@@ -658,19 +669,35 @@
 }
 
 @media (prefers-color-scheme: dark) {
-	.wpcarve-chart-data > summary {
+:root:not([data-theme="light"]) .wpcarve-chart-data > summary {
 		color: #8b949e;
 	}
 
-	.wpcarve-chart-data :is(th, td) {
+:root:not([data-theme="light"]) .wpcarve-chart-data :is(th,
+:root:not([data-theme="light"]) td) {
 		border-color: #30363d;
 	}
 
-	.wpcarve-chart-data th[scope="row"],
-	.wpcarve-chart-data thead th {
+:root:not([data-theme="light"]) .wpcarve-chart-data th[scope="row"],
+:root:not([data-theme="light"]) .wpcarve-chart-data thead th {
 		background: #161b22;
 	}
 }
+
+/* Site toggle forces dark regardless of the OS preference. */
+:root[data-theme="dark"] .wpcarve-chart-data > summary {
+		color: #8b949e;
+	}
+
+:root[data-theme="dark"] .wpcarve-chart-data :is(th,
+:root[data-theme="dark"] td) {
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve-chart-data th[scope="row"],
+:root[data-theme="dark"] .wpcarve-chart-data thead th {
+		background: #161b22;
+	}
 
 /* Mermaid: no code styling; hide the raw source until the SVG is drawn. */
 .wpcarve pre.mermaid {
@@ -1235,48 +1262,91 @@
 }
 
 @media (prefers-color-scheme: dark) {
-	.wpcarve-comment-tabs,
-	.wpcarve-comment-tabs + .wpcarve-comment-toolbar {
+:root:not([data-theme="light"]) .wpcarve-comment-tabs,
+:root:not([data-theme="light"]) .wpcarve-comment-tabs + .wpcarve-comment-toolbar {
 		background: #161b22;
 		border-color: #30363d;
 	}
 
-	.wpcarve-comment-toolbar button {
+:root:not([data-theme="light"]) .wpcarve-comment-toolbar button {
 		color: #c9d1d9;
 		background: #21262d;
 		border-color: #30363d;
 	}
 
-	.wpcarve-comment-toolbar button:hover {
+:root:not([data-theme="light"]) .wpcarve-comment-toolbar button:hover {
 		background: #30363d;
 	}
 
-	.wpcarve-tab {
+:root:not([data-theme="light"]) .wpcarve-tab {
 		color: #8b949e;
 	}
 
-	.wpcarve-tab:hover,
-	.wpcarve-tab:focus-visible {
+:root:not([data-theme="light"]) .wpcarve-tab:hover,
+:root:not([data-theme="light"]) .wpcarve-tab:focus-visible {
 		color: #c9d1d9;
 		background: rgba(255, 255, 255, 0.05);
 	}
 
-	.wpcarve-tab.is-active {
+:root:not([data-theme="light"]) .wpcarve-tab.is-active {
 		color: #c9d1d9;
 	}
 
-	.wpcarve-comment-preview {
+:root:not([data-theme="light"]) .wpcarve-comment-preview {
 		background: #0d1117;
 		border-color: #30363d;
 		color: #c9d1d9;
 	}
 
-	.wpcarve-preview-empty,
-	.wpcarve-preview-loading,
-	.wpcarve-preview-error {
+:root:not([data-theme="light"]) .wpcarve-preview-empty,
+:root:not([data-theme="light"]) .wpcarve-preview-loading,
+:root:not([data-theme="light"]) .wpcarve-preview-error {
 		color: #8b949e;
 	}
 }
+
+/* Site toggle forces dark regardless of the OS preference. */
+:root[data-theme="dark"] .wpcarve-comment-tabs,
+:root[data-theme="dark"] .wpcarve-comment-tabs + .wpcarve-comment-toolbar {
+		background: #161b22;
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve-comment-toolbar button {
+		color: #c9d1d9;
+		background: #21262d;
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve-comment-toolbar button:hover {
+		background: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve-tab {
+		color: #8b949e;
+	}
+
+:root[data-theme="dark"] .wpcarve-tab:hover,
+:root[data-theme="dark"] .wpcarve-tab:focus-visible {
+		color: #c9d1d9;
+		background: rgba(255, 255, 255, 0.05);
+	}
+
+:root[data-theme="dark"] .wpcarve-tab.is-active {
+		color: #c9d1d9;
+	}
+
+:root[data-theme="dark"] .wpcarve-comment-preview {
+		background: #0d1117;
+		border-color: #30363d;
+		color: #c9d1d9;
+	}
+
+:root[data-theme="dark"] .wpcarve-preview-empty,
+:root[data-theme="dark"] .wpcarve-preview-loading,
+:root[data-theme="dark"] .wpcarve-preview-error {
+		color: #8b949e;
+	}
 
 .permalink.is-copied {
 	color: #16a34a;
@@ -1660,72 +1730,148 @@
    constructs that carry their own background are recolored. Per-type admonition
    accents come from --carve-accent and are kept. */
 @media (prefers-color-scheme: dark) {
-	.wpcarve pre:not(.mermaid),
-	.wpcarve-preview pre:not(.mermaid) {
+:root:not([data-theme="light"]) .wpcarve pre:not(.mermaid),
+:root:not([data-theme="light"]) .wpcarve-preview pre:not(.mermaid) {
 		background: #161b22;
 		color: #c9d1d9;
 	}
 
-	.wpcarve :not(pre) > code {
+:root:not([data-theme="light"]) .wpcarve :not(pre) > code {
 		background: #262b33;
 		color: #c9d1d9;
 		border-radius: 3px;
 	}
 
-	.wpcarve .admonition {
+:root:not([data-theme="light"]) .wpcarve .admonition {
 		background: #161b22;
 		color: #c9d1d9;
 	}
 
-	.wpcarve :is(th, td) {
+:root:not([data-theme="light"]) .wpcarve :is(th,
+:root:not([data-theme="light"]) td) {
 		border-color: #30363d;
 	}
 
-	.wpcarve thead th {
+:root:not([data-theme="light"]) .wpcarve thead th {
 		background: #161b22;
 	}
 
-	.wpcarve tbody tr:nth-child(even) {
+:root:not([data-theme="light"]) .wpcarve tbody tr:nth-child(even) {
 		background: #12161c;
 	}
 
-	.wpcarve caption {
+:root:not([data-theme="light"]) .wpcarve caption {
 		color: #8b949e;
 	}
 
-	.wpcarve blockquote {
+:root:not([data-theme="light"]) .wpcarve blockquote {
 		border-color: #30363d;
 		color: #adbac7;
 	}
 
-	.wpcarve .toc {
+:root:not([data-theme="light"]) .wpcarve .toc {
 		background: #161b22;
 		border-color: #30363d;
 	}
 
-	.wpcarve [role="doc-endnotes"] {
+:root:not([data-theme="light"]) .wpcarve [role="doc-endnotes"] {
 		color: #8b949e;
 	}
 
-	.wpcarve [role="doc-endnotes"] hr {
+:root:not([data-theme="light"]) .wpcarve [role="doc-endnotes"] hr {
 		border-color: #30363d;
 	}
 
-	.wpcarve [role="doc-endnotes"] li:target {
+:root:not([data-theme="light"]) .wpcarve [role="doc-endnotes"] li:target {
 		background: #2d2a16;
 	}
 
-	/* Editor surfaces (block source, previews, visual editor). */
+:root:not([data-theme="light"]) /* Editor surfaces (block source,
+:root:not([data-theme="light"]) previews,
+:root:not([data-theme="light"]) visual editor). */
 	.wpcarve-source,
-	.wpcarve-preview,
-	#wpcarve-live-preview,
-	.wpcarve-ve-surface {
+:root:not([data-theme="light"]) .wpcarve-preview,
+:root:not([data-theme="light"]) #wpcarve-live-preview,
+:root:not([data-theme="light"]) .wpcarve-ve-surface {
 		background: #0d1117;
 		color: #c9d1d9;
 		border-color: #30363d;
 	}
 
-	.wpcarve-block.is-carve-fullscreen {
+:root:not([data-theme="light"]) .wpcarve-block.is-carve-fullscreen {
 		background: #0d1117;
 	}
 }
+
+/* Site toggle forces dark regardless of the OS preference. */
+:root[data-theme="dark"] .wpcarve pre:not(.mermaid),
+:root[data-theme="dark"] .wpcarve-preview pre:not(.mermaid) {
+		background: #161b22;
+		color: #c9d1d9;
+	}
+
+:root[data-theme="dark"] .wpcarve :not(pre) > code {
+		background: #262b33;
+		color: #c9d1d9;
+		border-radius: 3px;
+	}
+
+:root[data-theme="dark"] .wpcarve .admonition {
+		background: #161b22;
+		color: #c9d1d9;
+	}
+
+:root[data-theme="dark"] .wpcarve :is(th,
+:root[data-theme="dark"] td) {
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve thead th {
+		background: #161b22;
+	}
+
+:root[data-theme="dark"] .wpcarve tbody tr:nth-child(even) {
+		background: #12161c;
+	}
+
+:root[data-theme="dark"] .wpcarve caption {
+		color: #8b949e;
+	}
+
+:root[data-theme="dark"] .wpcarve blockquote {
+		border-color: #30363d;
+		color: #adbac7;
+	}
+
+:root[data-theme="dark"] .wpcarve .toc {
+		background: #161b22;
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve [role="doc-endnotes"] {
+		color: #8b949e;
+	}
+
+:root[data-theme="dark"] .wpcarve [role="doc-endnotes"] hr {
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve [role="doc-endnotes"] li:target {
+		background: #2d2a16;
+	}
+
+:root[data-theme="dark"] /* Editor surfaces (block source,
+:root[data-theme="dark"] previews,
+:root[data-theme="dark"] visual editor). */
+	.wpcarve-source,
+:root[data-theme="dark"] .wpcarve-preview,
+:root[data-theme="dark"] #wpcarve-live-preview,
+:root[data-theme="dark"] .wpcarve-ve-surface {
+		background: #0d1117;
+		color: #c9d1d9;
+		border-color: #30363d;
+	}
+
+:root[data-theme="dark"] .wpcarve-block.is-carve-fullscreen {
+		background: #0d1117;
+	}
