@@ -535,6 +535,11 @@ class Plugin
                 get_post_meta($post->ID, '_wpcarve_enabled', true)
                 || has_block('carve/markup', $post)
                 || has_block('carve/slides', $post)
+                // A synced/reusable block (core/block) only stores a reference
+                // here; do_blocks() resolves the referenced block later, which
+                // may contain Carve. We cannot cheaply see inside, so enqueue
+                // conservatively when any reusable block is present.
+                || has_block('core/block', $post)
             ) {
                 return true;
             }

@@ -59,6 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The front-end `diagrams.js` and the local `carve.js` engine bundle are now
   cache-busted by file mtime like the other local assets, so a rebuild is picked
   up without a plugin version bump.
+- The conditional front-end stylesheet also loads when a post references a
+  synced/reusable block (`core/block`), which may contain Carve the block and
+  shortcode sniff cannot see in the stored content.
 
 ### Added
 
