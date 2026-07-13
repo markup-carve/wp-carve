@@ -108,6 +108,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   smart quotes, torchlight theme, diagram toggles, ...), not only on a
   plugin/engine upgrade. Previously such a change left every already-saved post
   serving its stale cached HTML until re-saved.
+- Dark-mode code highlighting no longer leaves parts of a token in its light
+  color: the phiki dark rules now recolor every `span` in a highlighted block,
+  not only spans carrying a `.token` class (phiki emits some without it).
+- Code-group tab strips (`::: code-group`) now follow the active theme in dark
+  mode instead of staying hardcoded light, matching the OS preference and the
+  site theme toggle in both directions.
+- The phiki offset patcher (`scripts/patch-phiki-offsets.php`) now fails loudly
+  (writes to STDERR and exits non-zero) when it cannot read or write the target
+  file, instead of reporting success after a silent I/O failure.
+- The front-end `diagrams.js` and the local `carve.js` engine bundle are now
+  cache-busted by file mtime like the other local assets, so a rebuild is picked
+  up without a plugin version bump.
 
 ### Changed
 

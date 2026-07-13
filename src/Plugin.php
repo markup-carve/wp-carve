@@ -361,7 +361,7 @@ class Plugin
         // absent, the editor falls back to the REST render endpoint.
         $engine = WPCARVE_DIR . 'assets/js/vendor/carve.js';
         if (Settings::get('live_preview') && is_readable($engine)) {
-            wp_enqueue_script('wpcarve-engine', WPCARVE_URL . 'assets/js/vendor/carve.js', [], WPCARVE_VERSION, true);
+            wp_enqueue_script('wpcarve-engine', WPCARVE_URL . 'assets/js/vendor/carve.js', [], $this->assetVersion('assets/js/vendor/carve.js'), true);
             $deps[] = 'wpcarve-engine';
         }
 
@@ -663,7 +663,7 @@ class Plugin
             }
         }
         if ($needDiagrams) {
-            wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], WPCARVE_VERSION, true);
+            wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], $this->assetVersion('assets/js/diagrams.js'), true);
             // Mermaid auto-runs on DOMContentLoaded (startOnLoad defaults to
             // true), racing diagrams.js: the source stash could capture an
             // already-rendered SVG, and a scheme-change re-render then fed
