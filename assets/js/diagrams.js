@@ -300,6 +300,11 @@
 				if ( n.dataset.carveSource === undefined ) {
 					n.dataset.carveSource = n.textContent;
 				}
+				// Unpark nodes deferred by the inline stash (data-processed
+				// blocks mermaid's own auto-run so the stash can never race).
+				if ( n.getAttribute( 'data-processed' ) === 'carve-defer' ) {
+					n.removeAttribute( 'data-processed' );
+				}
 			} );
 			try {
 				window.mermaid.initialize( { startOnLoad: false, theme: effectiveDark() ? 'dark' : 'default' } );
