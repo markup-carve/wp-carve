@@ -1,6 +1,6 @@
 {
   "name": "@markup-carve/wp-carve",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
   "license": "MIT",

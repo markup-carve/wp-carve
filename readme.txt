@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,17 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.2 =
+* New: bulk migration screen (Tools -> Carve Migrate) converts existing posts to Carve without WP-CLI; the list is a dry-run preview.
+* New: opt-in diagram export - hover a rendered diagram to Copy SVG or Download it (SVG, or PNG for Chart.js/Vega-Lite). Enable under Settings -> Code & diagrams.
+* Security: the public comment-preview endpoint is now gated and per-IP rate-limited; the paste-ingest endpoint rejects oversized input.
+* Fixed: changing a rendering setting (table of contents, smart quotes, theme, diagram toggles) now refreshes cached posts instead of serving stale HTML.
+* Fixed: [carve] shortcode fence titles such as ::: tab "Overview" keep their quotes and parse correctly.
+* Fixed: admonitions with a custom title keep their per-type icon.
+* Fixed: the Write-mode source field no longer grows past the viewport, keeping the mode tabs reachable.
+* Changed: the front-end stylesheet loads only on pages that actually render Carve.
+* Changed: minimum WordPress raised to 6.3 (blocks use Block API v3).
 
 = 0.1.1 =
 * Fixed content tabs and code groups: added the missing tab styles and preserved the radio group name through sanitization, so panels switch correctly.
