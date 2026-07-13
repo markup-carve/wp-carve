@@ -107,8 +107,47 @@
 	// listened to directly. Deferred past typical color transitions - reading
 	// the computed ink synchronously would capture the OLD color at t=0 of a
 	// `transition: color` on body.
+	// A site toggle via html[data-theme] wins over the OS preference.
+	function effectiveDark() {
+		var t = document.documentElement.dataset.theme;
+		if ( t === 'dark' ) {
+			return true;
+		}
+		if ( t === 'light' ) {
+			return false;
+		}
+		return !! ( window.matchMedia && window.matchMedia( '(prefers-color-scheme: dark)' ).matches );
+	}
+
+	function rerenderMermaid() {
+		if ( ! window.mermaid ) {
+			return;
+		}
+		var nodes = document.querySelectorAll( '.wpcarve .mermaid' );
+		if ( ! nodes.length ) {
+			return;
+		}
+		nodes.forEach( function ( n ) {
+			if ( n.dataset.carveSource === undefined ) {
+				return;
+			}
+			n.removeAttribute( 'data-processed' );
+			n.innerHTML = '';
+			n.textContent = n.dataset.carveSource;
+		} );
+		try {
+			window.mermaid.initialize( { startOnLoad: false, theme: effectiveDark() ? 'dark' : 'default' } );
+			window.mermaid.run( { nodes: nodes } );
+		} catch ( e ) {
+			window.console && console.error( 'carve mermaid:', e );
+		}
+	}
+
 	function scheduleRerender() {
-		setTimeout( rerenderCharts, 300 );
+		setTimeout( function () {
+			rerenderCharts();
+			rerenderMermaid();
+		}, 300 );
 	}
 
 	document.addEventListener( 'wpcarve:scheme-change', scheduleRerender );
@@ -254,10 +293,21 @@
 	}
 
 	function run() {
-		// Mermaid (text in <pre class="mermaid">).
+		// Mermaid (text in <pre class="mermaid">). Sources are stashed so a
+		// scheme change can re-render with the matching mermaid theme.
 		if ( window.mermaid ) {
+			rootDoc.querySelectorAll( '.wpcarve .mermaid' ).forEach( function ( n ) {
+				if ( n.dataset.carveSource === undefined ) {
+					n.dataset.carveSource = n.textContent;
+				}
+				// Unpark nodes deferred by the inline stash (data-processed
+				// blocks mermaid's own auto-run so the stash can never race).
+				if ( n.getAttribute( 'data-processed' ) === 'carve-defer' ) {
+					n.removeAttribute( 'data-processed' );
+				}
+			} );
 			try {
-				window.mermaid.initialize( { startOnLoad: false, theme: 'default' } );
+				window.mermaid.initialize( { startOnLoad: false, theme: effectiveDark() ? 'dark' : 'default' } );
 				window.mermaid.run( { nodes: rootDoc.querySelectorAll( '.wpcarve .mermaid' ) } );
 			} catch ( e ) {
 				window.console && console.error( 'carve mermaid:', e );

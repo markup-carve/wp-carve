@@ -664,6 +664,19 @@ class Plugin
         }
         if ($needDiagrams) {
             wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], WPCARVE_VERSION, true);
+            // Mermaid auto-runs on DOMContentLoaded (startOnLoad defaults to
+            // true), racing diagrams.js: the source stash could capture an
+            // already-rendered SVG, and a scheme-change re-render then fed
+            // that garbage back to mermaid ("Syntax error in text"). Stash and
+            // park every diagram BEFORE the vendor scripts run their handlers:
+            // data-processed makes mermaid's auto-run skip the node;
+            // diagrams.js unparks it.
+            $park = 'document.querySelectorAll(".wpcarve .mermaid").forEach(function(n){'
+                . 'if(n.dataset.carveSource===undefined){'
+                . 'n.dataset.carveSource=n.textContent;'
+                . 'n.setAttribute("data-processed","carve-defer");'
+                . '}});';
+            wp_add_inline_script('wpcarve-diagrams', $park, 'before');
             // Config + labels for the hover copy/download controls on rendered
             // diagrams. `export` gates the controls (off by default).
             wp_localize_script('wpcarve-diagrams', 'wpCarveDiagramsL10n', [

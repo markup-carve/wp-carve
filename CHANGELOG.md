@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Mermaid re-renders no longer produce "Syntax error in text": the source
+  stash raced mermaid's own DOMContentLoaded auto-run and could capture an
+  already-rendered SVG; diagrams are now stashed and parked before the vendor
+  scripts run (data-processed blocks the auto-run) and unparked by the
+  scheme-aware renderer.
+- Mermaid diagrams follow the effective color scheme: the initial render
+  picks the mermaid theme from the site toggle (or OS preference) instead of
+  always rendering light, and diagrams re-render on scheme changes alongside
+  charts.
+- All plugin dark-mode surface styles (admonitions, tabs, code groups, TOC
+  boxes, comment tabs) now honor a site-level `<html data-theme="dark|light">`
+  toggle in both directions, instead of only the OS color-scheme preference -
+  matching the behavior the code blocks already had.
+
+### Fixed
+
 - Pasting Carve into the block no longer offers a bogus "convert from
   Markdown" prompt: the sniff triggered on any `[`, `**`, or `# ` - all
   ordinary Carve syntax. Carve-distinctive structure (`:::` fences, `|=`
