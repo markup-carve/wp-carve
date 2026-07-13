@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-07-14
+
 ### Fixed
 
 - Mermaid re-renders no longer produce "Syntax error in text": the source
@@ -22,9 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   boxes, comment tabs) now honor a site-level `<html data-theme="dark|light">`
   toggle in both directions, instead of only the OS color-scheme preference -
   matching the behavior the code blocks already had.
-
-### Fixed
-
 - Pasting Carve into the block no longer offers a bogus "convert from
   Markdown" prompt: the sniff triggered on any `[`, `**`, or `# ` - all
   ordinary Carve syntax. Carve-distinctive structure (`:::` fences, `|=`
@@ -48,6 +47,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   + the dist build) until the upstream fix ships.
 - Underlined text inside carve fences is styled again (the overlay targeted
   `markup.underline.carve` while the grammar emits `markup.underline.text.carve`).
+- Dark-mode code highlighting no longer leaves parts of a token in its light
+  color: the phiki dark rules now recolor every `span` in a highlighted block,
+  not only spans carrying a `.token` class (phiki emits some without it).
+- Code-group tab strips (`::: code-group`) now follow the active theme in dark
+  mode instead of staying hardcoded light, matching the OS preference and the
+  site theme toggle in both directions.
+- The phiki offset patcher (`scripts/patch-phiki-offsets.php`) now fails loudly
+  (writes to STDERR and exits non-zero) when it cannot read or write the target
+  file, instead of reporting success after a silent I/O failure.
+- The front-end `diagrams.js` and the local `carve.js` engine bundle are now
+  cache-busted by file mtime like the other local assets, so a rebuild is picked
+  up without a plugin version bump.
 
 ### Added
 
@@ -108,18 +119,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   smart quotes, torchlight theme, diagram toggles, ...), not only on a
   plugin/engine upgrade. Previously such a change left every already-saved post
   serving its stale cached HTML until re-saved.
-- Dark-mode code highlighting no longer leaves parts of a token in its light
-  color: the phiki dark rules now recolor every `span` in a highlighted block,
-  not only spans carrying a `.token` class (phiki emits some without it).
-- Code-group tab strips (`::: code-group`) now follow the active theme in dark
-  mode instead of staying hardcoded light, matching the OS preference and the
-  site theme toggle in both directions.
-- The phiki offset patcher (`scripts/patch-phiki-offsets.php`) now fails loudly
-  (writes to STDERR and exits non-zero) when it cannot read or write the target
-  file, instead of reporting success after a silent I/O failure.
-- The front-end `diagrams.js` and the local `carve.js` engine bundle are now
-  cache-busted by file mtime like the other local assets, so a rebuild is picked
-  up without a plugin version bump.
 
 ### Changed
 
@@ -184,7 +183,8 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.2...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.3...HEAD
+[0.1.3]: https://github.com/markup-carve/wp-carve/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/markup-carve/wp-carve/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/markup-carve/wp-carve/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/markup-carve/wp-carve/releases/tag/0.1.0

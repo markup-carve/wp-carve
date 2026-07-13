@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,14 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.3 =
+* New: optional dark-mode code theme (the `torchlight_theme_dark` setting) - code blocks render both palettes and switch by the visitor's color scheme, with a site theme toggle winning over the OS in both directions.
+* Fixed: Mermaid diagrams render in the effective color scheme and re-render on scheme changes, without the "Syntax error in text" a race with the vendor auto-run could cause.
+* Fixed: all dark-mode surface styles (admonitions, tabs, code groups, TOC boxes, comment tabs) follow a site theme toggle in both directions, not only the OS preference.
+* Fixed: carve code-fence highlighting ships dark palettes (no light-theme colors on dark backgrounds), closing inline delimiters keep their color, underlined text is styled again, and the overlay now covers every construct.
+* Fixed: pasting Carve no longer offers a bogus "convert from Markdown" prompt, and the block excerpt renders from the Carve source instead of leaking raw block markup onto archive pages.
+* Fixed: code-group tab strips follow the theme in dark mode; the phiki offset patcher fails loudly on read/write errors; local assets cache-bust by file mtime.
 
 = 0.1.2 =
 * New: bulk migration screen (Tools -> Carve Migrate) converts existing posts to Carve without WP-CLI; the list is a dry-run preview.
