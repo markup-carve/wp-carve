@@ -8,7 +8,7 @@ use WpCarve\Plugin;
  * Plugin Name: Carve Markup
  * Plugin URI: https://github.com/markup-carve/wp-carve
  * Description: Write posts, pages and comments in the Carve markup language. Live in-browser preview, multi-format paste, frontmatter-to-meta, render caching and a REST API.
- * Version: 0.1.2
+ * Version: 0.1.3
  * Requires at least: 6.3
  * Requires PHP: 8.2
  * Author: Mark Scherer
@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WPCARVE_VERSION', '0.1.2');
+define('WPCARVE_VERSION', '0.1.3');
 define('WPCARVE_FILE', __FILE__);
 define('WPCARVE_DIR', plugin_dir_path(__FILE__));
 define('WPCARVE_URL', plugin_dir_url(__FILE__));
