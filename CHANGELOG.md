@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Carve code fences no longer paint GitHub-light token colors onto dark base
+  themes: the carve-tuned overlay now ships a dark palette and picks it by the
+  base theme's background luminance (the normalized theme `type` field is
+  unreliable).
+- Closing inline delimiters (`*bold*`, `/italic/`, `~strike~`, ...) keep their
+  color: the vendored phiki recovers capture offsets with a first-occurrence
+  search, so a closing delimiter identical to the opening one lost its scope.
+  `scripts/patch-phiki-offsets.php` patches the vendored copy (Composer hooks
+  + the dist build) until the upstream fix ships.
+- Underlined text inside carve fences is styled again (the overlay targeted
+  `markup.underline.carve` while the grammar emits `markup.underline.text.carve`).
+
+### Added
+
+- Optional dark-mode code theme (`torchlight_theme_dark` setting): when set,
+  code blocks render both palettes in one markup (phiki dual-theme custom
+  properties) and switch by the visitor's `prefers-color-scheme`.
+
 ## [0.1.2] - 2026-07-13
 
 ### Added

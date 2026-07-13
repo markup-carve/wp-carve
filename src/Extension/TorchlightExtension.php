@@ -40,6 +40,7 @@ class TorchlightExtension implements ExtensionInterface
     public function __construct(
         private string $theme = 'github-light',
         private bool $showLineNumbers = false,
+        private string $themeDark = '',
     ) {
         if (class_exists(Engine::class)) {
             $this->engine = new Engine();
@@ -77,14 +78,24 @@ class TorchlightExtension implements ExtensionInterface
 
             // Per-block theme override: `{theme=dracula}` on the fence wins over
             // the global setting. An unknown theme throws and falls back below.
-            $theme = isset($attrs['theme']) && is_string($attrs['theme']) && $attrs['theme'] !== ''
+            $blockTheme = isset($attrs['theme']) && is_string($attrs['theme']) && $attrs['theme'] !== ''
                 ? $attrs['theme']
-                : $this->theme;
+                : null;
+            $light = $blockTheme ?? $this->theme;
+            // A configured dark theme renders a second palette in the same
+            // markup (phiki emits --phiki-dark-* custom properties); the
+            // stylesheet switches on prefers-color-scheme. A per-block
+            // {theme=...} override forces that single theme.
+            $dark = $blockTheme === null && $this->themeDark !== '' && $this->themeDark !== $light
+                ? $this->themeDark
+                : null;
             // For carve fences, use a carve-tuned variant of the theme so the
             // inline-markup scopes (bold/italic/highlight/...) render distinctly.
             if ($language === 'carve') {
-                $theme = $this->carveTheme($theme);
+                $light = $this->carveTheme($light);
+                $dark = $dark === null ? null : $this->carveTheme($dark);
             }
+            $theme = $dark === null ? $light : ['light' => $light, 'dark' => $dark];
 
             try {
                 $this->engine->setTorchlightOptions(Options::default()->mergeWith($overrides));
@@ -96,6 +107,21 @@ class TorchlightExtension implements ExtensionInterface
                 // missing space; code content itself is entity-escaped, so the
                 // quote-followed-by-class pattern only occurs at this junction.
                 $html = preg_replace('/(["\'])class=/', '$1 class=', $html) ?? $html;
+                // The dual-theme style attribute glues variable pairs together
+                // (`#e1e4e8--phiki-...`) and doubles semicolons; normalize
+                // INSIDE style attributes only (code text may legitimately
+                // contain `;;`) so wp_kses keeps the attribute and the
+                // browser reads every declaration.
+                $html = (string)preg_replace_callback(
+                    '/style=([\'"])(.*?)\1/s',
+                    static function (array $m): string {
+                        $value = (string)preg_replace('/(#[0-9a-fA-F]{3,8})(--)/', '$1;$2', $m[2]);
+                        $value = str_replace(';;', ';', $value);
+
+                        return 'style=' . $m[1] . $value . $m[1];
+                    },
+                    $html,
+                );
                 $event->setHtml($this->reapplyPreAttributes($html, $block));
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.
@@ -137,10 +163,29 @@ class TorchlightExtension implements ExtensionInterface
         // in the fence. Torchlight/phiki emits `color` reliably but drops
         // `fontStyle`, so bold/italic/etc are distinguished by hue (plus a
         // background for highlight, mirroring <mark>), not by weight/slant.
-        $overlay = [
+        // Two palettes: the overlay must match the BASE THEME'S brightness -
+        // GitHub-light hues on github-dark's #24292e background are unreadable
+        // (that exact mix shipped once). The normalized theme json's `type`
+        // field is unreliable (torchlight normalizes every theme to "dark"),
+        // so brightness is derived from the editor background's luminance.
+        $dark = $this->isDarkBackground((string)($data['colors']['editor.background'] ?? ''), $base);
+        $overlay = $dark ? [
+            ['scope' => ['markup.bold.carve', 'punctuation.definition.bold.carve'], 'settings' => ['foreground' => '#ffab70']],
+            ['scope' => ['markup.italic.carve', 'punctuation.definition.italic.carve'], 'settings' => ['foreground' => '#79b8ff']],
+            ['scope' => ['markup.underline.text.carve', 'punctuation.definition.underline.carve'], 'settings' => ['foreground' => '#56d4dd']],
+            ['scope' => ['markup.strikethrough.carve', 'punctuation.definition.strike.carve'], 'settings' => ['foreground' => '#959da5']],
+            ['scope' => ['markup.highlight.carve', 'punctuation.definition.highlight.carve'], 'settings' => ['foreground' => '#ffd33d', 'background' => '#3a2d00']],
+            ['scope' => ['markup.superscript.carve', 'markup.subscript.carve'], 'settings' => ['foreground' => '#b392f0']],
+            ['scope' => ['markup.raw.inline.carve', 'punctuation.definition.raw.carve'], 'settings' => ['foreground' => '#79b8ff', 'background' => '#2f363d']],
+            ['scope' => ['string.other.link.title.carve', 'markup.underline.link.carve', 'punctuation.definition.link.carve'], 'settings' => ['foreground' => '#79b8ff']],
+            ['scope' => ['punctuation.definition.list.unnumbered.carve', 'punctuation.definition.list.numbered.carve', 'punctuation.definition.list.carve', 'punctuation.definition.checkbox.carve', 'constant.language.checkbox.carve'], 'settings' => ['foreground' => '#85e89d']],
+            ['scope' => ['punctuation.definition.list.continuation.carve', 'keyword.operator.table.continuation.carve'], 'settings' => ['foreground' => '#79b8ff']],
+            ['scope' => ['punctuation.separator.table.carve'], 'settings' => ['foreground' => '#6a737d']],
+            ['scope' => ['keyword.operator.table.header.carve', 'keyword.operator.table.alignment.carve', 'keyword.operator.table.rowspan.carve', 'keyword.operator.table.colspan.carve'], 'settings' => ['foreground' => '#f97583']],
+        ] : [
             ['scope' => ['markup.bold.carve', 'punctuation.definition.bold.carve'], 'settings' => ['foreground' => '#953800']],
             ['scope' => ['markup.italic.carve', 'punctuation.definition.italic.carve'], 'settings' => ['foreground' => '#0550ae']],
-            ['scope' => ['markup.underline.carve', 'punctuation.definition.underline.carve'], 'settings' => ['foreground' => '#0a6c74']],
+            ['scope' => ['markup.underline.text.carve', 'punctuation.definition.underline.carve'], 'settings' => ['foreground' => '#0a6c74']],
             ['scope' => ['markup.strikethrough.carve', 'punctuation.definition.strike.carve'], 'settings' => ['foreground' => '#6a737d']],
             ['scope' => ['markup.highlight.carve', 'punctuation.definition.highlight.carve'], 'settings' => ['foreground' => '#9a6700', 'background' => '#fff8c5']],
             ['scope' => ['markup.superscript.carve', 'markup.subscript.carve'], 'settings' => ['foreground' => '#6f42c1']],
@@ -166,6 +211,27 @@ class TorchlightExtension implements ExtensionInterface
         }
 
         return $this->carveThemes[$base] = $name;
+    }
+
+    /**
+     * A theme counts as dark when its editor background is dark. Relative
+     * luminance over the hex background (3- or 6-digit); when the theme
+     * carries no usable background, the theme NAME is the fallback signal.
+     */
+    private function isDarkBackground(string $hex, string $base): bool
+    {
+        $hex = ltrim(trim($hex), '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        if (preg_match('/^[0-9a-fA-F]{6}$/', $hex) !== 1) {
+            return str_contains($base, 'dark') || str_contains($base, 'night') || str_contains($base, 'black');
+        }
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+
+        return (0.2126 * $r + 0.7152 * $g + 0.0722 * $b) / 255 < 0.5;
     }
 
     private function reapplyPreAttributes(string $html, CodeBlock $block): string

@@ -181,6 +181,7 @@ class SettingsPage
         $this->grid();
         $this->toggle($s, 'torchlight_enabled', __('Torchlight highlighting', 'carve-markup'), __('Server-side syntax highlighting (offline TextMate grammars, no API token).', 'carve-markup'));
         $this->select($s, 'torchlight_theme', __('Theme', 'carve-markup'), ['github-light', 'github-dark', 'nord', 'dracula', 'monokai'], '', 'torchlight_enabled');
+        $this->select($s, 'torchlight_theme_dark', __('Dark-mode theme', 'carve-markup'), ['', 'github-dark', 'nord', 'dracula', 'monokai'], __('Render a second palette and switch by the visitor\'s color-scheme preference. Empty = single theme.', 'carve-markup'), 'torchlight_enabled');
         $this->toggle($s, 'torchlight_line_numbers', __('Line numbers by default', 'carve-markup'), __('Show a gutter on every code block.', 'carve-markup'), 'torchlight_enabled');
         $this->gridEnd();
         $this->group(__('Diagrams & charts', 'carve-markup'), __('Off by default. Each library loads only on pages that both enable and use it.', 'carve-markup'));

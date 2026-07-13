@@ -36,6 +36,8 @@ rm -f "$EXCLUDES"
 cp "$SRC/composer.json" "$DEST/"
 [ -f "$SRC/composer.lock" ] && cp "$SRC/composer.lock" "$DEST/"
 ( cd "$DEST" && composer install --no-dev --prefer-dist --no-progress --no-scripts --optimize-autoloader )
+# --no-scripts skips the Composer hooks, so apply the phiki patch explicitly.
+php "$SRC/scripts/patch-phiki-offsets.php" "$DEST/vendor"
 rm -f "$DEST/composer.lock"
 
 # Prune dev cruft from the freshly-installed vendor tree (mirrors the vendor
