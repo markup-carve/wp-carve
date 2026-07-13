@@ -185,6 +185,9 @@ class SettingsPage
         $this->gridEnd();
         $this->group(__('Diagrams & charts', 'carve-markup'), __('Off by default. Each library loads only on pages that both enable and use it.', 'carve-markup'));
         $this->diagramGrid($s);
+        $this->grid();
+        $this->toggle($s, 'diagram_export', __('Diagram export controls', 'carve-markup'), __('Reveal Copy SVG / Download buttons when hovering a rendered diagram on the front end.', 'carve-markup'));
+        $this->gridEnd();
         $this->panelEnd();
 
         // Advanced.

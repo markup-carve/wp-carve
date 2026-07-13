@@ -622,8 +622,10 @@ class Plugin
         }
         if ($needDiagrams) {
             wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], WPCARVE_VERSION, true);
-            // Labels for the hover copy/download controls on rendered diagrams.
+            // Config + labels for the hover copy/download controls on rendered
+            // diagrams. `export` gates the controls (off by default).
             wp_localize_script('wpcarve-diagrams', 'wpCarveDiagramsL10n', [
+                'export' => (bool)Settings::get('diagram_export'),
                 'download' => __('Download', 'carve-markup'),
                 'copy' => __('Copy SVG', 'carve-markup'),
                 'copied' => __('Copied', 'carve-markup'),

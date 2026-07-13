@@ -47,6 +47,7 @@ class Settings
             'torchlight_enabled' => false,
             'torchlight_theme' => 'github-light',
             'torchlight_line_numbers' => false,
+            'diagram_export' => false,
             'normalize_tabs' => false,
             'media_embed_enabled' => false,
             'tab_width' => 2,
@@ -114,6 +115,7 @@ class Settings
         'render_cache',
         'comment_profile',
         'comment_soft_break',
+        'diagram_export',
     ];
 
     /**
