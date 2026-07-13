@@ -46,6 +46,7 @@ class Settings
             'smart_quotes_locale' => 'en',
             'torchlight_enabled' => false,
             'torchlight_theme' => 'github-light',
+            'torchlight_theme_dark' => '',
             'torchlight_line_numbers' => false,
             'diagram_export' => false,
             'normalize_tabs' => false,

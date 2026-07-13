@@ -50,6 +50,12 @@
         "cs-check": "phpcs --colors --parallel=16",
         "cs-fix": "phpcbf --colors --parallel=16",
         "stan": "phpstan analyze",
-        "test": "phpunit"
+        "test": "phpunit",
+        "post-install-cmd": [
+            "php scripts/patch-phiki-offsets.php"
+        ],
+        "post-update-cmd": [
+            "php scripts/patch-phiki-offsets.php"
+        ]
     }
 }

@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Pasting Carve into the block no longer offers a bogus "convert from
+  Markdown" prompt: the sniff triggered on any `[`, `**`, or `# ` - all
+  ordinary Carve syntax. Carve-distinctive structure (`:::` fences, `|=`
+  table headers, `{.class}` attribute lines) now suppresses the offer, and
+  only signals a Carve document cannot contain (HTML tags, BBCode,
+  double-delimiter emphasis, setext underlines, `* ` bullets) trigger it.
+- Excerpts for carve/markup block posts: they previously fell through to
+  core, which drops the dynamic block (empty excerpt) - or, when the block
+  comment is malformed (an unescaped `-->` inside the attribute JSON ends
+  the comment early), leaks the raw serialized block markup into archive
+  pages. The excerpt now renders from the carve source, salvaging the
+  attribute JSON even from malformed comments.
+- Carve code fences no longer paint GitHub-light token colors onto dark base
+  themes: the carve-tuned overlay now ships a dark palette and picks it by the
+  base theme's background luminance (the normalized theme `type` field is
+  unreliable).
+- Closing inline delimiters (`*bold*`, `/italic/`, `~strike~`, ...) keep their
+  color: the vendored phiki recovers capture offsets with a first-occurrence
+  search, so a closing delimiter identical to the opening one lost its scope.
+  `scripts/patch-phiki-offsets.php` patches the vendored copy (Composer hooks
+  + the dist build) until the upstream fix ships.
+- Underlined text inside carve fences is styled again (the overlay targeted
+  `markup.underline.carve` while the grammar emits `markup.underline.text.carve`).
+
+### Added
+
+- Optional dark-mode code theme (`torchlight_theme_dark` setting): when set,
+  code blocks render both palettes in one markup (phiki dual-theme custom
+  properties) and switch by the visitor's `prefers-color-scheme`. A site-level
+  toggle wins over the OS preference in both directions via the de-facto
+  `<html data-theme="dark|light">` convention.
+- The carve overlay now covers every language construct: bold-italic, math,
+  mentions, tags, attribute lines, captions, inner fence markers and language
+  words, admonition fences, headings, footnote references, images, and
+  sub/superscript delimiters - previously these fell back to the base theme
+  (often unstyled).
+
 ## [0.1.2] - 2026-07-13
 
 ### Added

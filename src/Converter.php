@@ -433,6 +433,7 @@ class Converter
             $converter->addExtension(new TorchlightExtension(
                 (string)($s['torchlight_theme'] ?? 'github-light'),
                 (bool)($s['torchlight_line_numbers'] ?? false),
+                (string)($s['torchlight_theme_dark'] ?? ''),
             ));
         }
     }

@@ -230,13 +230,55 @@ class Plugin
     public function maybeRenderExcerpt(string $excerpt): string
     {
         $post = get_post();
-        if (!$post || !get_post_meta($post->ID, '_wpcarve_enabled', true) || !$this->typeEnabled($post)) {
+        if (!$post || !$this->typeEnabled($post)) {
             return $excerpt;
         }
-        $src = trim((string)$post->post_excerpt) !== '' ? $post->post_excerpt : $post->post_content;
+
+        $src = '';
+        if (trim((string)$post->post_excerpt) !== '') {
+            $src = (string)$post->post_excerpt;
+        } elseif (get_post_meta($post->ID, '_wpcarve_enabled', true)) {
+            $src = (string)$post->post_content;
+        } elseif (has_block('carve/markup', $post)) {
+            // Block posts previously fell through to core, which drops the
+            // dynamic block entirely (empty excerpt) - or, when the comment
+            // delimiters are malformed (an unescaped --> inside the attribute
+            // JSON ends the comment early), leaks the raw serialized block
+            // into the excerpt. Build the excerpt from the carve source.
+            $src = self::carveFromBlocks((string)$post->post_content);
+        }
+        if (trim($src) === '') {
+            return $excerpt;
+        }
         $html = $this->converter->toHtml($src, 'post', null, self::safeForAuthor((int)$post->post_author));
 
         return wp_trim_words(wp_strip_all_tags($html), 55);
+    }
+
+    /**
+     * Extract the carve source from carve/markup blocks. parse_blocks() covers
+     * well-formed comments; a malformed one (raw `-->` inside the JSON) parses
+     * as freeform, so the attribute JSON string - which itself stays valid -
+     * is salvaged directly. Never returns serialized block markup.
+     */
+    public static function carveFromBlocks(string $content): string
+    {
+        $src = '';
+        foreach (parse_blocks($content) as $block) {
+            if (($block['blockName'] ?? '') === 'carve/markup') {
+                $src .= (string)($block['attrs']['carve'] ?? '') . "\n\n";
+            }
+        }
+        if (trim($src) === '' && preg_match_all('/"carve"\s*:\s*("(?:[^"\\\\]|\\\\.)*")/s', $content, $m)) {
+            foreach ($m[1] as $json) {
+                $decoded = json_decode($json);
+                if (is_string($decoded)) {
+                    $src .= $decoded . "\n\n";
+                }
+            }
+        }
+
+        return trim($src);
     }
 
     public function maybeRenderPost(string $content): string

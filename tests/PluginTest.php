@@ -67,6 +67,26 @@ class PluginTest extends TestCase
         );
     }
 
+    public function testCarveFromBlocksParsesWellFormedBlock(): void
+    {
+        $content = '<!-- wp:carve/markup {"carve":"# Hi\\n\\nBody text."} /-->';
+
+        $this->assertSame("# Hi\n\nBody text.", Plugin::carveFromBlocks($content));
+    }
+
+    public function testCarveFromBlocksSalvagesMalformedComment(): void
+    {
+        // An unescaped --> inside the attribute JSON ends the HTML comment
+        // early; the block parser sees freeform text, but the JSON string is
+        // intact and must be salvaged - raw block markup must never leak.
+        $content = '<!-- wp:carve/markup {"carve":"Arrow demo\\n\\n``` mermaid\\nA --> B\\n```\\nEnd."} /-->';
+
+        $carve = Plugin::carveFromBlocks($content);
+        $this->assertStringContainsString('Arrow demo', $carve);
+        $this->assertStringContainsString('End.', $carve);
+        $this->assertStringNotContainsString('wp:carve', $carve);
+    }
+
     public function testTrustedAuthorIsStillSafe(): void
     {
         $GLOBALS['_wpcarve_test_caps'][9] = ['unfiltered_html' => true];
