@@ -234,6 +234,11 @@
 	// cleared and repopulated the container - avoiding a race that would wipe the
 	// buttons. The buttons themselves read the SVG/canvas at click time.
 	function decorate( doc ) {
+		// Opt-in: the export controls are off unless the diagram_export setting
+		// is enabled (passed through the localized config).
+		if ( ! l10n.export ) {
+			return;
+		}
 		doc.querySelectorAll(
 			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc'
 		).forEach( function ( el ) {

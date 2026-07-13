@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Diagram export: hovering a rendered diagram on the front end reveals a
-  **Download** control (and **Copy SVG** for the SVG renderers - Mermaid,
-  Graphviz, WaveDrom, ABC). SVG diagrams save as `.svg`; canvas renderers
-  (Chart.js, Vega-Lite) save as `.png`.
+- Diagram export (opt-in via the `diagram_export` setting, off by default):
+  hovering a rendered diagram on the front end reveals a **Download** control
+  (and **Copy SVG** for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC).
+  SVG diagrams save as `.svg`; canvas renderers (Chart.js, Vega-Lite) save as
+  `.png`.
 - Bulk migration without WP-CLI: a **Tools → Carve Migrate** screen runs the
   same analysis and conversion as `wp carve migrate`. The post list is the
   dry-run preview (detected source per post, flagged posts explained), eligible

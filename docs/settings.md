@@ -46,12 +46,13 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `graphviz_enabled` | `false` | Render ` ```graphviz ` (DOT) blocks. |
 | `wavedrom_enabled` | `false` | Render ` ```wavedrom ` timing diagrams. |
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
+| `diagram_export` | `false` | Show hover **Copy SVG** / **Download** controls on rendered diagrams (front end). |
 | `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 
-Hovering a rendered diagram on the front end reveals **Download** (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC - a **Copy SVG**) control. SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
+With `diagram_export` enabled (off by default), hovering a rendered diagram on the front end reveals a **Download** control (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC - a **Copy SVG**). SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |

@@ -44,6 +44,8 @@ class SettingsTest extends TestCase
         // Untouched keys fall back to defaults.
         $this->assertSame('comment', $all['comment_profile']);
         $this->assertTrue($all['render_cache']);
+        // Diagram export controls are opt-in.
+        $this->assertFalse($all['diagram_export']);
     }
 
     public function testNonArrayOptionFallsBackToDefaults(): void
