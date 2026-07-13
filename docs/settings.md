@@ -50,6 +50,8 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
+
+Hovering a rendered diagram on the front end reveals **Download** (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC - a **Copy SVG**) control. SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |

@@ -47,6 +47,16 @@ class PasteController
     public function ingest(WP_REST_Request $request): WP_REST_Response
     {
         $source = (string)$request->get_param('source');
+        // Bound the work: converting an arbitrarily large paste is a needless
+        // memory/CPU cost even for an authenticated editor. 512 KB is far above
+        // any realistic paste, so reject rather than silently truncate (which
+        // would corrupt the converted source mid-document).
+        if (strlen($source) > 512000) {
+            return new WP_REST_Response(
+                ['message' => __('The pasted content is too large to convert.', 'carve-markup')],
+                413,
+            );
+        }
         $from = (string)$request->get_param('from');
         if ($from === '' || $from === 'auto') {
             $from = $this->sniff($source);

@@ -95,6 +95,11 @@
 			item.chart.destroy();
 			item.el.textContent = '';
 			item.chart = drawChart( item.el, item.cfg );
+			// The clear above removed the export controls; re-add them for
+			// front-end charts (decorate() marks those with data-carveTools).
+			if ( item.el.dataset.carveTools ) {
+				addTools( item.el );
+			}
 		} );
 	}
 
@@ -119,6 +124,129 @@
 	}
 	window.wpCarveDiagrams = window.wpCarveDiagrams || {};
 	window.wpCarveDiagrams.rerenderCharts = rerenderCharts;
+
+	// --- Export controls (front-end only): copy/download a rendered diagram ---
+	var l10n = window.wpCarveDiagramsL10n || {};
+	function label( key, fallback ) {
+		return l10n[ key ] || fallback;
+	}
+
+	function triggerDownload( blob, name ) {
+		var url = URL.createObjectURL( blob );
+		var a = document.createElement( 'a' );
+		a.href = url;
+		a.download = name;
+		document.body.appendChild( a );
+		a.click();
+		a.remove();
+		setTimeout( function () {
+			URL.revokeObjectURL( url );
+		}, 1000 );
+	}
+
+	// Types that render to an <svg> (the rest, e.g. Chart.js, use a <canvas>).
+	var SVG_TYPES = { mermaid: 1, graphviz: 1, wavedrom: 1, abc: 1 };
+
+	function diagramType( el ) {
+		var names = [ 'mermaid', 'chart', 'vega-lite', 'graphviz', 'wavedrom', 'abc' ];
+		for ( var i = 0; i < names.length; i++ ) {
+			if ( el.classList.contains( names[ i ] ) ) {
+				return names[ i ];
+			}
+		}
+
+		return 'diagram';
+	}
+
+	function svgMarkup( el ) {
+		var svg = el.querySelector( 'svg' );
+		if ( ! svg ) {
+			return null;
+		}
+		var clone = svg.cloneNode( true );
+		if ( ! clone.getAttribute( 'xmlns' ) ) {
+			clone.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+		}
+
+		return new XMLSerializer().serializeToString( clone );
+	}
+
+	function addTools( el ) {
+		if ( el.querySelector( ':scope > .wpcarve-diagram-tools' ) ) {
+			return;
+		}
+		var type = diagramType( el );
+		var tools = document.createElement( 'div' );
+		tools.className = 'wpcarve-diagram-tools';
+
+		var dl = document.createElement( 'button' );
+		dl.type = 'button';
+		dl.className = 'wpcarve-diagram-btn';
+		dl.textContent = label( 'download', 'Download' );
+		dl.addEventListener( 'click', function () {
+			var markup = svgMarkup( el );
+			if ( markup ) {
+				triggerDownload(
+					new Blob( [ markup ], { type: 'image/svg+xml;charset=utf-8' } ),
+					'diagram-' + type + '.svg'
+				);
+
+				return;
+			}
+			// Canvas-based renderers (Chart.js, Vega default) export as PNG.
+			var canvas = el.querySelector( 'canvas' );
+			if ( canvas && canvas.toBlob ) {
+				canvas.toBlob( function ( blob ) {
+					if ( blob ) {
+						triggerDownload( blob, 'diagram-' + type + '.png' );
+					}
+				} );
+			}
+		} );
+		tools.appendChild( dl );
+
+		if ( SVG_TYPES[ type ] ) {
+			var copy = document.createElement( 'button' );
+			copy.type = 'button';
+			copy.className = 'wpcarve-diagram-btn';
+			copy.textContent = label( 'copy', 'Copy SVG' );
+			copy.addEventListener( 'click', function () {
+				var markup = svgMarkup( el );
+				if ( ! markup || ! navigator.clipboard ) {
+					return;
+				}
+				navigator.clipboard.writeText( markup ).then( function () {
+					var prev = copy.textContent;
+					copy.textContent = label( 'copied', 'Copied' );
+					setTimeout( function () {
+						copy.textContent = prev;
+					}, 1200 );
+				} );
+			} );
+			tools.appendChild( copy );
+		}
+
+		el.appendChild( tools );
+	}
+
+	// Register hover-to-add controls on each diagram container. Deferred to first
+	// hover so the tools are attached AFTER the (sometimes async) render has
+	// cleared and repopulated the container - avoiding a race that would wipe the
+	// buttons. The buttons themselves read the SVG/canvas at click time.
+	function decorate( doc ) {
+		doc.querySelectorAll(
+			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc'
+		).forEach( function ( el ) {
+			if ( el.dataset.carveTools ) {
+				return;
+			}
+			el.dataset.carveTools = '1';
+			el.addEventListener( 'pointerenter', function once() {
+				el.removeEventListener( 'pointerenter', once );
+				addTools( el );
+			} );
+		} );
+	}
 
 	function run() {
 		// Mermaid (text in <pre class="mermaid">).
@@ -199,6 +327,9 @@
 		if ( ! targets.length ) {
 			return;
 		}
+		// Front-end only: attach copy/download controls (the editor preview,
+		// which calls wpCarveDiagrams.run() directly, stays chrome-free).
+		decorate( document );
 		if ( ! ( 'IntersectionObserver' in window ) ) {
 			run();
 			return;
@@ -234,14 +365,14 @@
 	// re-renders its pane on every keystroke - inside the editor-canvas
 	// iframe, so callers pass their document). Idempotent per element via
 	// the data-carveRendered guard.
-	window.wpCarveDiagrams = {
-		run: function ( doc ) {
-			rootDoc = doc || document;
-			try {
-				run();
-			} finally {
-				rootDoc = document;
-			}
-		},
+	// Assign onto the existing object (see above) so rerenderCharts, set
+	// earlier, is not dropped by replacing wpCarveDiagrams wholesale.
+	window.wpCarveDiagrams.run = function ( doc ) {
+		rootDoc = doc || document;
+		try {
+			run();
+		} finally {
+			rootDoc = document;
+		}
 	};
 } )();

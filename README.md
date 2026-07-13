@@ -6,7 +6,7 @@
 [![WordPress Plugin Rating](https://img.shields.io/wordpress/plugin/stars/carve-markup)](https://wordpress.org/plugins/carve-markup/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](https://php.net)
-[![WordPress 6.0+](https://img.shields.io/badge/WordPress-6.0%2B-blue.svg)](https://wordpress.org)
+[![WordPress 6.3+](https://img.shields.io/badge/WordPress-6.3%2B-blue.svg)](https://wordpress.org)
 
 A WordPress plugin for the [Carve](https://github.com/markup-carve/carve) markup language - a Djot-inspired, post-Markdown dialect. 
 Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-php`](https://github.com/markup-carve/carve-php) engine.
@@ -27,7 +27,7 @@ Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-p
 
 ## Requirements
 
-- PHP 8.2+, WordPress 6.0+
+- PHP 8.2+, WordPress 6.3+ (the blocks use Block API v3)
 
 ## Installation (from source)
 
