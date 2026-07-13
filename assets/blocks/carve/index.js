@@ -653,8 +653,22 @@
 				return;
 			}
 			const text = ( event.clipboardData || window.clipboardData ).getData( 'text' );
-			// Only offer conversion when the paste smells like another format.
-			if ( ! text || ! /[<[]|\*\*|^#{1,6}\s/m.test( text ) ) {
+			if ( ! text ) {
+				return;
+			}
+			// Carve-distinctive structure means the paste already IS Carve -
+			// never offer a conversion for it. `[`, `# `, and fenced code are
+			// shared with Markdown and must not trigger on their own.
+			const carveish = /^:{3,}(\s|$)|^\|=|^\{[.#][\w-]/m.test( text );
+			if ( carveish ) {
+				return;
+			}
+			// Only offer conversion on signals a Carve document cannot have:
+			// HTML tags, BBCode, double-delimiter Markdown emphasis, setext
+			// underlines, or `* ` bullet lists.
+			const foreign =
+				/<\/?(p|div|h[1-6]|ul|ol|li|strong|em|a|img|pre|code)\b|\[(b|i|u|url|img|code|quote)\b\]|\*\*[^*\n]+\*\*|__[^_\n]+__|^={3,}\s*$|^\*\s+\S/im.test( text );
+			if ( ! foreign ) {
 				return;
 			}
 			setIngest( text );

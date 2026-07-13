@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Pasting Carve into the block no longer offers a bogus "convert from
+  Markdown" prompt: the sniff triggered on any `[`, `**`, or `# ` - all
+  ordinary Carve syntax. Carve-distinctive structure (`:::` fences, `|=`
+  table headers, `{.class}` attribute lines) now suppresses the offer, and
+  only signals a Carve document cannot contain (HTML tags, BBCode,
+  double-delimiter emphasis, setext underlines, `* ` bullets) trigger it.
 - Excerpts for carve/markup block posts: they previously fell through to
   core, which drops the dynamic block (empty excerpt) - or, when the block
   comment is malformed (an unescaped `-->` inside the attribute JSON ends
