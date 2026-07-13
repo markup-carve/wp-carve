@@ -112,16 +112,16 @@ class TorchlightExtension implements ExtensionInterface
                 // INSIDE style attributes only (code text may legitimately
                 // contain `;;`) so wp_kses keeps the attribute and the
                 // browser reads every declaration.
-                $html = (string)preg_replace_callback(
+                $html = preg_replace_callback(
                     '/style=([\'"])(.*?)\1/s',
                     static function (array $m): string {
-                        $value = (string)preg_replace('/(#[0-9a-fA-F]{3,8})(--)/', '$1;$2', $m[2]);
-                        $value = str_replace(';;', ';', $value);
+                        $value = preg_replace('/(#[0-9a-fA-F]{3,8})(--)/', '$1;$2', $m[2]) ?? $m[2];
+                        $value = preg_replace('/;{2,}/', ';', $value) ?? $value;
 
                         return 'style=' . $m[1] . $value . $m[1];
                     },
                     $html,
-                );
+                ) ?? $html;
                 $event->setHtml($this->reapplyPreAttributes($html, $block));
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.

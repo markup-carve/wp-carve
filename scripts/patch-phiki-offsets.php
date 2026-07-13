@@ -24,7 +24,7 @@
 declare(strict_types=1);
 
 $vendor = $argv[1] ?? dirname(__DIR__) . '/vendor';
-$file = rtrim($vendor, '/') . '/phiki/phiki/src/TextMate/PatternSearcher.php';
+$file = rtrim($vendor, '/\\') . '/phiki/phiki/src/TextMate/PatternSearcher.php';
 
 if (!is_file($file)) {
     echo "patch-phiki-offsets: {$file} not found, skipping.\n";
