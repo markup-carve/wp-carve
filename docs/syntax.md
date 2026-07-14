@@ -13,8 +13,8 @@ dialect; the full normative spec and corpus live in the
 | `*bold*` | `<strong>bold</strong>` | intraword OK (`foo*bar*baz`) |
 | `_underline_` | `<u>underline</u>` | word-boundary restricted |
 | `~strike~` | `<s>strike</s>` | |
-| `^super^` | `<sup>super</sup>` | |
-| `,sub,` | `<sub>sub</sub>` | |
+| `{^super^}` | `<sup>super</sup>` | braced only - a bare `^` is literal |
+| `{,sub,}` | `<sub>sub</sub>` | braced only - a bare `,` is literal |
 | `=highlight=` | `<mark>highlight</mark>` | |
 | `` `code` `` | `<code>code</code>` | never parsed for syntax inside |
 
