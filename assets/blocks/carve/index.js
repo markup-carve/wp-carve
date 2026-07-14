@@ -151,7 +151,7 @@
 						// Round-trip check: seed -> serialize back. Only a change in
 						// the RENDERED output gates entry - cosmetic source
 						// normalization (attribute order, `|=` vs `|---|` table
-						// headers, `^x^` vs `{^x^}`, blockquote soft-break reflow,
+						// headers, blockquote soft-break reflow,
 						// code-span padding) renders identically and is ignored.
 						const rt = instance.getCarve();
 						const engine = window.wpCarveEngine;
@@ -550,8 +550,8 @@
 				.replace( /~(.+?)~/g, '$1' )
 				.replace( /==(.+?)==/g, '$1' )
 				.replace( /`(.+?)`/g, '$1' )
-				.replace( /\^(.+?)\^/g, '$1' )
-				.replace( /,,(.+?),,/g, '$1' );
+				.replace( /\{\^(.+?)\^\}/g, '$1' )
+				.replace( /\{,(.+?),\}/g, '$1' );
 			seg = seg
 				.split( '\n' )
 				.map( ( l ) =>
@@ -633,9 +633,11 @@
 			} else if ( k === 'k' ) {
 				inlineInsert( '[text](https://)', 1, 4 );
 			} else if ( k === '.' ) {
-				wrap( '^', '^', 'sup' );
+				// Superscript/subscript are the braced forms only - a bare `^`
+				// or `,` is literal text in Carve.
+				wrap( '{^', '^}', 'sup' );
 			} else if ( k === ',' ) {
-				wrap( ',,', ',,', 'sub' );
+				wrap( '{,', ',}', 'sub' );
 			} else if ( /^Digit[1-6]$/.test( code ) ) {
 				setHeadingLine( Number( code.slice( 5 ) ) );
 			} else if ( k === '\\' ) {
@@ -947,6 +949,7 @@
 						{ className: 'wpcarve-cheat' },
 						[
 							'*strong*  /emphasis/  _underline_  `code`',
+							'~strike~  {^sup^}  {,sub,}',
 							'# Heading   > quote   --- divider',
 							'- bullet   1. ordered   - [ ] task',
 							'[text](url)   ![alt](url)',

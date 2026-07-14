@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Superscript and subscript follow the Carve spec change: only the braced forms
+  `{^sup^}` and `{,sub,}` exist - a bare `^` or `,` is literal text. The editor
+  shortcuts (Ctrl/Cmd + . and Ctrl/Cmd + ,) now insert the braced delimiters,
+  "clear formatting" strips them, and the syntax cheat sheet and docs list them.
+
 ## [0.1.3] - 2026-07-14
 
 ### Fixed
