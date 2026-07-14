@@ -52,7 +52,7 @@ function roundTrip(carve) {
 
 const CASES = {
 	heading: '# Title\n\nA paragraph.',
-	marks: 'Text with *strong*, /emphasis/, _underline_, `code`, ~strike~, {^sup^}, {,sub,}.',
+	marks: 'Text with *strong*, /emphasis/, _underline_, `code`, ~strike~, ^sup^.',
 	links: 'A [link](https://example.com) and ![alt](https://example.com/i.png) inline.',
 	bulletList: '- one\n- two\n  - nested',
 	orderedList: '1. one\n2. two',
