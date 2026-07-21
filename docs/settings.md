@@ -53,7 +53,9 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 
-**PlantUML** has no browser library, so it renders differently from the others: the `plantuml`/`puml` source is POSTed to the [Kroki](https://kroki.io) service, which returns an SVG that is embedded inline. This is the one renderer that makes an **external request** at view time - point it at a self-hosted Kroki instance with the `wpcarve_kroki_server` filter (see [hooks.md](hooks.md)) if that matters for your site.
+**PlantUML** has no browser library, so it renders differently from the others: the `plantuml`/`puml` source is POSTed to the [Kroki](https://kroki.io) service, which returns an SVG that is embedded inline. This is the one renderer that makes an **external request** at view time.
+
+> ⚠️ **Privacy / GDPR:** the default `https://kroki.io` is a **third-party service outside your domain**, so enabling PlantUML sends the diagram source there on render. For confidential content, or under a strict privacy/GDPR posture, point the `wpcarve_kroki_server` filter (see [hooks.md](hooks.md)) at a **self-hosted or localhost Kroki** so no data leaves your site, and disclose the external call in your privacy policy where required.
 
 With `diagram_export` enabled (off by default), hovering a rendered diagram on the front end reveals a **Download** control (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC, PlantUML - a **Copy SVG**). SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
