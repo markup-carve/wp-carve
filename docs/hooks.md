@@ -106,6 +106,17 @@ add_filter('wpcarve_diagram_src', function (string $url, string $name, string $l
 }, 10, 3);
 ```
 
+### `wpcarve_kroki_server`
+
+Base URL of the [Kroki](https://kroki.io) server used to render PlantUML diagrams
+(the `plantuml`/`puml` renderer has no browser library, so `diagrams.js` POSTs the
+source to Kroki and embeds the returned SVG). Default `https://kroki.io`. Point it
+at a self-hosted Kroki instance to keep diagram sources off the public service.
+
+```php
+add_filter('wpcarve_kroki_server', fn (string $base): string => 'https://kroki.internal');
+```
+
 ### `wpcarve_katex_base`
 
 Override the base URL for KaTeX assets (css / js / `contrib/auto-render.min.js`).

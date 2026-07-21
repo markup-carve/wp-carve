@@ -414,8 +414,12 @@ class Converter
             $mode = ($diagram['mode'] ?? 'text') === 'json'
                 ? FencedRenderExtension::MODE_JSON
                 : FencedRenderExtension::MODE_TEXT;
+            // The fence word(s) this instance claims: the class plus any
+            // aliases (e.g. `puml` -> `<pre class="plantuml">`), so alias
+            // fences work even without a dedicated carve-php preset factory.
+            $languages = array_merge([$class], array_map('strval', (array)($diagram['aliases'] ?? [])));
             $converter->addExtension(new FencedRenderExtension(
-                language: $class,
+                language: $languages,
                 cssClass: $class,
                 contentMode: $mode,
             ));
