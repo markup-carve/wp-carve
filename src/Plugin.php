@@ -354,6 +354,12 @@ class Plugin
         }
         if ($needDiagrams) {
             wp_enqueue_script('wpcarve-diagrams', WPCARVE_URL . 'assets/js/diagrams.js', [], $this->assetVersion('assets/js/diagrams.js'), true);
+            // Same Kroki server the front end uses, so an editor preview of a
+            // PlantUML block honors a self-hosted `wpcarve_kroki_server` too
+            // instead of falling back to the public kroki.io.
+            wp_localize_script('wpcarve-diagrams', 'wpCarveDiagramsL10n', [
+                'kroki' => esc_url_raw((string)apply_filters('wpcarve_kroki_server', 'https://kroki.io')),
+            ]);
         }
 
         // Optional in-browser Carve engine (innovation A). Built by `npm run
@@ -635,9 +641,20 @@ class Plugin
                 continue;
             }
             // $content is the raw Carve source, so match the fence word (which
-            // is also the rendered CSS class), not the rendered markup.
+            // is also the rendered CSS class), not the rendered markup. Some
+            // types accept alias fences too (e.g. `puml` for PlantUML), so
+            // check the class plus any registered aliases.
             $class = (string)($diagram['class'] ?? $name);
-            if (!str_contains($content, $class)) {
+            $tokens = array_merge([$class], (array)($diagram['aliases'] ?? []));
+            $matched = false;
+            foreach ($tokens as $token) {
+                if ((string)$token !== '' && str_contains($content, (string)$token)) {
+                    $matched = true;
+
+                    break;
+                }
+            }
+            if (!$matched) {
                 continue;
             }
             $needDiagrams = true;
@@ -689,6 +706,10 @@ class Plugin
                 'download' => __('Download', 'carve-markup'),
                 'copy' => __('Copy SVG', 'carve-markup'),
                 'copied' => __('Copied', 'carve-markup'),
+                // PlantUML has no browser library; diagrams.js renders it by
+                // POSTing the source to this Kroki server. Filterable so a site
+                // can point at a self-hosted Kroki instance for privacy.
+                'kroki' => esc_url_raw((string)apply_filters('wpcarve_kroki_server', 'https://kroki.io')),
             ]);
             foreach ($diagramInits as $handle => $inits) {
                 foreach ($inits as $init) {

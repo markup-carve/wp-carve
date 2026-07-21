@@ -27,6 +27,8 @@ if (!defined('ABSPATH')) {
  * - mode string 'text' or 'json' (json keeps the source in an inner
  *                  `<script type="application/json">`).
  * - libs string[] Vendored file names under assets/js/vendor/ (in order).
+ * - aliases string[] Optional extra fence words that map to this type; used
+ *                  by the front-end enqueue to detect the type in the source.
  * - src string[] Optional external script URLs (for custom renderers).
  * - init string Optional inline JS for a custom renderer; built-in types
  *                  are handled by the shared diagrams.js.
@@ -86,6 +88,20 @@ class Diagrams
                 'preset' => 'abc',
                 'mode' => 'text',
                 'libs' => ['abcjs-basic-min.js'],
+            ],
+            'plantuml' => [
+                'label' => 'PlantUML diagrams',
+                'class' => 'plantuml',
+                'url' => 'https://plantuml.com',
+                'preset' => 'plantuml',
+                'mode' => 'text',
+                // PlantUML has no browser renderer; diagrams.js renders it via
+                // the Kroki service, so no vendored JS library is needed.
+                'libs' => [],
+                // The carve-php preset accepts both `plantuml` and `puml`
+                // fences; both emit `<pre class="plantuml">`. The alias lets
+                // the front-end enqueue detect a `puml`-only page too.
+                'aliases' => ['puml'],
             ],
         ];
 

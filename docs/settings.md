@@ -46,13 +46,16 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `graphviz_enabled` | `false` | Render ` ```graphviz ` (DOT) blocks. |
 | `wavedrom_enabled` | `false` | Render ` ```wavedrom ` timing diagrams. |
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
+| `plantuml_enabled` | `false` | Render ` ```plantuml ` / ` ```puml ` blocks via the Kroki service (external request). |
 | `diagram_export` | `false` | Show hover **Copy SVG** / **Download** controls on rendered diagrams (front end). |
 | `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 
-With `diagram_export` enabled (off by default), hovering a rendered diagram on the front end reveals a **Download** control (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC - a **Copy SVG**). SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
+**PlantUML** has no browser library, so it renders differently from the others: the `plantuml`/`puml` source is POSTed to the [Kroki](https://kroki.io) service, which returns an SVG that is embedded inline. This is the one renderer that makes an **external request** at view time - point it at a self-hosted Kroki instance with the `wpcarve_kroki_server` filter (see [hooks.md](hooks.md)) if that matters for your site.
+
+With `diagram_export` enabled (off by default), hovering a rendered diagram on the front end reveals a **Download** control (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC, PlantUML - a **Copy SVG**). SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
 | `normalize_tabs` | `false` | Convert leading tabs to spaces. |

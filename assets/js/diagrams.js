@@ -184,10 +184,12 @@
 	}
 
 	// Types that render to an <svg> (the rest, e.g. Chart.js, use a <canvas>).
-	var SVG_TYPES = { mermaid: 1, graphviz: 1, wavedrom: 1, abc: 1 };
+	// PlantUML is Kroki-rendered into an <img> whose data URI wraps an SVG,
+	// which svgMarkup() decodes - so it counts as SVG for the export controls.
+	var SVG_TYPES = { mermaid: 1, graphviz: 1, wavedrom: 1, abc: 1, plantuml: 1 };
 
 	function diagramType( el ) {
-		var names = [ 'mermaid', 'chart', 'vega-lite', 'graphviz', 'wavedrom', 'abc' ];
+		var names = [ 'mermaid', 'chart', 'vega-lite', 'graphviz', 'wavedrom', 'abc', 'plantuml' ];
 		for ( var i = 0; i < names.length; i++ ) {
 			if ( el.classList.contains( names[ i ] ) ) {
 				return names[ i ];
@@ -199,15 +201,26 @@
 
 	function svgMarkup( el ) {
 		var svg = el.querySelector( 'svg' );
-		if ( ! svg ) {
-			return null;
+		if ( svg ) {
+			var clone = svg.cloneNode( true );
+			if ( ! clone.getAttribute( 'xmlns' ) ) {
+				clone.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+			}
+
+			return new XMLSerializer().serializeToString( clone );
 		}
-		var clone = svg.cloneNode( true );
-		if ( ! clone.getAttribute( 'xmlns' ) ) {
-			clone.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+		// Kroki-rendered types (PlantUML) hold the SVG inside an <img> data URI;
+		// decode it back so download/copy work like the inline-SVG types.
+		var img = el.querySelector( 'img[src^="data:image/svg+xml;base64,"]' );
+		if ( img ) {
+			try {
+				return decodeURIComponent( escape( atob( img.src.split( ',' )[ 1 ] ) ) );
+			} catch ( e ) {
+				return null;
+			}
 		}
 
-		return new XMLSerializer().serializeToString( clone );
+		return null;
 	}
 
 	function addTools( el ) {
@@ -279,7 +292,7 @@
 			return;
 		}
 		doc.querySelectorAll(
-			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc'
+			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc, .wpcarve pre.plantuml'
 		).forEach( function ( el ) {
 			if ( el.dataset.carveTools ) {
 				return;
@@ -371,13 +384,63 @@
 				window.ABCJS.renderAbc( holder, src );
 			} );
 		}
+
+		// PlantUML (text in <pre class="plantuml">). No browser library exists,
+		// so render server-side via Kroki: POST the source as text/plain and
+		// swap the <pre> for an <img> whose data URI wraps the returned SVG.
+		// btoa on UTF-8-escaped bytes keeps non-ASCII labels intact.
+		if ( window.fetch ) {
+			// Filterable base URL (localized); fall back to the public Kroki.
+			var krokiBase = ( l10n.kroki || 'https://kroki.io' ).replace( /\/+$/, '' );
+			each( 'pre.plantuml', function ( el ) {
+				var src = el.textContent;
+				if ( ! src || ! src.trim() ) {
+					return;
+				}
+				window
+					.fetch( krokiBase + '/plantuml/svg', {
+						method: 'POST',
+						headers: { 'Content-Type': 'text/plain' },
+						body: src,
+					} )
+					.then( function ( res ) {
+						if ( ! res.ok ) {
+							throw new Error( 'kroki HTTP ' + res.status );
+						}
+
+						return res.text();
+					} )
+					.then( function ( svg ) {
+						var img = document.createElement( 'img' );
+						img.src =
+							'data:image/svg+xml;base64,' +
+							btoa( unescape( encodeURIComponent( svg ) ) );
+						img.alt = 'PlantUML diagram';
+						el.textContent = '';
+						el.appendChild( img );
+						// Clearing above removed any export controls a pre-render
+						// hover had added; re-arm them (the decorate() guard would
+						// otherwise never re-add them to this block).
+						if ( el.dataset.carveTools ) {
+							el.dataset.carveTools = '';
+							decorate( rootDoc );
+						}
+					} )
+					.catch( function ( e ) {
+						// Leave the <pre> source visible; clear the guard so a
+						// later run() (e.g. after scroll) can retry the fetch.
+						el.dataset.carveRendered = '';
+						window.console && console.error( 'carve plantuml:', e );
+					} );
+			} );
+		}
 	}
 
 	// Lazy: defer the (heavy) render until a diagram scrolls near the viewport.
 	// run() is idempotent, so a single trigger renders everything present.
 	function lazyRun() {
 		var targets = document.querySelectorAll(
-			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc'
+			'.wpcarve .mermaid, .wpcarve .chart, .wpcarve .vega-lite, .wpcarve .graphviz, .wpcarve .wavedrom, .wpcarve .abc, .wpcarve pre.plantuml'
 		);
 		if ( ! targets.length ) {
 			return;
