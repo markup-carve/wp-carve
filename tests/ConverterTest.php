@@ -181,6 +181,10 @@ class ConverterTest extends TestCase
             // seed keeps the generic <div class="..."> so carveDiv round-trips.
             'details disclosure' => [[],                                    "::: details \"More\"\nBody.\n:::",         '<details'],
             'spoiler disclosure' => [[],                                    "::: spoiler \"Reveal\"\nSecret.\n:::",     '<details'],
+            // ```img renders a sandboxed data:image/svg+xml <img> on the front
+            // end; the editor seed keeps the raw ```img code block (no data URI)
+            // so the source round-trips.
+            'svg img fence'      => [[], "``` img\n<svg viewBox=\"0 0 24 24\"><path d=\"M4 12l4 4 8-8\"/></svg>\n```", 'data:image/svg+xml'],
         ];
     }
 
