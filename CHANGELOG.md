@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The `` ```img `` SVG fence renders an inline SVG as a **sanitized,
+  browser-sandboxed image** on the front end (a `data:image/svg+xml` `<img>`).
+  Inline mode (a live `<svg>` in the page DOM) is deliberately **not** enabled,
+  so user-submitted SVG stays isolated. The visual editor keeps the raw
+  `` ```img `` source, so it round-trips.
+
 ### Changed
 
 - Superscript and subscript follow the Carve spec change: only the braced forms

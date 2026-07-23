@@ -14,6 +14,7 @@ use MarkupCarve\Carve\Extension\DetailsExtension;
 use MarkupCarve\Carve\Extension\FencedRenderExtension;
 use MarkupCarve\Carve\Extension\HeadingLevelShiftExtension;
 use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
+use MarkupCarve\Carve\Extension\ImgFenceExtension;
 use MarkupCarve\Carve\Extension\ListTableExtension;
 use MarkupCarve\Carve\Extension\SemanticSpanExtension;
 use MarkupCarve\Carve\Extension\SmartQuotesExtension;
@@ -367,6 +368,13 @@ class Converter
             $converter->addExtension(new DetailsExtension());
             $converter->addExtension(new SpoilerExtension());
             $converter->addExtension(new ListTableExtension());
+            // ```img SVG fence, rendered on the front end only. Sandbox mode
+            // (the default): the sanitized SVG is encoded into a
+            // data:image/svg+xml <img> the browser isolates. Inline mode is
+            // deliberately NOT enabled - it would put author SVG in the live
+            // page DOM, unsafe for user-submitted content. The editor seed
+            // keeps the raw ```img source so it round-trips.
+            $converter->addExtension(new ImgFenceExtension());
         }
 
         $shift = (int)($s['heading_shift'] ?? 0);
