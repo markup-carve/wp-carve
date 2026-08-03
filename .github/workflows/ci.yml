@@ -80,15 +80,19 @@ jobs:
         with:
           node-version: 22
 
+      # `npm ci` and not `npm install`: the bundle check below rebuilds and
+      # diffs, so every build input has to be pinned or the diff reports
+      # upstream movement as a stale bundle. The lockfile is what pins them -
+      # `carve-grammars` tracks a branch and the editor deps are caret ranges.
       - name: Install npm dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci
 
       - name: Run JS tests
         run: npm run test:js
 
       # The engine ships as a COMMITTED bundle under assets/js/vendor. Nothing
-      # else rebuilds it, so moving the pin in package.json alone changes what
-      # CI resolves while the plugin keeps shipping the old engine. Rebuilding
+      # else rebuilt it, so moving the pin in package.json alone changed what
+      # CI resolved while the plugin kept shipping the old engine. Rebuilding
       # here and failing on a diff is what makes the pin load-bearing.
       - name: The committed engine bundles match the pin
         run: |
