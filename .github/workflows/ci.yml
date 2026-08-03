@@ -84,6 +84,15 @@ jobs:
       # diffs, so every build input has to be pinned or the diff reports
       # upstream movement as a stale bundle. The lockfile is what pins them -
       # `carve-grammars` tracks a branch and the editor deps are caret ranges.
+      # A lockfile generated on a machine with an `insteadOf` rewrite records
+      # `git+ssh://` for the GitHub dependencies, and a runner with no key
+      # cannot fetch those. Catch it here rather than as a mystery install
+      # failure.
+      - name: The lockfile resolves GitHub dependencies over HTTPS
+        run: |
+          ! grep -n 'git+ssh://' package-lock.json \
+            || { echo "::error::package-lock.json has git+ssh:// URLs; regenerate with HTTPS so a runner without a key can install."; exit 1; }
+
       - name: Install npm dependencies
         run: npm ci
 
