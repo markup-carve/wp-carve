@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Every Carve dependency is now a released version or a pinned revision.**
+  `markup-carve/carve-php` and `markup-carve/carve-grammars` were `dev-main`,
+  and `@markup-carve/carve` was a git dependency on `#main` with
+  `package-lock.json` gitignored - so the JS engine was whatever carve-js `main`
+  held at build time, with nothing recording which. The composer lock did pin
+  its two, but at a carve-php commit **187 behind** and a carve-grammars commit
+  **35 behind**, because `dev-main` only moves when someone runs
+  `composer update`.
+
+  Now `carve-php ^0.1.3`, `carve-grammars ^0.1.2`, `carve-php-media-embed
+  ^0.1.1`, and carve-js pinned to an exact revision. The plugin ships its
+  `vendor/` to WordPress.org, so what resolved at build time is what users get -
+  which is the same exposure a bundled `.vsix` has.
+
 ### Added
 
 - The `` ```img `` SVG fence renders an inline SVG as a **sanitized,

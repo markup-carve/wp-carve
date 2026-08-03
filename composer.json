@@ -11,10 +11,10 @@
     ],
     "require": {
         "php": ">=8.2",
-        "markup-carve/carve-php": "dev-main",
-        "markup-carve/carve-php-media-embed": "^0.1.0",
+        "markup-carve/carve-php": "^0.1.3",
+        "markup-carve/carve-php-media-embed": "^0.1.1",
         "torchlight/engine": "^1.0",
-        "markup-carve/carve-grammars": "dev-main"
+        "markup-carve/carve-grammars": "^0.1.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
