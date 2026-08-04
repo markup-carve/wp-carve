@@ -12,7 +12,7 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#c42bbce1dd6416f001ab0ab83f2f8ef6f73d6c37",
+    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#0297e5205287491045232ae78384f543148129c6",
     "carve-grammars": "github:markup-carve/carve-grammars#main"
   },
   "devDependencies": {
