@@ -109,8 +109,16 @@ jobs:
         run: |
           set -euo pipefail
 
+          # A lockfile records a git dependency TWICE: once as the installed
+          # package's resolved URL under `node_modules/<pkg>`, and once as the
+          # root package's declared range under `packages[""].dependencies`.
+          # They are written at different times and can disagree - editing
+          # package.json and refreshing only the install tree leaves the root
+          # entry behind, and `npm ci` tolerates it. Two contradicting records
+          # of one dependency is the state pinning exists to remove, so both are
+          # compared against the manifest rather than only the resolved URL.
           agree() {
-            local pkg="$1" declared locked
+            local pkg="$1" declared locked root
             declared="$(node -p "const p=require('./package.json'); ((p.dependencies||{})['${pkg}'] ?? (p.devDependencies||{})['${pkg}'] ?? '').split('#').pop()")"
             locked="$(node -p "const l=require('./package-lock.json').packages['node_modules/${pkg}']; l ? String(l.resolved).split('#').pop() : ''")"
             if [ -z "${locked}" ]; then
@@ -121,7 +129,22 @@ jobs:
               echo "::error::package.json pins ${pkg} at ${declared} but the lockfile resolves ${locked}"
               exit 1
             fi
-            echo "package.json and package-lock.json both pin ${pkg} at ${declared}"
+            # Both root sections, for the same reason `declared` reads both:
+            # npm mirrors package.json here, so a package declared under
+            # devDependencies is recorded under the root's devDependencies and
+            # reading only `dependencies` would report it as undeclared and fail
+            # a repo that is perfectly consistent. The engine is a runtime
+            # dependency here and a devDependency in tree-sitter-carve.
+            root="$(node -p "const r=require('./package-lock.json').packages['']; ((r.dependencies||{})['${pkg}'] ?? (r.devDependencies||{})['${pkg}'] ?? '').split('#').pop()")"
+            if [ -z "${root}" ]; then
+              echo "::error::the lockfile's root entry does not declare ${pkg}, so the manifest and the lockfile disagree about what this repo depends on"
+              exit 1
+            fi
+            if [ "${declared}" != "${root}" ]; then
+              echo "::error::package.json pins ${pkg} at ${declared} but the lockfile's root dependency entry still declares ${root}"
+              exit 1
+            fi
+            echo "package.json, the lockfile's root entry and its resolved URL all pin ${pkg} at ${declared}"
           }
 
           agree '@markup-carve/carve'
