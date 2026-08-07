@@ -27,6 +27,14 @@ name: Engine drift
 # repos pinned revisions a fresh clone cannot check out (carve#499) - so an
 # unreachable pin is a real failure mode rather than a hypothetical.
 
+# TWO git dependencies, not one. `carve-grammars` was declared as
+# `github:markup-carve/carve-grammars#main` - a branch, not a revision - so a
+# fresh resolve took whatever was on that branch at the time, and nothing here
+# compared it to anything. It was 58 commits behind when this job learned to
+# look. Both are now checked by the same code rather than by a second copy of
+# it: a check written once per dependency is a check that covers the dependency
+# somebody remembered (markup-carve/carve#735).
+
 on:
   schedule:
     # 05:00 UTC daily, alongside the spec-drift run.
@@ -46,41 +54,75 @@ jobs:
           path: carve-js
           fetch-depth: 0
 
-      - name: Compare the pinned revision against carve-js main
+      - name: Check out the grammars
+        uses: actions/checkout@v4
+        with:
+          repository: markup-carve/carve-grammars
+          path: carve-grammars
+          fetch-depth: 0
+
+      - name: Every git dependency pins a revision that is on its upstream main
         run: |
           set -euo pipefail
+
           # Reads either section: the engine is a runtime dependency here and a
           # devDependency in tree-sitter-carve, and reading the wrong one yields
           # undefined, so the 40-hex check below would fail on the string
           # "undefined" rather than on anything real.
-          spec="$(node -p "const p=require('./package.json'); (p.dependencies||{})['@markup-carve/carve'] ?? (p.devDependencies||{})['@markup-carve/carve'] ?? ''")"
-          rev="${spec##*#}"
-          if ! printf '%s' "${rev}" | grep -qE '^[0-9a-f]{40}$'; then
-            echo "::error::@markup-carve/carve is \"${spec}\" - it must pin a 40-hex revision, or a fresh install takes whatever was on the default branch at the time"
-            exit 1
-          fi
-          if ! git -C carve-js cat-file -e "${rev}^{commit}" 2>/dev/null; then
-            echo "::error::the engine pins ${rev}, which is not a commit in markup-carve/carve-js"
-            exit 1
-          fi
-          if ! git -C carve-js merge-base --is-ancestor "${rev}" origin/main; then
-            echo "::error::engine ${rev} is not on main, so the pin came from an unmerged or rewritten branch"
-            exit 1
-          fi
-          behind="$(git -C carve-js rev-list --count "${rev}..origin/main")"
-          echo "engine pin: ${rev} ($(git -C carve-js log -1 --format=%s "${rev}"))"
-          echo "carve-js main is ${behind} commit(s) ahead"
-          if [ "${behind}" -gt 0 ]; then
-            echo "::warning::the engine pin is ${behind} commit(s) behind carve-js main"
-          fi
+          spec_of() {
+            node -p "const p=require('./package.json'); (p.dependencies||{})['$1'] ?? (p.devDependencies||{})['$1'] ?? ''"
+          }
 
-      - name: The declared pin and the lockfile agree
+          check() {
+            local pkg="$1" dir="$2" repo="$3"
+            local spec rev behind
+            spec="$(spec_of "${pkg}")"
+            if [ -z "${spec}" ]; then
+              echo "::error::${pkg} is not a dependency of this repo - this workflow is watching nothing"
+              exit 1
+            fi
+            rev="${spec##*#}"
+            if ! printf '%s' "${rev}" | grep -qE '^[0-9a-f]{40}$'; then
+              echo "::error::${pkg} is \"${spec}\" - it must pin a 40-hex revision, or a fresh install takes whatever was on the default branch at the time"
+              exit 1
+            fi
+            if ! git -C "${dir}" cat-file -e "${rev}^{commit}" 2>/dev/null; then
+              echo "::error::${pkg} pins ${rev}, which is not a commit in markup-carve/${repo}"
+              exit 1
+            fi
+            if ! git -C "${dir}" merge-base --is-ancestor "${rev}" origin/main; then
+              echo "::error::${pkg} ${rev} is not on main, so the pin came from an unmerged or rewritten branch"
+              exit 1
+            fi
+            behind="$(git -C "${dir}" rev-list --count "${rev}..origin/main")"
+            echo "${pkg}: ${rev} ($(git -C "${dir}" log -1 --format=%s "${rev}"))"
+            echo "  markup-carve/${repo} main is ${behind} commit(s) ahead"
+            if [ "${behind}" -gt 0 ]; then
+              echo "::warning::${pkg} is ${behind} commit(s) behind markup-carve/${repo} main"
+            fi
+          }
+
+          check '@markup-carve/carve' carve-js carve-js
+          check 'carve-grammars' carve-grammars carve-grammars
+
+      - name: The declared pins and the lockfile agree
         run: |
           set -euo pipefail
-          declared="$(node -p "const p=require('./package.json'); ((p.dependencies||{})['@markup-carve/carve'] ?? (p.devDependencies||{})['@markup-carve/carve'] ?? '').split('#').pop()")"
-          locked="$(node -p "require('./package-lock.json').packages['node_modules/@markup-carve/carve'].resolved.split('#').pop()")"
-          if [ "${declared}" != "${locked}" ]; then
-            echo "::error::package.json pins ${declared} but the lockfile resolves ${locked}"
-            exit 1
-          fi
-          echo "package.json and package-lock.json both pin ${declared}"
+
+          agree() {
+            local pkg="$1" declared locked
+            declared="$(node -p "const p=require('./package.json'); ((p.dependencies||{})['${pkg}'] ?? (p.devDependencies||{})['${pkg}'] ?? '').split('#').pop()")"
+            locked="$(node -p "const l=require('./package-lock.json').packages['node_modules/${pkg}']; l ? String(l.resolved).split('#').pop() : ''")"
+            if [ -z "${locked}" ]; then
+              echo "::error::the lockfile has no entry for ${pkg}, so nothing here is reproducible"
+              exit 1
+            fi
+            if [ "${declared}" != "${locked}" ]; then
+              echo "::error::package.json pins ${pkg} at ${declared} but the lockfile resolves ${locked}"
+              exit 1
+            fi
+            echo "package.json and package-lock.json both pin ${pkg} at ${declared}"
+          }
+
+          agree '@markup-carve/carve'
+          agree 'carve-grammars'
