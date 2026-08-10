@@ -14,7 +14,7 @@ textarea + live preview; Visual mounts the Tiptap editor.
 ## How it works
 
 - The editor core (AST loader + extension kit + serializer) is the org's
-  **shared `carve-grammars/tiptap`** package (`carveToProseMirror`, `CarveKit`
+  **shared `@markup-carve/carve-grammars/tiptap`** package (`carveToProseMirror`, `CarveKit`
   and `serializeToCarve`), the same one `carve-wysiwyg` uses. wp-carve adds an
   empty-state placeholder and WordPress integration on top.
 - It's **bundled locally** with esbuild into `assets/js/vendor/carve-editor.js`
@@ -49,13 +49,13 @@ exact. When nothing would change, Visual mode opens straight away.
 
 | File | Role |
 | --- | --- |
-| `carve-grammars/tiptap` (npm) | Shared AST loader, `CarveKit`, preservation nodes, and serializer. |
+| `@markup-carve/carve-grammars/tiptap` (npm) | Shared AST loader, `CarveKit`, preservation nodes, and serializer. |
 | `assets/js/tiptap/visual-editor.js` | wp-carve editor shell: mounts Tiptap, retains exact untouched source, and wires change events. |
 | `assets/blocks/carve/index.js` | The block UI: mode tabs, WordPress block toolbar, gating modal, context controls. |
 
 ## Coverage
 
-Round-trip coverage is owned by `carve-grammars/tiptap` (headings, marks incl.
+Round-trip coverage is owned by `@markup-carve/carve-grammars/tiptap` (headings, marks incl.
 critic insert/delete, lists incl. tasks, blockquotes, code blocks, tables with
 alignment, admonition divs, math, footnotes, definition lists, spans,
 abbreviations, and nested containers - tabs, code groups and

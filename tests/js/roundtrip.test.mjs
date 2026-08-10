@@ -26,7 +26,7 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 
 const { Editor } = await import('@tiptap/core');
 const { carveToHtml } = await import('@markup-carve/carve');
-const { CarveKit, carveToProseMirror, serializeToCarve } = await import('carve-grammars/tiptap');
+const { CarveKit, carveToProseMirror, serializeToCarve } = await import('@markup-carve/carve-grammars/tiptap');
 
 // Same equivalence used by the block's lossy guard: sort tag attributes and
 // collapse whitespace so visually-identical HTML compares equal.

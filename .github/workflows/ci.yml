@@ -83,7 +83,7 @@ jobs:
       # `npm ci` and not `npm install`: the bundle check below rebuilds and
       # diffs, so every build input has to be pinned or the diff reports
       # upstream movement as a stale bundle. The lockfile is what pins them -
-      # `carve-grammars` tracks a branch and the editor deps are caret ranges.
+      # Runtime package versions and editor ranges are locked by package-lock.json.
       - name: Install npm dependencies
         run: npm ci
 

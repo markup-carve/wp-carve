@@ -27,13 +27,9 @@ name: Engine drift
 # repos pinned revisions a fresh clone cannot check out (carve#499) - so an
 # unreachable pin is a real failure mode rather than a hypothetical.
 
-# TWO git dependencies, not one. `carve-grammars` was declared as
-# `github:markup-carve/carve-grammars#main` - a branch, not a revision - so a
-# fresh resolve took whatever was on that branch at the time, and nothing here
-# compared it to anything. It was 58 commits behind when this job learned to
-# look. Both are now checked by the same code rather than by a second copy of
-# it: a check written once per dependency is a check that covers the dependency
-# somebody remembered (markup-carve/carve#735).
+# The JavaScript engine remains an exact git dependency and is checked against
+# upstream main. The grammar is a released npm dependency now; its manifest,
+# lockfile root and installed version are checked for exact agreement below.
 
 on:
   schedule:
@@ -110,7 +106,6 @@ jobs:
           }
 
           check '@markup-carve/carve' carve-js carve-js
-          check 'carve-grammars' carve-grammars carve-grammars
 
       - name: Every Composer development dependency pins a reachable main revision
         run: |
@@ -191,4 +186,17 @@ jobs:
           }
 
           agree '@markup-carve/carve'
-          agree 'carve-grammars'
+
+          pkg='@markup-carve/carve-grammars'
+          declared="$(node -p "require('./package.json').dependencies['${pkg}'] || ''")"
+          locked="$(node -p "require('./package-lock.json').packages['node_modules/${pkg}']?.version || ''")"
+          root="$(node -p "require('./package-lock.json').packages[''].dependencies['${pkg}'] || ''")"
+          if ! printf '%s' "${declared}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::${pkg} must be an exact released version, got ${declared}"
+            exit 1
+          fi
+          if [ "${declared}" != "${locked}" ] || [ "${declared}" != "${root}" ]; then
+            echo "::error::${pkg}: manifest=${declared}, installed=${locked}, lock root=${root}"
+            exit 1
+          fi
+          echo "${pkg}: exact released version ${declared} agrees across manifest and lockfile"
