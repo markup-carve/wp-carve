@@ -1,9 +1,8 @@
-# Visual editor (foundation)
+# Visual editor
 
-The plugin ships a **foundation** of a Tiptap-based WYSIWYG editor for the Carve
-block. It is opt-in (`visual_editor_mode` setting, off by default) and experimental:
-the core constructs work and round-trip to Carve; the long tail of
-carve-specific constructs is being filled in incrementally.
+The plugin ships an opt-in Tiptap WYSIWYG editor for the Carve block
+(`visual_editor_mode`, off by default). The shared Carve AST bridge maps rich
+constructs into the editor and preserves unsupported subtrees as source.
 
 ## Enabling it
 
@@ -14,19 +13,21 @@ textarea + live preview; Visual mounts the Tiptap editor.
 
 ## How it works
 
-- The editor core (extension kit + serializer) is the org's **shared
-  `carve-grammars/tiptap`** package (`CarveKit` + `serializeToCarve`), the same
-  one `carve-wysiwyg` uses. wp-carve only adds a keyboard map and an empty-state
-  placeholder on top.
+- The editor core (AST loader + extension kit + serializer) is the org's
+  **shared `carve-grammars/tiptap`** package (`carveToProseMirror`, `CarveKit`
+  and `serializeToCarve`), the same one `carve-wysiwyg` uses. wp-carve adds an
+  empty-state placeholder and WordPress integration on top.
 - It's **bundled locally** with esbuild into `assets/js/vendor/carve-editor.js`
   (run `npm run build:editor`; `npm run build` builds both the engine and the
   editor). No CDN at runtime. The bundle is **lazy-loaded** via dynamic
   `import()` only when the user switches to Visual mode.
-- The editor is seeded with HTML rendered from the current Carve source (via the
-  JS engine or the REST render endpoint).
+- The editor is seeded directly from Carve source. Preservation mode keeps an
+  untouched open/save byte-for-byte identical; it avoids the old HTML pivot
+  where source-only attributes, comments and raw constructs could disappear.
 - On every edit the document is serialized back to **Carve markup**
   (`serializeToCarve()`) and stored as the block's `carve` attribute. Source mode
-  always reflects the canonical Carve.
+  reflects the current Carve. If editing would change the rendered result, the
+  approval dialog is shown before the editor becomes interactive.
 - The toolbar is the **WordPress block toolbar** (same as Write mode, only the
   actions differ - Tiptap commands here vs source inserts in Write): headings,
   strong/emphasis/underline/inline-code, link, image, lists, quote, table, code
@@ -36,10 +37,10 @@ textarea + live preview; Visual mounts the Tiptap editor.
 
 ## Lossy round-trip warning
 
-Because the editor serializes rendered HTML back to Carve, a few constructs
-still don't survive exactly. On entering Visual mode the block round-trips the
-current source (seed -> serialize). Pure whitespace / reflow is ignored; only
-real content drift counts. If something would change, a **modal blocks entry**
+The AST bridge can preserve a construct as source without making every part of
+it richly editable. On entering Visual mode the block compares the editable
+serialization with the current source. Pure whitespace / reflow is ignored;
+only rendered-content drift counts. If an edit could change content, a **modal blocks entry**
 and shows a line diff of what would be affected - you either **Edit in Visual
 anyway** (approved once for the session) or go **Back to Write** to keep it
 exact. When nothing would change, Visual mode opens straight away.
@@ -48,9 +49,8 @@ exact. When nothing would change, Visual mode opens straight away.
 
 | File | Role |
 | --- | --- |
-| `carve-grammars/tiptap` (npm) | **Shared** `CarveKit` extension bundle + `serializeToCarve` - the round-trip core, maintained upstream and used by carve-wysiwyg too. |
-| `assets/js/tiptap/visual-editor.js` | wp-carve editor shell: mounts Tiptap with `CarveKit` + the keymap, wires change events. |
-| `assets/js/tiptap/extensions/carve-keymap.js` | wpcarve-local keyboard map (Ctrl/Cmd+1-6 headings, clear, Enter reset). |
+| `carve-grammars/tiptap` (npm) | Shared AST loader, `CarveKit`, preservation nodes, and serializer. |
+| `assets/js/tiptap/visual-editor.js` | wp-carve editor shell: mounts Tiptap, retains exact untouched source, and wires change events. |
 | `assets/blocks/carve/index.js` | The block UI: mode tabs, WordPress block toolbar, gating modal, context controls. |
 
 ## Coverage
@@ -60,8 +60,8 @@ critic insert/delete, lists incl. tasks, blockquotes, code blocks, tables with
 alignment, admonition divs, math, footnotes, definition lists, spans,
 abbreviations, and nested containers - tabs, code groups and
 admonition-in-admonition, whose fences widen so the outer never closes early).
-Constructs it can't round-trip exactly are caught by the warning above rather
-than silently changed. New constructs are added **upstream** in `carve-grammars`
+Constructs it cannot edit without changing are caught by the warning above
+rather than silently changed. New rich mappings are added **upstream** in `carve-grammars`
 so every consumer (wp-carve, carve-wysiwyg, the playground) benefits.
 
 ## Extending

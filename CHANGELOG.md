@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Synced the PHP, JavaScript, and grammar engines to reproducible revisions
+  from their current main branches; Composer pins are now covered by the drift
+  monitor as well as npm pins.
+- Moved the visual editor to the lossless Carve AST bridge, keeping
+  untouched source exact and localizing unsupported constructs.
+- Updated vulnerable build dependencies to patched releases and added archive
+  attributes for clean source exports.
+
 ### Changed
 
 - **Every Carve dependency is now a released version or a pinned revision.**
@@ -18,10 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **35 behind**, because `dev-main` only moves when someone runs
   `composer update`.
 
-  Now `carve-php ^0.1.3`, `carve-grammars ^0.1.2`, `carve-php-media-embed
-  ^0.1.1`, and carve-js pinned to an exact revision. The plugin ships its
-  `vendor/` to WordPress.org, so what resolved at build time is what users get -
-  which is the same exposure a bundled `.vsix` has.
+  The development build now pins the current `main` revisions of carve-php,
+  carve-grammars, and carve-js exactly (with the media extension on `^0.1.1`).
+  The plugin ships its `vendor/` to WordPress.org, so what resolved at build
+  time is what users get; scheduled drift checks report when any pin falls
+  behind or leaves its upstream main branch.
 
 ### Added
 

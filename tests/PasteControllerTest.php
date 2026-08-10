@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use WpCarve\Ingest\PasteController;
@@ -14,8 +15,8 @@ use WpCarve\Ingest\PasteController;
  * grammar, so the detection order (bbcode, html, markdown, then djot) is worth
  * pinning.
  *
- * @uses \WpCarve\Ingest\PasteController
  */
+#[UsesClass(PasteController::class)]
 class PasteControllerTest extends TestCase
 {
     private function sniff(string $source): string

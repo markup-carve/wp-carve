@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use WpCarve\Migration\Migrator;
 
-/**
- * @uses \WpCarve\Migration\Migrator
- */
+#[UsesClass(Migrator::class)]
 class MigratorTest extends TestCase
 {
     protected function setUp(): void

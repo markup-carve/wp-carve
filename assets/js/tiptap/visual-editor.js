@@ -1,20 +1,19 @@
 /**
- * Carve visual (WYSIWYG) editor - foundation.
+ * Carve visual (WYSIWYG) editor.
  *
- * A Tiptap-based editor that edits rendered Carve HTML and serializes back to
- * Carve markup on every change. This module + its imports are bundled locally
+ * A Tiptap-based editor that loads Carve through the shared AST bridge and
+ * serializes back to Carve markup on every change. This module and its imports are bundled locally
  * with esbuild (assets/js/vendor/carve-editor.js) - no CDN at runtime.
  *
- * Round-trip note: the editor is seeded with HTML (rendered from Carve by the
- * server/JS engine) and serializes the edited document back to Carve via
- * serializeToCarve(). The extension kit + serializer are the org's shared core
- * (carve-grammars/tiptap), used by carve-wysiwyg too; wpcarve only adds the
- * keyboard map + an empty-state placeholder on top.
+ * The editor is seeded directly from the Carve AST. This preserves source
+ * attributes and unsupported constructs that an HTML pivot cannot represent.
+ * The extension kit, loader and serializer are shared with carve-wysiwyg;
+ * wpcarve only adds the empty-state placeholder.
  */
 
 import { Editor } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
-import { CarveKit, serializeToCarve } from 'carve-grammars/tiptap';
+import { CarveKit, carveToProseMirror, serializeToCarve } from 'carve-grammars/tiptap';
 
 export { serializeToCarve };
 
@@ -26,19 +25,15 @@ export { serializeToCarve };
  * The returned `editor` instance is what those controls drive.
  *
  * @param {HTMLElement} container    Host element (cleared on mount).
- * @param {string}      initialHtml  Rendered-Carve HTML to seed the editor.
+ * @param {string}      initialCarve Carve source used to seed the editor.
  * @param {Function}    onChange     Receives Carve markup on every edit.
- * @return {Promise<Object>} Control object: { getCarve, setHtml, destroy, editor }.
+ * @return {Promise<Object>} Control object: { getCarve, setCarve, destroy, editor }.
  */
-// Carve/HTML renderers emit code blocks as `<code>...\n</code>` (a trailing
-// newline before the close). ProseMirror keeps that newline verbatim, so the
-// editor shows a spurious blank last line in every code block. Strip it from
-// the seed HTML (the serializer already drops it on the way out).
-function trimCodeNewlines( html ) {
-	return ( html || '' ).replace( /\n(<\/code>)/g, '$1' );
+function editorContent( source ) {
+	return source ? carveToProseMirror( source, { unsupported: 'preserve' } ) : '<p></p>';
 }
 
-export async function initVisualEditor( container, initialHtml, onChange ) {
+export async function initVisualEditor( container, initialCarve, onChange ) {
 	// CarveKit already bundles the keymap (Ctrl/Cmd+1-6, clear, Enter reset).
 	const extensions = [
 		CarveKit,
@@ -51,21 +46,42 @@ export async function initVisualEditor( container, initialHtml, onChange ) {
 	surfaceEl.className = 'wpcarve wpcarve-ve-surface';
 	container.appendChild( surfaceEl );
 
+	let content = editorContent( initialCarve );
+	let sourceSnapshot = initialCarve || '';
+	let documentSnapshot = '';
 	const editor = new Editor( {
 		element: surfaceEl,
 		extensions,
-		content: trimCodeNewlines( initialHtml ) || '<p></p>',
+		content,
 		onUpdate: ( { editor: ed } ) => {
 			if ( onChange ) {
-				onChange( serializeToCarve( ed.getJSON() ) );
+				onChange( serializeCurrent() );
 			}
 		},
 	} );
+	documentSnapshot = JSON.stringify( editor.getJSON() );
+
+	function serializeCurrent() {
+		const doc = editor.getJSON();
+		return JSON.stringify( doc ) === documentSnapshot ? sourceSnapshot : serializeToCarve( doc );
+	}
+
+	function serializeWithoutEnvelope() {
+		const doc = editor.getJSON();
+		return serializeToCarve( { ...doc, attrs: undefined } );
+	}
 
 	return {
 		editor,
-		getCarve: () => serializeToCarve( editor.getJSON() ),
-		setHtml: ( html ) => editor.commands.setContent( trimCodeNewlines( html ) || '<p></p>' ),
+		getCarve: serializeCurrent,
+		getEditableCarve: serializeWithoutEnvelope,
+		setCarve: ( source ) => {
+			content = editorContent( source );
+			sourceSnapshot = source || '';
+			const result = editor.commands.setContent( content, { emitUpdate: false } );
+			documentSnapshot = JSON.stringify( editor.getJSON() );
+			return result;
+		},
 		destroy: () => editor.destroy(),
 	};
 }

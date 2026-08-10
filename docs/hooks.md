@@ -156,14 +156,13 @@ per context).
 
 - `post` - front-end post/page rendering.
 - `comment` - comment rendering (uses the comment profile).
-- `editor` - the **visual-editor seed**. The Visual (WYSIWYG) editor renders the
-  source to HTML, then serializes that HTML back to Carve on every edit. Any
-  *generated* markup (a table of contents, heading permalink anchors, shifted
-  heading levels) would be frozen into the source on that round trip, so the
-  built-in extensions that emit it are skipped for `editor`.
+- `editor` - the compatibility render used by linting and REST clients that
+  request an editor-safe HTML seed. The built-in Gutenberg visual editor now
+  loads source through the JavaScript AST bridge, but this context remains for
+  integrations that consume editor-safe rendered HTML.
 
 Gate accordingly: apply **round-trippable content extensions** for both `post`
-and `editor` so Visual mode previews and round-trips faithfully, but apply
+and `editor`, but apply
 extensions that **inject generated markup** for `post` only.
 
 ```php

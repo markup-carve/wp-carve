@@ -71,9 +71,9 @@
 			.catch( () => done( '' ) );
 	}
 
-	// Foundation: optional Tiptap visual editor. Lazy-loaded as an ES module
+	// Optional Tiptap visual editor. Lazy-loaded as an ES module
 	// (assets/js/tiptap/visual-editor.js) only when the user switches to Visual
-	// mode, so the CDN-backed Tiptap bundle never loads for source-only editing.
+	// mode, so the locally bundled editor never loads for source-only editing.
 	// Normalize Carve to comparable non-empty, whitespace-collapsed lines so a
 	// round-trip diff ignores cosmetic reflow.
 	// Normalize rendered HTML for equivalence comparison: sort each tag's
@@ -123,18 +123,16 @@
 		useEffect( () => {
 			let active = true;
 			let ctl = null;
-			// Seed the editor from the SERVER render (carve-php + extensions):
-			// media embeds seed as real iframes stamped with data-carve-source,
-			// so they preview as video and round-trip losslessly. Admonitions
-			// round-trip too (aside.admonition is parsed). Footnotes still gate
-			// (a known carve-grammars parse gap, same under either engine).
-			renderPreview( attributes.carve || '', ( html ) => {
-				if ( ! active || ! hostRef.current ) {
-					return;
-				}
-				import( /* webpackIgnore: true */ cfg.visualEditor )
+			// Seed directly from Carve source through carve-grammars' AST loader.
+			// Preservation mode keeps unsupported subtrees source-local and makes an
+			// untouched open/save byte-for-byte lossless, which the old rendered-HTML
+			// pivot could not guarantee for attributes, comments or raw constructs.
+			if ( ! hostRef.current ) {
+				return undefined;
+			}
+			import( /* webpackIgnore: true */ cfg.visualEditor )
 					.then( ( mod ) =>
-						mod.initVisualEditor( hostRef.current, html, ( carve ) =>
+						mod.initVisualEditor( hostRef.current, attributes.carve || '', ( carve ) =>
 							setAttributes( { carve } )
 						)
 					)
@@ -153,7 +151,10 @@
 						// normalization (attribute order, `|=` vs `|---|` table
 						// headers, blockquote soft-break reflow,
 						// code-span padding) renders identically and is ignored.
-						const rt = instance.getCarve();
+						// Compare the editable serialization, not the preservation
+						// envelope's exact untouched source. If editing this tree would
+						// normalize or drop a construct, retain the approval gate.
+						const rt = instance.getEditableCarve();
 						const engine = window.wpCarveEngine;
 						let rendersSame = false;
 						if ( engine && typeof engine.carveToHtml === 'function' ) {
@@ -176,9 +177,6 @@
 						setReady( true );
 					} )
 					.catch( () => setFailed( true ) );
-			// The final 'editor' arg strips generated TOC/permalink markup from the
-			// seed so it can't freeze into source on the HTML -> Carve round trip.
-			}, attributes.profile || '', true, 'editor' );
 			return () => {
 				active = false;
 				if ( ctl ) {
@@ -347,7 +345,7 @@
 				el(
 					'p',
 					null,
-					__( 'The visual editor rebuilds the source from rendered HTML, so these constructs would not survive a round-trip exactly. Edit in the Visual tab anyway, or go back to the Write tab to keep them intact.', 'carve-markup' )
+					__( 'The visual editor could not preserve the rendered result for these constructs. Edit in the Visual tab anyway, or go back to the Write tab to keep them intact.', 'carve-markup' )
 				),
 				el(
 					'pre',

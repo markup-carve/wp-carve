@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace WpCarve\Test;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use WpCarve\Converter;
 
-/**
- * @uses \WpCarve\Converter
- */
+#[UsesClass(Converter::class)]
 class ConverterTest extends TestCase
 {
     public function testEmptyInputReturnsEmptyString(): void
