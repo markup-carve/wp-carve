@@ -64,6 +64,12 @@ Constructs it cannot edit without changing are caught by the warning above
 rather than silently changed. New rich mappings are added **upstream** in `carve-grammars`
 so every consumer (wp-carve, carve-wysiwyg, the playground) benefits.
 
+The upstream mounted-editor corpus ratchet currently keeps rendered output
+equivalent for 729 of 892 conformance documents on both Tiptap 2 and 3. The
+remaining 163 are protected by this warning gate; most exercise deliberately
+malformed or source/indentation-sensitive syntax rather than ordinary authoring
+constructs.
+
 ## Extending
 
 Add or improve editor constructs in the shared **`carve-grammars`** repo
