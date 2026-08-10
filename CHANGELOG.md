@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-08-10
+
 - Synced the PHP, JavaScript, and grammar engines to reproducible revisions
   from their current main branches; Composer pins are now covered by the drift
   monitor as well as npm pins.
@@ -48,8 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{^sup^}` and `{,sub,}` exist - a bare `^` or `,` is literal text. The editor
   shortcuts (Ctrl/Cmd + . and Ctrl/Cmd + ,) now insert the braced delimiters,
   "clear formatting" strips them, and the syntax cheat sheet and docs list them.
-
-## [0.1.3] - 2026-07-14
 
 ### Fixed
 
