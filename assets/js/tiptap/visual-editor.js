@@ -13,7 +13,7 @@
 
 import { Editor } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
-import { CarveKit, carveToProseMirror, serializeToCarve } from 'carve-grammars/tiptap';
+import { CarveKit, carveToProseMirror, serializeToCarve } from '@markup-carve/carve-grammars/tiptap';
 
 export { serializeToCarve };
 

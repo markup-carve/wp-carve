@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.3] - 2026-08-10
 
+- Replaced the pre-release carve-grammars git pin with the published exact
+  `@markup-carve/carve-grammars` 0.1.3 package, including the final Tiptap
+  footnote-priority fix, and rebuilt the shipped editor bundle from it.
 - Synced the PHP, JavaScript, and grammar engines to reproducible revisions
   from their current main branches; Composer pins are now covered by the drift
   monitor as well as npm pins.

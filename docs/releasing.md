@@ -12,7 +12,7 @@ triggers an automated deploy to the WordPress.org plugin SVN.
 
    ```bash
    composer update            # pull latest carve-php + all Composer deps
-   npm update                 # pull latest @markup-carve/carve + carve-grammars
+   npm update                 # pull the declared Carve engine and grammar versions
    npm run build              # rebuild engine + editor bundles against them
    ```
 
