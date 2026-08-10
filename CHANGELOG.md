@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   monitor as well as npm pins.
 - Moved the visual editor to the lossless Carve AST bridge, keeping
   untouched source exact and localizing unsupported constructs.
+- Updated the grammar bridge so 58 more corpus documents retain equivalent
+  rendered output through a real mounted Tiptap editor (729/892 total).
 - Updated vulnerable build dependencies to patched releases and added archive
   attributes for clean source exports.
 
