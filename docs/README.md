@@ -8,6 +8,6 @@ Reference docs for the Carve Markup WordPress plugin. Start with the project
 - [Profiles & rendering](profiles.md) — content profiles, sanitization, extensions.
 - [Hooks](hooks.md) — filters and actions, and how to register your own carve-php extension.
 - [WP-CLI](wp-cli.md) — the `wp carve migrate` command (analysis + safe conversion).
-- [Visual editor](visual-editor.md) — the experimental Tiptap WYSIWYG foundation.
+- [Visual editor](visual-editor.md) — the optional Tiptap WYSIWYG editor and its lossless AST bridge.
 - [Carve syntax](syntax.md) — a quick reference for the markup itself.
 - [Releasing](releasing.md) — how releases deploy to WordPress.org, and the submission checklist.

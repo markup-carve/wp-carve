@@ -45,20 +45,27 @@ jobs:
   engine-pin:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check out the engine
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: markup-carve/carve-js
           path: carve-js
           fetch-depth: 0
 
       - name: Check out the grammars
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: markup-carve/carve-grammars
           path: carve-grammars
+          fetch-depth: 0
+
+      - name: Check out the PHP engine
+        uses: actions/checkout@v6
+        with:
+          repository: markup-carve/carve-php
+          path: carve-php
           fetch-depth: 0
 
       - name: Every git dependency pins a revision that is on its upstream main
@@ -104,6 +111,42 @@ jobs:
 
           check '@markup-carve/carve' carve-js carve-js
           check 'carve-grammars' carve-grammars carve-grammars
+
+      - name: Every Composer development dependency pins a reachable main revision
+        run: |
+          set -euo pipefail
+
+          check() {
+            local pkg="$1" dir="$2" repo="$3"
+            local constraint rev locked behind
+            constraint="$(php -r '$c=json_decode(file_get_contents("composer.json"), true); echo $c["require"][$argv[1]] ?? "";' "${pkg}")"
+            rev="$(printf '%s' "${constraint}" | grep -oE '[0-9a-f]{40}' || true)"
+            if [ -z "${rev}" ]; then
+              echo "::error::${pkg} is \"${constraint}\" - development dependencies must pin a 40-hex revision"
+              exit 1
+            fi
+            locked="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === $argv[1]) { echo $p["source"]["reference"] ?? ""; break; }' "${pkg}")"
+            if [ "${rev}" != "${locked}" ]; then
+              echo "::error::composer.json pins ${pkg} at ${rev} but composer.lock resolves ${locked}"
+              exit 1
+            fi
+            if ! git -C "${dir}" cat-file -e "${rev}^{commit}" 2>/dev/null; then
+              echo "::error::${pkg} pins ${rev}, which is not a commit in markup-carve/${repo}"
+              exit 1
+            fi
+            if ! git -C "${dir}" merge-base --is-ancestor "${rev}" origin/main; then
+              echo "::error::${pkg} ${rev} is not on markup-carve/${repo} main"
+              exit 1
+            fi
+            behind="$(git -C "${dir}" rev-list --count "${rev}..origin/main")"
+            echo "${pkg}: ${rev}; markup-carve/${repo} main is ${behind} commit(s) ahead"
+            if [ "${behind}" -gt 0 ]; then
+              echo "::warning::${pkg} is ${behind} commit(s) behind markup-carve/${repo} main"
+            fi
+          }
+
+          check 'markup-carve/carve-php' carve-php carve-php
+          check 'markup-carve/carve-grammars' carve-grammars carve-grammars
 
       - name: The declared pins and the lockfile agree
         run: |

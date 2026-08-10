@@ -31,7 +31,7 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 
 const { Editor } = await import('@tiptap/core');
 const { carveToHtml } = await import('@markup-carve/carve');
-const { CarveKit, serializeToCarve } = await import('carve-grammars/tiptap');
+const { CarveKit, carveToProseMirror, serializeToCarve } = await import('carve-grammars/tiptap');
 
 function normHtml(html) {
 	return (html || '')
@@ -46,8 +46,13 @@ function normHtml(html) {
 function roundTrip(carve) {
 	const el = document.createElement('div');
 	document.body.appendChild(el);
-	const editor = new Editor({ element: el, extensions: [CarveKit], content: carveToHtml(carve) });
-	const out = serializeToCarve(editor.getJSON());
+	const content = carveToProseMirror(carve, { unsupported: 'preserve' });
+	const editor = new Editor({
+		element: el,
+		extensions: [CarveKit],
+		content,
+	});
+	const out = serializeToCarve({ ...editor.getJSON(), attrs: undefined });
 	editor.destroy();
 	el.remove();
 	return out;

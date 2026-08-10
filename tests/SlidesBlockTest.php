@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use WpCarve\Blocks\SlidesBlock;
 use WpCarve\Converter;
 
-/**
- * @uses \WpCarve\Blocks\SlidesBlock
- */
+#[UsesClass(SlidesBlock::class)]
 class SlidesBlockTest extends TestCase
 {
     public function testRenderSplitsSlidesOutsideCodeFences(): void

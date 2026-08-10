@@ -2,6 +2,7 @@
   "name": "@markup-carve/wp-carve",
   "version": "0.1.3",
   "private": true,
+  "type": "module",
   "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
   "license": "MIT",
   "scripts": {
@@ -12,8 +13,8 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#380138c6fb8a60d1c6a6ecabc3855b77484b52f2",
-    "carve-grammars": "github:markup-carve/carve-grammars#5c41f9d079c9de939d74f8c4fd4870602256c16b"
+    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#cfe34fa5ab8b8421e7d0764ced9b2cc00db15075",
+    "carve-grammars": "github:markup-carve/carve-grammars#1a4b0ff2fa493ee5e382d14a95c89839c25b0e98"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",
@@ -31,7 +32,7 @@
     "@tiptap/extension-task-list": "^2.11.0",
     "@tiptap/extension-underline": "^2.11.0",
     "@tiptap/starter-kit": "^2.11.0",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.28.2",
     "happy-dom": "^20.10.6"
   }
 }

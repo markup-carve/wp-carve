@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use WP_Post;
 use WpCarve\Meta\FrontmatterMeta;
@@ -14,8 +15,8 @@ use WpCarve\Meta\FrontmatterMeta;
  * canonical, without ever clobbering author-set fields. It also clears its meta
  * when the frontmatter is removed.
  *
- * @uses \WpCarve\Meta\FrontmatterMeta
  */
+#[UsesClass(FrontmatterMeta::class)]
 class FrontmatterMetaTest extends TestCase
 {
     protected function setUp(): void

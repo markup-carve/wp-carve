@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use WpCarve\Settings;
 
@@ -12,8 +13,8 @@ use WpCarve\Settings;
  * typed defaults) and preserve the back-compat migration from the old boolean
  * `visual_editor` flag to the 3-way `visual_editor_mode`.
  *
- * @uses \WpCarve\Settings
  */
+#[UsesClass(Settings::class)]
 class SettingsTest extends TestCase
 {
     protected function setUp(): void

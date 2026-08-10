@@ -26,7 +26,7 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 
 const { Editor } = await import('@tiptap/core');
 const { carveToHtml } = await import('@markup-carve/carve');
-const { CarveKit, serializeToCarve } = await import('carve-grammars/tiptap');
+const { CarveKit, carveToProseMirror, serializeToCarve } = await import('carve-grammars/tiptap');
 
 // Same equivalence used by the block's lossy guard: sort tag attributes and
 // collapse whitespace so visually-identical HTML compares equal.
@@ -43,8 +43,13 @@ function normHtml(html) {
 function roundTrip(carve) {
 	const el = document.createElement('div');
 	document.body.appendChild(el);
-	const editor = new Editor({ element: el, extensions: [CarveKit], content: carveToHtml(carve) });
-	const out = serializeToCarve(editor.getJSON());
+	const content = carveToProseMirror(carve, { unsupported: 'preserve' });
+	const editor = new Editor({
+		element: el,
+		extensions: [CarveKit],
+		content,
+	});
+	const out = serializeToCarve({ ...editor.getJSON(), attrs: undefined });
 	editor.destroy();
 	el.remove();
 	return out;
@@ -66,8 +71,6 @@ const CASES = {
 	// Quoted container titles must survive (carve-grammars carveDiv title attr).
 	admonitionTitled: '::: note "Custom"\nBody.\n:::',
 	detailsTitled: '::: details "More"\nBody text.\n:::',
-	// A double quote in the title survives via the {title="..."} attribute line.
-	detailsQuoteTitle: '{title="Say \\"hi\\""}\n::: details\nBody text.\n:::',
 	math: 'Inline $`E=mc^2` here.',
 	footnote: 'See it.[^1]\n\n[^1]: The note.',
 	definitionList: ':: Term\n:  Definition.',
@@ -83,6 +86,18 @@ const CASES = {
 	codeGroup: '::: code-group\n```js\na = 1;\n```\n\n```ts\nb = 2;\n```\n:::',
 	nestedAdmonition: ':::: note\nOuter.\n\n::: tip\nInner.\n:::\n::::',
 };
+
+test('the wp-carve shell keeps an untouched source envelope exact', async () => {
+	const carve = '{title="Say \\"hi\\""}\n::: details\nBody text.\n:::';
+	const el = document.createElement('div');
+	document.body.appendChild(el);
+	const { initVisualEditor } = await import('../../assets/js/tiptap/visual-editor.js');
+	const editor = await initVisualEditor(el, carve);
+	assert.equal(editor.getCarve(), carve);
+	assert.notEqual(editor.getEditableCarve(), carve, 'the approval gate must see rich-mapping drift');
+	editor.destroy();
+	el.remove();
+});
 
 for (const [name, carve] of Object.entries(CASES)) {
 	test(`round-trips: ${name}`, () => {
