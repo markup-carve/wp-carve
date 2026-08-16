@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - Excerpts now use Carve's plain-text renderer, preserving readable spacing and omitting footnote definitions.
+- An image inside a heading now stays on the heading's line in plain-text and ANSI output instead of splitting it, so excerpts of posts whose headings carry an image read as one line. This comes from moving `markup-carve/carve-php` onto the published 0.1.4 release; the previous commit pin was one commit short of that tag while still calling itself 0.1.4.
 
 ## [0.1.3] - 2026-08-10
 

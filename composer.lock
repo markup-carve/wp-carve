@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2dc5ad41cba2156d929dde41fa9c6afa",
+    "content-hash": "4196630e4530eff4f8ec34c2ec729f85",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -395,16 +395,16 @@
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "dev-main",
+            "version": "0.1.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "4fcf2b77d556220d8529740bc35705a060e8292b"
+                "reference": "b6e06daad792a06a535ee0bb68248629ef83f32b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/4fcf2b77d556220d8529740bc35705a060e8292b",
-                "reference": "4fcf2b77d556220d8529740bc35705a060e8292b",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/b6e06daad792a06a535ee0bb68248629ef83f32b",
+                "reference": "b6e06daad792a06a535ee0bb68248629ef83f32b",
                 "shasum": ""
             },
             "require": {
@@ -419,7 +419,6 @@
             "suggest": {
                 "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/punctuation identically and other scripts fall back to the generated `section` id."
             },
-            "default-branch": true,
             "bin": [
                 "bin/carve"
             ],
@@ -453,7 +452,7 @@
             ],
             "support": {
                 "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/main"
+                "source": "https://github.com/markup-carve/carve-php/tree/0.1.4"
             },
             "funding": [
                 {
@@ -461,7 +460,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-10T10:19:19+00:00"
+            "time": "2026-08-10T11:04:08+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
@@ -4068,18 +4067,10 @@
             "time": "2025-05-07T01:16:12+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "markup-carve/carve-php",
-            "version": "dev-main",
-            "alias": "0.1.4",
-            "alias_normalized": "0.1.4.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "markup-carve/carve-grammars": 20,
-        "markup-carve/carve-php": 20
+        "markup-carve/carve-grammars": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "markup-carve/carve-php": "dev-main#4fcf2b77d556220d8529740bc35705a060e8292b as 0.1.4",
+        "markup-carve/carve-php": "^0.1.4",
         "markup-carve/carve-php-media-embed": "^0.1.1",
         "torchlight/engine": "^1.0",
         "markup-carve/carve-grammars": "dev-main#1a4b0ff2fa493ee5e382d14a95c89839c25b0e98"

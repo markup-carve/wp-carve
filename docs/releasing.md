@@ -5,10 +5,11 @@ triggers an automated deploy to the WordPress.org plugin SVN.
 
 ## How a release works
 
-1. **Update all dependencies to their latest first.** The Carve packages are
-   tracked on dev branches (`markup-carve/carve-php: dev-main`, the media-embed
-   extension, and the npm engine/grammars on `#main`), so a release must ship
-   against their current `main` - not a stale locked commit:
+1. **Update all dependencies to their latest first.** `markup-carve/carve-php`,
+   the media-embed extension and the npm grammars are released packages, so they
+   move by their published versions. The Composer `markup-carve/carve-grammars`
+   and the npm engine are still pinned to a revision on `main`, so a release must
+   ship against their current `main` - not a stale locked commit:
 
    ```bash
    composer update            # pull latest carve-php + all Composer deps
