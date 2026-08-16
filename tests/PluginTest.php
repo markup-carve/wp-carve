@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace WpCarve\Test;
 
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
+use WpCarve\Converter;
 use WpCarve\Plugin;
 use WpCarve\Settings;
 
@@ -23,7 +25,78 @@ class PluginTest extends TestCase
 
     protected function tearDown(): void
     {
-        unset($GLOBALS['_wpcarve_test_options'], $GLOBALS['_wpcarve_test_caps']);
+        unset(
+            $GLOBALS['_wpcarve_test_options'],
+            $GLOBALS['_wpcarve_test_caps'],
+            $GLOBALS['_wpcarve_test_current_post'],
+        );
+    }
+
+    private function excerptFor(string $source): string
+    {
+        wpcarve_test_set_post(1, ['post_content' => $source]);
+        update_post_meta(1, '_wpcarve_enabled', true);
+
+        $plugin = new Plugin();
+        (new ReflectionProperty($plugin, 'converter'))->setValue($plugin, new Converter(Settings::defaults()));
+
+        return $plugin->maybeRenderExcerpt('Core fallback');
+    }
+
+    public function testExcerptOmitsFootnoteDefinition(): void
+    {
+        $excerpt = $this->excerptFor("Visible text with a note.[^1]\n\n[^1]: Definition must stay out.");
+
+        $this->assertStringContainsString('Visible text with a note.', $excerpt);
+        $this->assertStringNotContainsString('Definition must stay out', $excerpt);
+    }
+
+    public function testExcerptSeparatesFigureCaptionFromFollowingParagraph(): void
+    {
+        $excerpt = $this->excerptFor("![Diagram](diagram.png)\n^ A useful caption\n\nFollowing paragraph.");
+
+        $this->assertStringContainsString('A useful caption Following paragraph.', $excerpt);
+        $this->assertStringNotContainsString('captionFollowing', $excerpt);
+    }
+
+    public function testExcerptSeparatesTableCells(): void
+    {
+        $excerpt = $this->excerptFor("|= First |= Second |\n| Alpha | Beta |");
+
+        $this->assertMatchesRegularExpression('/First.*Second.*Alpha.*Beta/', $excerpt);
+        $this->assertStringNotContainsString('FirstSecond', $excerpt);
+        $this->assertStringNotContainsString('AlphaBeta', $excerpt);
+    }
+
+    public function testManualExcerptWinsOverBodyAndIsRenderedAsCarve(): void
+    {
+        wpcarve_test_set_post(1, [
+            'post_content' => 'Body that must not replace the excerpt.',
+            'post_excerpt' => 'A *manual* excerpt.',
+        ]);
+        update_post_meta(1, '_wpcarve_enabled', true);
+
+        $plugin = new Plugin();
+        (new ReflectionProperty($plugin, 'converter'))->setValue($plugin, new Converter(Settings::defaults()));
+
+        $excerpt = $plugin->maybeRenderExcerpt('A *manual* excerpt.');
+
+        // The hand-written excerpt is Carve as well: it is rendered, not shown
+        // with its markers, and the post body never reaches the excerpt.
+        $this->assertSame('A manual excerpt.', $excerpt);
+        $this->assertStringNotContainsString('Body that must not', $excerpt);
+    }
+
+    public function testDisabledPostTypeShortCircuitsRendering(): void
+    {
+        $GLOBALS['_wpcarve_test_options'][Settings::OPTION] = ['enable_pages' => false];
+        wpcarve_test_set_post(1, [
+            'post_content' => 'Body that must not replace the excerpt.',
+            'post_type' => 'page',
+        ]);
+        update_post_meta(1, '_wpcarve_enabled', true);
+
+        $this->assertSame('Core fallback', (new Plugin())->maybeRenderExcerpt('Core fallback'));
     }
 
     public function testExcludeShortcodeFromTexturize(): void

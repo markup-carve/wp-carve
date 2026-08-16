@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use MarkupCarve\Carve\CarveConverter;
+use MarkupCarve\Carve\Event\RenderEvent;
 use MarkupCarve\Carve\Extension\CodeGroupExtension;
 use MarkupCarve\Carve\Extension\DetailsExtension;
 use MarkupCarve\Carve\Extension\FencedRenderExtension;
@@ -23,6 +24,7 @@ use MarkupCarve\Carve\Extension\TableOfContentsExtension;
 use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Profile;
+use MarkupCarve\Carve\Renderer\PlainTextRenderer;
 use MarkupCarve\Carve\Renderer\SoftBreakMode;
 use MarkupCarve\Carve\SafeMode;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
@@ -32,8 +34,8 @@ use WpCarve\Extension\TorchlightExtension;
  * WordPress-facing wrapper around the carve-php CarveConverter.
  *
  * Builds a converter per context (post vs comment) applying the configured
- * content profile, safe mode and feature extensions, and renders Carve to
- * HTML.
+ * content profile and feature extensions, and renders Carve to HTML or plain
+ * text.
  */
 class Converter
 {
@@ -117,6 +119,30 @@ class Converter
          * @param string $context 'post', 'comment', or 'editor'.
          */
         return (string)apply_filters('wpcarve_rendered_html', $html, $carve, $context);
+    }
+
+    /**
+     * Render Carve source as plain text for a given context. The text renderer
+     * emits no markup; HTML safe mode and HTML-only output processing therefore
+     * do not apply.
+     */
+    public function toText(string $carve, string $context = 'post', ?string $profileOverride = null): string
+    {
+        if (trim($carve) === '') {
+            return '';
+        }
+
+        /**
+         * Filter the raw Carve source before it is converted.
+         *
+         * @param string $carve The Carve source.
+         * @param string $context 'post', 'comment', or 'editor'.
+         */
+        $carve = (string)apply_filters('wpcarve_source', $carve, $context);
+
+        $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
+
+        return $this->textConverterFor($context, $profileOverride)->convert($abbrevDefs . $carve);
     }
 
     /**
@@ -330,6 +356,50 @@ class Converter
          * The 'editor' context is the visual-editor seed: add-ons should apply
          * round-trippable content extensions for 'post' and 'editor' alike, but
          * generated markup (TOC-like) for 'post' only. See docs/hooks.md.
+         *
+         * @param \MarkupCarve\Carve\CarveConverter $converter
+         * @param string $context 'post', 'comment', or 'editor'.
+         */
+        do_action('wpcarve_converter', $converter, $context);
+
+        return $this->cache[$cacheKey] = $converter;
+    }
+
+    /**
+     * Build the plain-text target with the same context profile and
+     * parser-level configuration as the HTML target. Render-only extensions
+     * are intentionally omitted because their output is HTML UI markup.
+     */
+    private function textConverterFor(string $context, ?string $profileOverride = null): CarveConverter
+    {
+        $isComment = $context === 'comment';
+        $cacheKey = 'text:' . $context
+            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '');
+        if (isset($this->cache[$cacheKey])) {
+            return $this->cache[$cacheKey];
+        }
+
+        $profileName = $profileOverride !== null && $profileOverride !== ''
+            ? $profileOverride
+            : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
+        $converter = CarveConverter::plainText()->setProfile($this->profile($profileName));
+
+        // Footnote references remain useful in prose, but definitions are
+        // document-end apparatus and should not become excerpt/search text.
+        $renderer = $converter->getRenderer();
+        if ($renderer instanceof PlainTextRenderer) {
+            $renderer->on('render.footnote', static function (RenderEvent $event): void {
+                $event->setHtml('');
+            });
+        }
+
+        if (!empty($this->settings['normalize_tabs'])) {
+            $converter->addExtension(new TabNormalizeExtension(width: (int)($this->settings['tab_width'] ?? 2)));
+        }
+
+        /**
+         * Allow add-ons to register parser-level carve-php extensions on the
+         * plain-text converter.
          *
          * @param \MarkupCarve\Carve\CarveConverter $converter
          * @param string $context 'post', 'comment', or 'editor'.
