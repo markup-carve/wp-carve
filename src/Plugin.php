@@ -233,9 +233,10 @@ class Plugin
         if (!$post || !$this->typeEnabled($post)) {
             return $excerpt;
         }
-
         $src = '';
         if (trim((string)$post->post_excerpt) !== '') {
+            // A hand-written excerpt is Carve too, so it keeps being rendered
+            // rather than shown with its markers.
             $src = (string)$post->post_excerpt;
         } elseif (get_post_meta($post->ID, '_wpcarve_enabled', true)) {
             $src = (string)$post->post_content;
@@ -250,9 +251,12 @@ class Plugin
         if (trim($src) === '') {
             return $excerpt;
         }
-        $html = $this->converter->toHtml($src, 'post', null, self::safeForAuthor((int)$post->post_author));
+        $text = $this->converter->toText($src, 'post');
+        // Plain-text blocks are deliberately separated by newlines. Collapse
+        // them here so archive excerpts remain a single readable line.
+        $text = trim((string)preg_replace('/\s+/u', ' ', $text));
 
-        return wp_trim_words(wp_strip_all_tags($html), 55);
+        return wp_trim_words($text, 55);
     }
 
     /**

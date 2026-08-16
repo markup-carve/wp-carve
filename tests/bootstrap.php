@@ -30,7 +30,10 @@ function wpcarve_test_set_post(int $id, array $fields): void
     $post->ID = $id;
     $post->post_content = (string)($fields['post_content'] ?? '');
     $post->post_excerpt = (string)($fields['post_excerpt'] ?? '');
+    $post->post_type = (string)($fields['post_type'] ?? 'post');
+    $post->post_author = (int)($fields['post_author'] ?? 0);
     $GLOBALS['_wpcarve_test_posts'][$id] = $post;
+    $GLOBALS['_wpcarve_test_current_post'] = $id;
 }
 
 if (!class_exists('WP_Post')) {
@@ -41,6 +44,10 @@ if (!class_exists('WP_Post')) {
         public string $post_content = '';
 
         public string $post_excerpt = '';
+
+        public string $post_type = 'post';
+
+        public int $post_author = 0;
     }
 }
 
@@ -60,6 +67,8 @@ if (!function_exists('do_action')) {
 if (!function_exists('get_post')) {
     function get_post(?int $id = null): ?WP_Post
     {
+        $id ??= (int)($GLOBALS['_wpcarve_test_current_post'] ?? 0);
+
         return $GLOBALS['_wpcarve_test_posts'][$id] ?? null;
     }
 }
@@ -68,6 +77,15 @@ if (!function_exists('has_blocks')) {
     function has_blocks(string $content): bool
     {
         return str_contains($content, '<!-- wp:');
+    }
+}
+
+if (!function_exists('has_block')) {
+    function has_block(string $blockName, WP_Post|string|null $post = null): bool
+    {
+        $content = $post instanceof WP_Post ? $post->post_content : (string)$post;
+
+        return str_contains($content, '<!-- wp:' . $blockName);
     }
 }
 
@@ -272,5 +290,17 @@ if (!function_exists('wp_strip_all_tags')) {
         }
 
         return $text;
+    }
+}
+
+if (!function_exists('wp_trim_words')) {
+    function wp_trim_words(string $text, int $numWords = 55, ?string $more = null): string
+    {
+        $words = preg_split('/\s+/', trim($text)) ?: [];
+        if (count($words) <= $numWords) {
+            return implode(' ', $words);
+        }
+
+        return implode(' ', array_slice($words, 0, $numWords)) . ($more ?? '&hellip;');
     }
 }

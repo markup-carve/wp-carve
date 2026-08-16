@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Excerpts now use Carve's plain-text renderer, preserving readable spacing and omitting footnote definitions.
+
 ## [0.1.3] - 2026-08-10
 
 - Replaced the pre-release carve-grammars git pin with the published exact
