@@ -18,10 +18,18 @@
             "type": "string",
             "default": ""
         },
-        "profile": {
-            "type": "string",
-            "default": ""
-        }
+    "profile": {
+      "type": "string",
+      "default": ""
+    },
+    "bibliography": {
+      "type": "string",
+      "default": ""
+    },
+    "citationMode": {
+      "type": "string",
+      "default": "numbered"
+    }
     },
     "editorScript": "wpcarve-editor",
     "style": "wpcarve"

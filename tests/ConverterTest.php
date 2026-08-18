@@ -361,4 +361,24 @@ CARVE;
         preg_match_all('/color:\s*#?[0-9a-fA-F]{3,8}/', $html, $m);
         $this->assertGreaterThan(1, count(array_unique($m[0])), 'expected varied token colors from the carve grammar');
     }
+
+    public function testCslBibliographyRendersNumberedCitationsAndReferences(): void
+    {
+        $converter = new Converter(['post_profile' => 'article']);
+        $bibliography = [[
+            'id' => 'knuth84',
+            'author' => [['family' => 'Knuth', 'given' => 'Donald']],
+            'issued' => ['date-parts' => [[1984]]],
+            'title' => 'Literate Programming',
+        ]];
+
+        $html = $converter->toHtml(
+            "See [@knuth84].\n\n::: references\n:::",
+            bibliography: $bibliography,
+        );
+
+        $this->assertStringContainsString('data-cite-key="knuth84"', $html);
+        $this->assertStringContainsString('Literate Programming', $html);
+        $this->assertStringContainsString('Knuth', $html);
+    }
 }

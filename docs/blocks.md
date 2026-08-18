@@ -38,7 +38,9 @@ emphasis, `Ctrl/Cmd+U` underline, `Ctrl/Cmd+K` link.
 > (italic) and `_underline_`.
 
 The block inspector adds a word count, an Import shortcut, a Clear action and a
-short syntax cheat sheet. Pasting another format into the source editor also
+short syntax cheat sheet. It also includes the AST-aware [Carve Workbench](workbench.md):
+document health, heading navigation, a command palette, semantic changes since
+the last save, and a CSL-JSON citation library. Pasting another format into the source editor also
 offers a one-click "Convert to Carve".
 
 ## Carve Slides (`carve/slides`)

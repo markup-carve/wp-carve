@@ -398,7 +398,37 @@ class Plugin
                 : '',
             // Default mode when a Carve block is opened.
             'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
+            'savedCarveBlocks' => $this->savedCarveBlocks(),
         ]);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function savedCarveBlocks(): array
+    {
+        $postId = (int)get_the_ID();
+        if ($postId < 1) {
+            return [];
+        }
+        $post = get_post($postId);
+        if (!$post instanceof WP_Post) {
+            return [];
+        }
+        $sources = [];
+        $collect = static function (array $blocks) use (&$collect, &$sources): void {
+            foreach ($blocks as $block) {
+                if (($block['blockName'] ?? '') === 'carve/markup') {
+                    $sources[] = (string)($block['attrs']['carve'] ?? '');
+                }
+                if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
+                    $collect($block['innerBlocks']);
+                }
+            }
+        };
+        $collect(parse_blocks((string)$post->post_content));
+
+        return $sources;
     }
 
     /**

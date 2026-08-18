@@ -140,6 +140,28 @@
 	align-items: stretch;
 }
 
+.wpcarve-workbench-list,
+.wpcarve-outline {
+	margin: 0 0 12px;
+	padding: 0;
+	list-style: none;
+}
+
+.wpcarve-workbench-list li,
+.wpcarve-outline li {
+	margin: 0 0 6px;
+	line-height: 1.35;
+}
+
+.wpcarve-command-list {
+	display: grid;
+	gap: 8px;
+}
+
+.wpcarve-command-list .components-button {
+	justify-content: flex-start;
+}
+
 .wpcarve-split .wpcarve-source {
 	min-height: 28em;
 	resize: vertical;
