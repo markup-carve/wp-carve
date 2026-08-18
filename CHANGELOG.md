@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-08-18
+
+### Added
+
+- Added the AST-aware Carve Workbench to the block inspector: live document
+  diagnostics with source jumps, a heading navigator, searchable construct
+  commands, and semantic changes against the last saved post.
+- Added per-block CSL-JSON bibliography management with numbered or author-date
+  citations, unresolved-key diagnostics, generated references, and backlinks.
+- Documented the security and conflict boundaries for a future Git-backed
+  publishing adapter.
+
+### Changed
+
+- Updated runtime and development dependencies before release, including
+  `markup-carve/carve-php-media-embed` 0.1.2 and Phiki 2.2.1.
+- Removed wp-carve's local Phiki capture-offset patch now that Phiki 2.2.1
+  includes the fix upstream.
+
 ## [0.1.3] - 2026-08-18
 
 ### Security
@@ -254,7 +273,8 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.3...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.4...HEAD
+[0.1.4]: https://github.com/markup-carve/wp-carve/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/markup-carve/wp-carve/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/markup-carve/wp-carve/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/markup-carve/wp-carve/compare/0.1.0...0.1.1
