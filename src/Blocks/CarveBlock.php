@@ -46,7 +46,7 @@ class CarveBlock
 
         $profile = (string)($attributes['profile'] ?? '');
         $bibliography = json_decode((string)($attributes['bibliography'] ?? ''), true);
-        if (!is_array($bibliography) || !array_is_list($bibliography)) {
+        if (!is_array($bibliography) || $bibliography !== array_values($bibliography)) {
             $bibliography = [];
         }
         $citationMode = (string)($attributes['citationMode'] ?? 'numbered');

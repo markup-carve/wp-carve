@@ -162,7 +162,7 @@ class RenderController
         $context = in_array($requestedContext, ['comment', 'editor'], true) ? $requestedContext : 'post';
         $profile = (string)$request->get_param('profile');
         $bibliography = $request->get_param('bibliography');
-        if (!is_array($bibliography) || !array_is_list($bibliography)) {
+        if (!is_array($bibliography) || $bibliography !== array_values($bibliography)) {
             $bibliography = [];
         }
         $citationMode = (string)$request->get_param('citation_mode');
