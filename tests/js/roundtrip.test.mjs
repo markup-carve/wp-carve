@@ -85,10 +85,24 @@ const CASES = {
 	// single-level div, so its fence stays ::: .
 	codeGroup: '::: code-group\n```js\na = 1;\n```\n\n```ts\nb = 2;\n```\n:::',
 	nestedAdmonition: ':::: note\nOuter.\n\n::: tip\nInner.\n:::\n::::',
+	// A quoted title in a leading attribute block over a container. Serialized
+	// losslessly since carve-grammars 7ef51b6; it was the envelope test's drift
+	// case before that, so it is kept covered here rather than dropped.
+	quotedTitleAttrBlock: '{title="Say \\"hi\\""}\n::: details\nBody text.\n:::',
 };
 
 test('the wp-carve shell keeps an untouched source envelope exact', async () => {
-	const carve = '{title="Say \\"hi\\""}\n::: details\nBody text.\n:::';
+	// The input has to be a construct the serializer NORMALIZES, or the second
+	// assertion is vacuous and the first proves nothing: if editing produced the
+	// source back anyway, an envelope that returned it would be indistinguishable
+	// from having no envelope at all.
+	//
+	// This used to be `{title="Say \"hi\""}` over a `::: details`, which
+	// carve-grammars 7ef51b6 now round-trips exactly - the drift it was chosen
+	// for is gone, and it is covered as a round-trip case below instead. The GFM
+	// table separator replaces it: `|---|` normalizes to `|=`, which is one of
+	// the cosmetic rewrites the block's own lossy guard is written to ignore.
+	const carve = '| A | B |\n|---|---|\n| 1 | 2 |';
 	const el = document.createElement('div');
 	document.body.appendChild(el);
 	const { initVisualEditor } = await import('../../assets/js/tiptap/visual-editor.js');
