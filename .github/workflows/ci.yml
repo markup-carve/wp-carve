@@ -34,6 +34,82 @@ jobs:
       - name: Run tests
         run: composer test
 
+  # The corpus, against the engine this plugin SHIPS.
+  #
+  # Nothing here did this. The jobs above assert hand-written expectations,
+  # which a stale engine satisfies exactly as well as a current one, and
+  # engine-drift.yml checks that the pins are well formed, reachable and
+  # honestly labelled - all of which a pin rendering 192 documents wrongly
+  # passes without complaint. A version distance cannot answer it either: 200
+  # commits can change nothing and one can change a construct.
+  #
+  # The exposure reaches a READER rather than a test. carve-php renders post and
+  # comment content on the front end, so this is what a WordPress site
+  # publishes.
+  #
+  # It is a CEILING, not a conformance requirement. The shipped engine is a
+  # published release and this repository cannot move it faster than one exists;
+  # failing on the absolute number would put this job permanently red for
+  # something no change here can fix, which is how a job gets ignored. What it
+  # refuses is the number getting WORSE - a dependency bump that quietly
+  # regresses rendering - and the step asks for the ceiling to be lowered
+  # whenever the real number drops, so it ratchets instead of rotting.
+  corpus:
+    name: The shipped engine against carve main's corpus
+    runs-on: ubuntu-latest
+    env:
+      # Measured at 192 of 1239 when this landed, with markup-carve/carve-php
+      # 0.1.4 as the locked release. 180 of those 192 already render correctly
+      # on carve-php main, so most of this number is the distance between the
+      # published release and that branch rather than anything unimplemented.
+      CORPUS_MAX_WRONG: 192
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check out the corpus from carve main
+        uses: actions/checkout@v6
+        with:
+          repository: markup-carve/carve
+          path: carve-main
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      # The engine AS THIS PLUGIN INSTALLS IT: the locked release, runtime
+      # dependencies only, the same resolution a site gets.
+      - name: Install runtime dependencies
+        run: composer install --no-dev --prefer-dist --no-progress
+
+      - name: Render every corpus document through the shipped engine
+        run: |
+          set -euo pipefail
+          out="$(php scripts/corpus-through-engine.php carve-main/tests/corpus --list | tee /dev/stderr)"
+          documents="$(printf '%s\n' "$out" | sed -n 's/^documents=//p')"
+          wrong="$(printf '%s\n' "$out" | sed -n 's/^wrong=//p')"
+
+          # The script exits non-zero when the population does not match what
+          # the spec's example pages declare, so reaching this line already
+          # means the whole corpus was read. Guard the extraction anyway: an
+          # empty value would make every comparison below vacuously true, which
+          # is the failure shape this job exists to not have.
+          if [ -z "${wrong}" ] || [ -z "${documents}" ]; then
+            echo "::error::the run logged no documents=/wrong= counters, so nothing was measured and nothing here is a result"
+            exit 1
+          fi
+
+          echo "the shipped engine renders ${wrong} of ${documents} carve main documents differently"
+
+          if [ "${wrong}" -gt "${CORPUS_MAX_WRONG}" ]; then
+            echo "::error::${wrong} of ${documents} corpus documents render differently through the engine this plugin ships, over the ceiling of ${CORPUS_MAX_WRONG}. Something in this pull request made rendering worse."
+            exit 1
+          fi
+          if [ "${wrong}" -lt "${CORPUS_MAX_WRONG}" ]; then
+            echo "::warning::only ${wrong} of ${documents} documents render differently now, under the ceiling of ${CORPUS_MAX_WRONG}. Lower CORPUS_MAX_WRONG in .github/workflows/ci.yml to ${wrong} so the ceiling keeps meaning something."
+          fi
+
   stan:
     name: PHPStan
     runs-on: ubuntu-latest
