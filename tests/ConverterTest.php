@@ -241,7 +241,7 @@ class ConverterTest extends TestCase
 
         $this->assertStringContainsString('<table>', $html);
         $this->assertStringContainsString('<caption>Quarterly</caption>', $html);
-        $this->assertStringContainsString('<th>Version</th>', $html);
+        $this->assertStringContainsString('<th scope="col">Version</th>', $html);
         $this->assertStringContainsString('<td>RC out.</td>', $html);
         $this->assertStringNotContainsString('class="list-table"', $html);
     }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b8d2b9d7aa3a3069a0b2851a1a48513a",
+    "content-hash": "bd500183b950a23411b657df001c6545",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -395,22 +395,23 @@
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "0.1.4",
+            "version": "0.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "b6e06daad792a06a535ee0bb68248629ef83f32b"
+                "reference": "f30ebd165f89e000b0ecbf9929c5df6acf19abb7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/b6e06daad792a06a535ee0bb68248629ef83f32b",
-                "reference": "b6e06daad792a06a535ee0bb68248629ef83f32b",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/f30ebd165f89e000b0ecbf9929c5df6acf19abb7",
+                "reference": "f30ebd165f89e000b0ecbf9929c5df6acf19abb7",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.2"
             },
             "require-dev": {
+                "brianium/paratest": "^7.8",
                 "nikic/php-fuzzer": "^0.0.11",
                 "php-collective/code-sniffer": "^0.6.8",
                 "phpstan/phpstan": "^2.1.32",
@@ -452,7 +453,7 @@
             ],
             "support": {
                 "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/0.1.4"
+                "source": "https://github.com/markup-carve/carve-php/tree/0.1.5"
             },
             "funding": [
                 {
@@ -460,7 +461,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-10T11:04:08+00:00"
+            "time": "2026-08-18T11:58:16+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
