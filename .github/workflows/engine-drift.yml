@@ -27,9 +27,16 @@ name: Engine drift
 # repos pinned revisions a fresh clone cannot check out (carve#499) - so an
 # unreachable pin is a real failure mode rather than a hypothetical.
 
-# The JavaScript engine remains an exact git dependency and is checked against
-# upstream main. The grammar is a released npm dependency now; its manifest,
-# lockfile root and installed version are checked for exact agreement below.
+# The JavaScript engine and the grammar are both exact git dependencies and are
+# both checked against upstream main. The grammar was a released npm dependency
+# (0.1.3) until the release freeze: that release nests its OWN carve-js at
+# 25e2c58, and the editor bundle resolved all 57 of its engine modules out of
+# that nested copy rather than the top-level pin, so the published grammar
+# pinned the editor to a 2026-08-08 engine that nothing in this repository could
+# move. Pinning the grammar to a merged commit is the maintainer's standing
+# ruling for exactly that shape, and it moves the editor's engine transitively
+# because the pinned grammar declares the same carve-js revision this repo does.
+# When a grammar release exists again, this goes back to a version constraint.
 #
 # The PHP engine is a released Composer dependency now, and it gets its own
 # check rather than the revision check, because a release can go wrong in a way
@@ -114,6 +121,7 @@ jobs:
           }
 
           check '@markup-carve/carve' carve-js carve-js
+          check '@markup-carve/carve-grammars' carve-grammars carve-grammars
 
       - name: The released PHP engine is the tag it claims to be, and that tag is on main
         run: |
@@ -264,16 +272,9 @@ jobs:
 
           agree '@markup-carve/carve'
 
-          pkg='@markup-carve/carve-grammars'
-          declared="$(node -p "require('./package.json').dependencies['${pkg}'] || ''")"
-          locked="$(node -p "require('./package-lock.json').packages['node_modules/${pkg}']?.version || ''")"
-          root="$(node -p "require('./package-lock.json').packages[''].dependencies['${pkg}'] || ''")"
-          if ! printf '%s' "${declared}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::${pkg} must be an exact released version, got ${declared}"
-            exit 1
-          fi
-          if [ "${declared}" != "${locked}" ] || [ "${declared}" != "${root}" ]; then
-            echo "::error::${pkg}: manifest=${declared}, installed=${locked}, lock root=${root}"
-            exit 1
-          fi
-          echo "${pkg}: exact released version ${declared} agrees across manifest and lockfile"
+          # The grammar is a git pin now, so it takes the same three-way
+          # comparison as the engine rather than the released-version check it
+          # used to get. A version string is worthless as evidence here anyway:
+          # the published 0.1.3 and the pinned build both report themselves as
+          # a version, and the nested engine they carry is what actually differs.
+          agree '@markup-carve/carve-grammars'
