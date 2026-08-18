@@ -16,9 +16,11 @@
  * comment content on the front end, so what this measures is what a WordPress
  * site publishes.
  *
- *   php scripts/corpus-through-engine.php <corpus-dir> [--list]
+ *   php scripts/corpus-through-engine.php <corpus-dir> [--list] [--baseline=<file>]
  *
- * Prints key=value lines for the workflow to read.
+ * Prints key=value lines for the workflow to read. With --baseline it also
+ * compares the divergent documents against a recorded list and exits non-zero
+ * when a document that rendered correctly there renders differently now.
  */
 
 declare(strict_types=1);
@@ -27,8 +29,15 @@ $argvRest = array_slice($argv, 1);
 $list = in_array('--list', $argvRest, true);
 $positional = array_values(array_filter($argvRest, static fn (string $a): bool => !str_starts_with($a, '--')));
 
+$baselineFile = null;
+foreach ($argvRest as $arg) {
+    if (str_starts_with($arg, '--baseline=')) {
+        $baselineFile = substr($arg, strlen('--baseline='));
+    }
+}
+
 if (count($positional) < 1) {
-    fwrite(STDERR, "usage: corpus-through-engine.php <corpus-dir> [--list]\n");
+    fwrite(STDERR, "usage: corpus-through-engine.php <corpus-dir> [--list] [--baseline=<file>]\n");
     exit(2);
 }
 
@@ -108,6 +117,89 @@ function declaredCorpusSize(string $corpusDir): int
     return $declared;
 }
 
+/**
+ * Hold the divergent documents against the list recorded at the pinned freeze.
+ *
+ * The corpus is pinned to a commit and the engine to a published release, so
+ * both sides of this measurement are fixed and the divergent set is a constant
+ * that only THIS repository can move. Comparing counts would miss the case that
+ * matters most: one document regressing while another is fixed leaves the total
+ * unchanged and the gate silent. So the comparison is by name.
+ *
+ * @param array<int, string> $wrong Documents that rendered differently in this run.
+ * @param array<int, string> $present Every document the pinned corpus actually holds.
+ *
+ * @return int Process exit status.
+ */
+function compareAgainstBaseline(string $path, array $wrong, array $present): int
+{
+    if (!file_exists($path)) {
+        fwrite(STDERR, "::error::no baseline at {$path}; without the recorded divergences this run has nothing to be worse than\n");
+
+        return 2;
+    }
+
+    $recorded = [];
+    foreach (explode("\n", (string)file_get_contents($path)) as $rawLine) {
+        $line = trim($rawLine);
+        if ($line === '' || str_starts_with($line, '#')) {
+            continue;
+        }
+        $recorded[] = $line;
+    }
+
+    if ($recorded === []) {
+        fwrite(STDERR, "::error::{$path} names no documents at all; that is a wiring problem, not a tree that renders the whole corpus correctly\n");
+
+        return 1;
+    }
+
+    // A recorded name the corpus does not hold means the corpus is not the one
+    // the baseline was measured against, so neither list below would mean
+    // anything. Report that instead of a verdict.
+    $absent = array_values(array_diff($recorded, $present));
+    if ($absent !== []) {
+        fwrite(STDERR, sprintf(
+            "::error::the baseline names %d document(s) this corpus does not hold (%s). The corpus checkout is not the pinned "
+            . "freeze the baseline was measured against, so nothing in this run is a statement about this plugin. Fix the ref "
+            . "in the workflow, or re-measure and re-record if the pin moved on purpose.\n",
+            count($absent),
+            implode(', ', array_slice($absent, 0, 10)) . (count($absent) > 10 ? ', ...' : ''),
+        ));
+
+        return 1;
+    }
+
+    $regressed = array_values(array_diff($wrong, $recorded));
+    $improved = array_values(array_diff($recorded, $wrong));
+
+    if ($regressed !== []) {
+        fwrite(STDERR, sprintf(
+            "::error::%d document(s) render differently now that rendered correctly at the freeze: %s. The corpus and the "
+            . "engine release are both pinned, so this is a change in this pull request and not upstream movement.\n",
+            count($regressed),
+            implode(', ', $regressed),
+        ));
+
+        return 1;
+    }
+
+    if ($improved !== []) {
+        fwrite(STDERR, sprintf(
+            "::warning::%d document(s) recorded as divergent render correctly now: %s. Delete those lines from %s so the "
+            . "baseline keeps meaning what it says.\n",
+            count($improved),
+            implode(', ', $improved),
+            $path,
+        ));
+    }
+
+    fwrite(STDOUT, 'regressed=' . count($regressed) . "\n");
+    fwrite(STDOUT, 'improved=' . count($improved) . "\n");
+
+    return 0;
+}
+
 $sources = glob($corpusDir . '/*.crv') ?: [];
 sort($sources);
 
@@ -168,3 +260,7 @@ if ($list) {
 fwrite(STDOUT, 'documents=' . count($pairs) . "\n");
 fwrite(STDOUT, 'wrong=' . count($wrong) . "\n");
 fwrite(STDOUT, "threw={$threw}\n");
+
+if ($baselineFile !== null) {
+    exit(compareAgainstBaseline($baselineFile, $wrong, array_map('basename', $pairs)));
+}
