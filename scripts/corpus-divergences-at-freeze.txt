@@ -1,7 +1,7 @@
 # Documents the engine this plugin SHIPS renders differently from the spec
 # corpus, measured at the pinned freeze.
 #
-#   corpus  markup-carve/carve 0490ae5fba497397e95334754713ba26ecccaf07, 1241 documents
+#   corpus  markup-carve/carve 0f6b990383090c805064922286eb6571e22206d2, 1245 documents
 #   engine  markup-carve/carve-php 0.1.4, the published release composer.lock installs
 #
 # Both sides are fixed, so this list is the whole result and not a snapshot of
@@ -184,6 +184,8 @@
 357-a-block-at-a-container-s-content-column-ends-the-paragraph-whatever-it-renders-5.crv
 357-a-block-at-a-container-s-content-column-ends-the-paragraph-whatever-it-renders.crv
 359-a-footnote-definition-s-block-runs-to-the-end-of-its-body.crv
+360-a-definition-behind-an-alternating-container-prefix-registers-at-the-innermost-content-column-2.crv
+360-a-definition-behind-an-alternating-container-prefix-registers-at-the-innermost-content-column.crv
 45-inline-extensions-11.crv
 45-inline-extensions-13.crv
 45-inline-extensions-2.crv

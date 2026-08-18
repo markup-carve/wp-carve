@@ -39,7 +39,7 @@ jobs:
   # Nothing here did this. The jobs above assert hand-written expectations,
   # which a stale engine satisfies exactly as well as a current one, and
   # engine-drift.yml checks that the pins are well formed, reachable and
-  # honestly labelled - all of which a pin rendering 193 documents wrongly
+  # honestly labelled - all of which a pin rendering 195 documents wrongly
   # passes without complaint. A version distance cannot answer it either: 200
   # commits can change nothing and one can change a construct.
   #
@@ -56,11 +56,16 @@ jobs:
   # nothing while telling its author they had made rendering worse. A gate that
   # can say that is a gate people learn to ignore.
   #
+  # How fast that end moves: the corpus freeze was declared three times in one
+  # night, 287b4b8 at 1239 documents, then 0490ae5 at 1241, then this one at
+  # 1245. Every one of those was a sanctioned exception landing upstream, and
+  # none of them was anything a branch here did.
+  #
   # With both ends fixed the divergent set is a constant, so the recorded
   # divergences are a LIST OF NAMES rather than a count - a document regressing
   # while another is fixed leaves a count untouched. It is still a residual and
   # not a defect list: this repository cannot move the engine faster than a
-  # release exists, and most of the 193 is the distance between 0.1.4 and
+  # release exists, and most of the 195 is the distance between 0.1.4 and
   # carve-php main rather than anything unimplemented.
   #
   # WHEN carve-php PUBLISHES A RELEASE, both ends move together: bump the
@@ -74,7 +79,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # The spec freeze: 0490ae5, 1241 documents. Pinned rather than tracking
+      # The spec freeze: 0f6b990, 1245 documents, the freeze the maintainer
+      # declared on markup-carve/carve#1366. Pinned rather than tracking
       # carve main, because the engine on the other side of this comparison is a
       # fixed published release. With one end fixed and the other moving, the
       # number this job produces is a measurement of the spec's pace, and a
@@ -83,7 +89,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 0490ae5fba497397e95334754713ba26ecccaf07
+          ref: 0f6b990383090c805064922286eb6571e22206d2
           path: carve-freeze
 
       - name: Setup PHP
