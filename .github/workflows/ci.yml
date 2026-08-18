@@ -211,6 +211,36 @@ jobs:
       - name: Run integration checks
         run: npx @wordpress/env@11.6.0 run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/checks.php
 
+  dist-floor:
+    name: The shipped tree parses on the PHP it promises
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Stage the distribution copy (runtime deps only, .distignore applied)
+        run: bash scripts/build-dist.sh
+
+      - name: Downgrade PHP 8.2 syntax for WordPress.org
+        run: bash scripts/downgrade-dist.sh
+
+      # deploy.yml runs these same two scripts, but only on `release: published`,
+      # so nothing between releases ever executed them. A rector invocation that
+      # fatalled on every run shipped un-downgraded to WordPress.org three times
+      # before anyone looked. Running them here means a break shows up on the
+      # pull request that causes it rather than at the next release.
+      - name: The downgraded tree parses on the PHP versions it promises
+        run: bash scripts/lint-dist-floor.sh
+
   plugin-check:
     name: Plugin Check
     runs-on: ubuntu-latest
