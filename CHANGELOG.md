@@ -7,11 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-08-18
+
+### Security
+
+- **Bundles carve-php 0.1.5, which probes every candidate in a list-valued URL
+  attribute** instead of trusting the value's leading scheme.
+  `srcset="safe.png 1x, javascript:alert(1) 2x"` passed the probe on its second
+  entry. The plugin ships its `vendor/` to WordPress.org, so the engine users
+  run is the one locked here.
+- **The first release whose shipped tree is actually downgraded.** The rector
+  step that lowers bundled 8.1/8.2 syntax for WordPress.org fataled on every run
+  through 0.1.0, 0.1.1 and 0.1.2 behind a `|| true`, so all three shipped
+  un-downgraded. The step now fails loudly and a CI lint parses the staged tree
+  on a real older interpreter, which is the only thing that can tell a
+  downgraded tree from an untouched one.
+
+### Changed
+
 - Excerpts now use Carve's plain-text renderer, preserving readable spacing and omitting footnote definitions.
 - An image inside a heading now stays on the heading's line in plain-text and ANSI output instead of splitting it, so excerpts of posts whose headings carry an image read as one line. This comes from moving `markup-carve/carve-php` onto the published 0.1.4 release; the previous commit pin was one commit short of that tag while still calling itself 0.1.4.
-
-## [0.1.3] - 2026-08-10
-
+- A list-table header cell renders as `<th scope="col">` rather than a bare
+  `<th>`, which is what a screen reader needs to associate the column.
 - Replaced the pre-release carve-grammars git pin with the published exact
   `@markup-carve/carve-grammars` 0.1.3 package, including the final Tiptap
   footnote-priority fix, and rebuilt the shipped editor bundle from it.

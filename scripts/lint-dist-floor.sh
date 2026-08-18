@@ -40,9 +40,15 @@ DIST="${1:-$REPO/build/dist/carve-markup}"
 
 # Files still failing to parse at the downgrade target. Lower this whenever the
 # real number drops; it is a ceiling on known-remaining work, not a target.
-# 33 as of torchlight/engine v1.0.0 + phiki v2.2.0 + carve-php 0.1.4: rector's
-# downgrade sets leave native enums in place.
-DOWNGRADE_TARGET_CEILING="${DOWNGRADE_TARGET_CEILING:-33}"
+# 37 as of torchlight/engine v1.0.0 + phiki v2.2.0 + carve-php 0.1.5: rector's
+# downgrade sets leave native enums, readonly classes and readonly promoted
+# properties in place. It was 33 against carve-php 0.1.4; that release added
+# four files in constructs the DOWN_TO_PHP_80 set does not rewrite - two
+# `readonly class` (HtmlImportDiagnostic, HtmlImportResult), one enum
+# (BlockQuoteLazyMode) and one readonly promoted property
+# (SentinelSpaceExhaustedException). The downgrade itself still runs: the same
+# staged tree reports 71 before it and 37 after.
+DOWNGRADE_TARGET_CEILING="${DOWNGRADE_TARGET_CEILING:-37}"
 
 if [ ! -d "$DIST" ]; then
 	echo "::error::Staged distribution not found at $DIST. Run scripts/build-dist.sh first."
