@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.1.4
+Stable tag: 0.1.3
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -40,12 +40,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 
 == Changelog ==
 
-= 0.1.4 =
+= 0.1.3 =
 * New: Carve Workbench document health diagnostics, heading navigation, searchable commands, and semantic changes since the last save.
 * New: per-block CSL-JSON bibliographies with numbered or author-date citations, unresolved-key diagnostics, references, and backlinks.
 * Changed: refreshed release dependencies and removed the local Phiki offset patch now that Phiki 2.2.1 contains the fix upstream.
-
-= 0.1.3 =
 * New: optional dark-mode code theme (the `torchlight_theme_dark` setting) - code blocks render both palettes and switch by the visitor's color scheme, with a site theme toggle winning over the OS in both directions.
 * Fixed: Mermaid diagrams render in the effective color scheme and re-render on scheme changes, without the "Syntax error in text" a race with the vendor auto-run could cause.
 * Fixed: all dark-mode surface styles (admonitions, tabs, code groups, TOC boxes, comment tabs) follow a site theme toggle in both directions, not only the OS preference.
