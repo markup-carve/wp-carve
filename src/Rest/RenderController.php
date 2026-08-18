@@ -44,6 +44,8 @@ class RenderController
                 'context' => ['type' => 'string', 'default' => 'post'],
                 'profile' => ['type' => 'string', 'default' => ''],
                 'post_id' => ['type' => 'integer', 'default' => 0],
+                'bibliography' => ['type' => 'array', 'default' => []],
+                'citation_mode' => ['type' => 'string', 'enum' => ['numbered', 'author-date'], 'default' => 'numbered'],
             ],
         ]);
 
@@ -159,12 +161,23 @@ class RenderController
         // (TOC, permalinks, ...); anything unrecognized falls back to 'post'.
         $context = in_array($requestedContext, ['comment', 'editor'], true) ? $requestedContext : 'post';
         $profile = (string)$request->get_param('profile');
+        $bibliography = $request->get_param('bibliography');
+        if (!is_array($bibliography) || !array_is_list($bibliography)) {
+            $bibliography = [];
+        }
+        $citationMode = (string)$request->get_param('citation_mode');
 
         // Rendering is always sanitized (wp_kses on every path), so the preview
         // returned here matches the published output and cannot emit raw
         // script/style regardless of who requests it.
         return new WP_REST_Response([
-            'html' => $this->converter->toHtml($carve, $context, $profile !== '' ? $profile : null),
+            'html' => $this->converter->toHtml(
+                $carve,
+                $context,
+                $profile !== '' ? $profile : null,
+                bibliography: $bibliography,
+                citationMode: $citationMode,
+            ),
         ], 200);
     }
 }

@@ -45,8 +45,20 @@ class CarveBlock
         }
 
         $profile = (string)($attributes['profile'] ?? '');
+        $bibliography = json_decode((string)($attributes['bibliography'] ?? ''), true);
+        if (!is_array($bibliography) || !array_is_list($bibliography)) {
+            $bibliography = [];
+        }
+        $citationMode = (string)($attributes['citationMode'] ?? 'numbered');
         $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
-        $html = $this->converter->toHtml($carve, 'post', $profile !== '' ? $profile : null, $safe);
+        $html = $this->converter->toHtml(
+            $carve,
+            'post',
+            $profile !== '' ? $profile : null,
+            $safe,
+            $bibliography,
+            $citationMode,
+        );
 
         // Escape the rendered markup at the block render callback's return, so
         // only allowlisted tags/attributes reach output (wp_kses is idempotent

@@ -13,6 +13,7 @@
 		PanelBody,
 		SelectControl,
 		RangeControl,
+		TextControl,
 		Modal,
 		ToolbarGroup,
 		ToolbarButton,
@@ -41,7 +42,7 @@
 	// Innovation A: prefer the in-browser Carve engine for instant preview.
 	// `window.wpCarveEngine` is set by the optional carve-js module bundle
 	// (assets/js/vendor/carve.js). Falls back to the REST render endpoint.
-	function renderPreview( source, done, profile, forceServer, context ) {
+	function renderPreview( source, done, profile, forceServer, context, bibliography, citationMode ) {
 		const engine = window.wpCarveEngine;
 		const ctx = context || 'post';
 		// The in-browser engine can't apply a WordPress content profile, nor the
@@ -65,7 +66,7 @@
 		wp.apiFetch( {
 			url: cfg.restRender,
 			method: 'POST',
-			data: { carve: source, context: ctx, profile: profile || '', post_id: postId },
+			data: { carve: source, context: ctx, profile: profile || '', post_id: postId, bibliography: bibliography || [], citation_mode: citationMode || 'numbered' },
 		} )
 			.then( ( res ) => done( res.html || '' ) )
 			.catch( () => done( '' ) );
@@ -389,7 +390,7 @@
 	}
 
 	function Edit( props ) {
-		const { attributes, setAttributes } = props;
+		const { attributes, setAttributes, clientId } = props;
 		const blockProps = useBlockProps( { className: 'wpcarve-block' } );
 		const source = attributes.carve || '';
 
@@ -407,11 +408,30 @@
 		// Approve entering Visual mode once per block session when lossy.
 		const [ visualApproved, setVisualApproved ] = useState( false );
 		const [ fullscreen, setFullscreen ] = useState( false );
+		const [ commandOpen, setCommandOpen ] = useState( false );
+		const [ commandQuery, setCommandQuery ] = useState( '' );
+		const [ bibliographyError, setBibliographyError ] = useState( '' );
 		const taRef = useRef( null );
 		const previewRef = useRef( null );
 		const timer = useRef( null );
 
 		const showPreview = mode === 'preview' || mode === 'split';
+		const engine = window.wpCarveEngine;
+		const workbench = engine && engine.analyzeDocument
+			? engine.analyzeDocument( source, attributes.bibliography || '' )
+			: { outline: [], diagnostics: [], citations: [], bibliography: [] };
+		let savedSource = '';
+		if ( wp.data && wp.data.select( 'core/block-editor' ) ) {
+			const blocks = wp.data.select( 'core/block-editor' ).getBlocks();
+			const carveIds = [];
+			const collect = ( list ) => list.forEach( ( block ) => {
+				if ( block.name === 'carve/markup' ) carveIds.push( block.clientId );
+				if ( block.innerBlocks ) collect( block.innerBlocks );
+			} );
+			collect( blocks );
+			savedSource = ( cfg.savedCarveBlocks || [] )[ carveIds.indexOf( clientId ) ] || '';
+		}
+		const changes = engine && engine.semanticChanges ? engine.semanticChanges( savedSource, source ) : [];
 
 		useEffect( () => {
 			if ( mode === 'visual' || ! showPreview ) {
@@ -422,9 +442,11 @@
 			// matches the front end exactly - media embeds show as real players,
 			// server-only constructs render faithfully. Debounced, so live typing
 			// in Split stays responsive.
-			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '', true ), 200 );
+			let bibliography = [];
+			try { bibliography = attributes.bibliography ? JSON.parse( attributes.bibliography ) : []; } catch ( error ) { bibliography = []; }
+			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '', true, 'post', bibliography, attributes.citationMode ), 200 );
 			return () => clearTimeout( timer.current );
-		}, [ source, mode, showPreview, attributes.profile ] );
+		}, [ source, mode, showPreview, attributes.profile, attributes.bibliography, attributes.citationMode ] );
 
 		// Surface the code-block language as the floating badge in Preview/Split
 		// (the front-end code-blocks.js does this, but it doesn't run in the
@@ -586,6 +608,11 @@
 		}
 
 		function onKeyDown( e ) {
+			if ( ( e.ctrlKey || e.metaKey ) && e.shiftKey && e.key.toLowerCase() === 'p' ) {
+				e.preventDefault();
+				setCommandOpen( true );
+				return;
+			}
 			// Tab / Shift+Tab indent-outdent the selected lines.
 			if ( e.key === 'Tab' ) {
 				e.preventDefault();
@@ -647,6 +674,29 @@
 				e.preventDefault();
 			}
 		}
+
+		function jumpToLine( line ) {
+			setMode( 'write' );
+			window.requestAnimationFrame( () => {
+				const ta = taRef.current;
+				if ( ! ta ) return;
+				const offset = source.split( '\n' ).slice( 0, Math.max( 0, line - 1 ) ).join( '\n' ).length + ( line > 1 ? 1 : 0 );
+				ta.focus();
+				ta.selectionStart = offset;
+				ta.selectionEnd = offset;
+				const lines = Math.max( 1, source.split( '\n' ).length );
+				ta.scrollTop = ( line - 1 ) / lines * ta.scrollHeight;
+			} );
+		}
+
+		const commands = [
+			{ label: __( 'Heading 2', 'carve-markup' ), keywords: 'section heading', run: () => blockInsert( '## Section' ) },
+			{ label: __( 'Admonition', 'carve-markup' ), keywords: 'note warning callout', run: () => blockInsert( '::: note\n\n:::' ) },
+			{ label: __( 'Code block', 'carve-markup' ), keywords: 'fence snippet', run: () => blockInsert( '```text\n\n```' ) },
+			{ label: __( 'Table', 'carve-markup' ), keywords: 'grid', run: () => blockInsert( buildTable( 3, 2 ) ) },
+			{ label: __( 'Citation', 'carve-markup' ), keywords: 'reference bibliography', run: () => inlineInsert( '[@key]', 2, 3 ) },
+			{ label: __( 'References list', 'carve-markup' ), keywords: 'bibliography works cited', run: () => blockInsert( '::: references\n:::' ) },
+		].filter( ( command ) => ( command.label + ' ' + command.keywords ).toLowerCase().includes( commandQuery.toLowerCase() ) );
 
 		function onPaste( event ) {
 			if ( ! cfg.pasteIngest ) {
@@ -986,6 +1036,59 @@
 						)
 					)
 				)
+				,
+				el(
+					PanelBody,
+					{ title: __( 'Document health', 'carve-markup' ), initialOpen: true },
+					workbench.diagnostics.length === 0
+						? el( Notice, { status: 'success', isDismissible: false }, __( 'No document problems found.', 'carve-markup' ) )
+						: el( 'ul', { className: 'wpcarve-workbench-list' }, workbench.diagnostics.map( ( item, i ) =>
+							el( 'li', { key: item.rule + i },
+								el( Button, { variant: 'link', onClick: () => jumpToLine( item.line ) }, 'L' + item.line + ' · ' + item.message )
+							)
+						) )
+				),
+				el(
+					PanelBody,
+					{ title: __( 'Navigator', 'carve-markup' ), initialOpen: true },
+					workbench.outline.length
+						? el( 'ol', { className: 'wpcarve-outline' }, workbench.outline.map( ( item, i ) =>
+							el( 'li', { key: i, style: { paddingLeft: ( item.level - 1 ) * 10 + 'px' } },
+								el( Button, { variant: 'link', onClick: () => jumpToLine( item.line ) }, item.text || __( 'Untitled heading', 'carve-markup' ) )
+							)
+						) )
+						: el( 'p', null, __( 'Add headings to build an outline.', 'carve-markup' ) ),
+					el( Button, { variant: 'secondary', size: 'small', onClick: () => setCommandOpen( true ) }, __( 'Open command palette', 'carve-markup' ) ),
+					el( 'p', { className: 'description' }, 'Ctrl/Cmd + Shift + P' )
+				),
+				el(
+					PanelBody,
+					{ title: __( 'Semantic changes', 'carve-markup' ), initialOpen: false },
+					changes.length === 0
+						? el( 'p', null, __( 'No structural changes since the last save.', 'carve-markup' ) )
+						: el( 'ul', { className: 'wpcarve-workbench-list' }, changes.slice( 0, 30 ).map( ( change, i ) =>
+							el( 'li', { key: i }, cap( change.kind ) + ' ' + change.type + ( change.detail ? ': ' + change.detail : '' ) )
+						) )
+				),
+				el(
+					PanelBody,
+					{ title: __( 'Citations', 'carve-markup' ), initialOpen: false },
+					el( SelectControl, {
+						label: __( 'Citation style', 'carve-markup' ), value: attributes.citationMode || 'numbered',
+						options: [ { label: __( 'Numbered', 'carve-markup' ), value: 'numbered' }, { label: __( 'Author–date', 'carve-markup' ), value: 'author-date' } ],
+						onChange: ( citationMode ) => setAttributes( { citationMode } ),
+					} ),
+					el( TextareaControl, {
+						label: 'CSL-JSON', value: attributes.bibliography || '', rows: 7,
+						help: __( 'Paste a CSL-JSON array. Entries are resolved by their id.', 'carve-markup' ),
+						onChange: ( bibliography ) => {
+							setAttributes( { bibliography } );
+							try { if ( bibliography ) JSON.parse( bibliography ); setBibliographyError( '' ); } catch ( error ) { setBibliographyError( error.message ); }
+						},
+					} ),
+					bibliographyError && el( Notice, { status: 'error', isDismissible: false }, bibliographyError ),
+					el( 'p', null, workbench.citations.length + ' ' + __( 'citation keys used', 'carve-markup' ) + ' · ' + workbench.bibliography.length + ' ' + __( 'library entries', 'carve-markup' ) )
+				)
 			),
 			tabs,
 			ingest &&
@@ -997,6 +1100,14 @@
 					el( Button, { variant: 'primary', size: 'small', onClick: doPasteIngest }, __( 'Convert to Carve', 'carve-markup' ) )
 				),
 			body,
+			commandOpen && el(
+				Modal,
+				{ title: __( 'Insert Carve construct', 'carve-markup' ), onRequestClose: () => setCommandOpen( false ) },
+				el( TextControl, { label: __( 'Search commands', 'carve-markup' ), value: commandQuery, onChange: setCommandQuery, autoFocus: true } ),
+				el( 'div', { className: 'wpcarve-command-list' }, commands.map( ( command ) => el( Button, {
+					key: command.label, variant: 'secondary', onClick: () => { command.run(); setCommandOpen( false ); setCommandQuery( '' ); },
+				}, command.label ) ) )
+			),
 			tableOpen &&
 				el(
 					Modal,

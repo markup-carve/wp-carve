@@ -2,7 +2,8 @@
 // Bundled by `npm run build` into ../vendor/carve.js (IIFE), exposing
 // `window.wpCarveEngine.carveToHtml`. The plugin loads it before the editor
 // script; when it is absent the editor falls back to the REST endpoint.
-import { carveToHtml, tabs, details, spoiler, codeGroup } from '@markup-carve/carve'
+import { carveToHtml, tabs, details, spoiler, codeGroup, citations, lintCarve, parse, toAstJson, diffAst } from '@markup-carve/carve'
+import { analyzeDocument, semanticChanges } from './workbench.js'
 
 // The block preview must match the published front-end render, so the same
 // content widgets the PHP post path enables (CodeGroupExtension, TabsExtension,
@@ -15,7 +16,20 @@ import { carveToHtml, tabs, details, spoiler, codeGroup } from '@markup-carve/ca
 const EXTENSIONS = [codeGroup(), tabs(), details(), spoiler()]
 
 window.wpCarveEngine = {
-  carveToHtml(source) {
-    return carveToHtml(String(source ?? ''), { extensions: EXTENSIONS })
+  citations,
+  lintCarve,
+  parse,
+  toAstJson,
+  diffAst,
+  analyzeDocument(source, bibliography = '') {
+    return analyzeDocument(String(source ?? ''), window.wpCarveEngine, bibliography)
+  },
+  semanticChanges(before, after) {
+    return semanticChanges(String(before ?? ''), String(after ?? ''), window.wpCarveEngine)
+  },
+  carveToHtml(source, options = {}) {
+    const bibliography = Array.isArray(options.bibliography) ? options.bibliography : []
+    const citationMode = options.citationMode === 'author-date' ? 'author-date' : 'numbered'
+    return carveToHtml(String(source ?? ''), { extensions: [...EXTENSIONS, citations({ mode: citationMode, bibliography })] })
   },
 }

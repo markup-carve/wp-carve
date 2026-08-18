@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
 
 use MarkupCarve\Carve\CarveConverter;
 use MarkupCarve\Carve\Event\RenderEvent;
+use MarkupCarve\Carve\Extension\CitationsExtension;
 use MarkupCarve\Carve\Extension\CodeGroupExtension;
 use MarkupCarve\Carve\Extension\DetailsExtension;
 use MarkupCarve\Carve\Extension\FencedRenderExtension;
@@ -64,8 +65,23 @@ class Converter
      * comment / minimal / none) regardless of the context default - used by the
      * Carve block's per-block profile attribute.
      */
-    public function toHtml(string $carve, string $context = 'post', ?string $profileOverride = null, ?bool $safe = null): string
-    {
+
+    /**
+     * @param string $carve
+     * @param string $context
+     * @param string|null $profileOverride
+     * @param bool|null $safe
+@param array<int, mixed>|null $bibliography
+     * @param string $citationMode
+     */
+    public function toHtml(
+        string $carve,
+        string $context = 'post',
+        ?string $profileOverride = null,
+        ?bool $safe = null,
+        ?array $bibliography = null,
+        string $citationMode = 'numbered',
+    ): string {
         if (trim($carve) === '') {
             return '';
         }
@@ -83,7 +99,7 @@ class Converter
         // back into per-post source (freezing a global setting into the post). So
         // the editor context renders the source alone.
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
-        $html = $this->converterFor($context, $profileOverride, $safe)->convert($abbrevDefs . $carve);
+        $html = $this->converterFor($context, $profileOverride, $safe, $bibliography, $citationMode)->convert($abbrevDefs . $carve);
 
         // JSON diagram configs (chart, vega-lite) ship in a script tag the
         // engine emits - but wp_kses strips every script tag, and wptexturize
@@ -313,8 +329,20 @@ class Converter
         return $allowed;
     }
 
-    private function converterFor(string $context, ?string $profileOverride = null, ?bool $safe = null): CarveConverter
-    {
+    /**
+     * @param string $context
+     * @param string|null $profileOverride
+     * @param bool|null $safe
+@param array<int, mixed>|null $bibliography
+     * @param string $citationMode
+     */
+    private function converterFor(
+        string $context,
+        ?string $profileOverride = null,
+        ?bool $safe = null,
+        ?array $bibliography = null,
+        string $citationMode = 'numbered',
+    ): CarveConverter {
         $isComment = $context === 'comment';
         // The visual editor seeds itself from rendered HTML and serializes it
         // back to Carve source on every edit. Generated, non-round-trippable
@@ -325,7 +353,8 @@ class Converter
         $isEditor = $context === 'editor';
         $safeMode = $this->safeModeFor($context);
         $cacheKey = $context
-            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '');
+            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '')
+            . ':cite:' . $citationMode . ':' . md5((string)wp_json_encode($bibliography));
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -347,7 +376,7 @@ class Converter
         }
 
         if (!$isComment) {
-            $this->addPostExtensions($converter, $isEditor);
+            $this->addPostExtensions($converter, $isEditor, $bibliography, $citationMode);
         }
 
         /**
@@ -417,12 +446,27 @@ class Converter
      *   editor render path. All content-authoring extensions stay enabled.
      *   (Abbreviation defs are handled separately in toHtml().)
      */
-    private function addPostExtensions(CarveConverter $converter, bool $forEditor = false): void
-    {
+
+    /**
+     * @param \MarkupCarve\Carve\CarveConverter $converter
+     * @param bool $forEditor
+@param array<int, mixed>|null $bibliography
+     * @param string $citationMode
+     */
+    private function addPostExtensions(
+        CarveConverter $converter,
+        bool $forEditor = false,
+        ?array $bibliography = null,
+        string $citationMode = 'numbered',
+    ): void {
         $s = $this->settings;
 
         // Semantic inline spans round-trip; always on.
         $converter->addExtension(new SemanticSpanExtension());
+        $converter->addExtension(new CitationsExtension(
+            mode: $citationMode === 'author-date' ? 'author-date' : 'numbered',
+            bibliography: $bibliography,
+        ));
 
         // These turn ::: fenced divs into HTML5 <details>/tab interfaces the
         // visual editor cannot parse back (their content is lost on the round
