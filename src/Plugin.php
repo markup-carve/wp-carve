@@ -53,6 +53,7 @@ class Plugin
         // Whole-post "render as Carve" mode (per-post meta toggle).
         (new PostMode())->register();
         add_filter('the_content', [$this, 'maybeRenderPost'], 9);
+        (new SourceFooter())->register();
         if (!empty($settings['enable_excerpts'])) {
             add_filter('get_the_excerpt', [$this, 'maybeRenderExcerpt'], 9);
         }

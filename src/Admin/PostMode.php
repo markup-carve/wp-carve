@@ -20,6 +20,16 @@ use WP_Post;
  */
 class PostMode
 {
+    /**
+     * @var string
+     */
+    private const ATTRIBUTION_META = '_wpcarve_attribution';
+
+    /**
+     * @var string
+     */
+    private const SOURCE_META = '_wpcarve_source_access';
+
     public function register(): void
     {
         add_action('init', [$this, 'registerMeta']);
@@ -36,6 +46,18 @@ class PostMode
                 'show_in_rest' => true,
                 // Per-object: only someone who can edit THIS post may flip its
                 // Carve flag over REST (not just anyone with edit_posts).
+                'auth_callback' => static fn (bool $allowed, string $metaKey, int $postId): bool => current_user_can('edit_post', $postId),
+            ]);
+            register_post_meta($type, self::ATTRIBUTION_META, [
+                'type' => 'string',
+                'single' => true,
+                'show_in_rest' => true,
+                'auth_callback' => static fn (bool $allowed, string $metaKey, int $postId): bool => current_user_can('edit_post', $postId),
+            ]);
+            register_post_meta($type, self::SOURCE_META, [
+                'type' => 'string',
+                'single' => true,
+                'show_in_rest' => true,
                 'auth_callback' => static fn (bool $allowed, string $metaKey, int $postId): bool => current_user_can('edit_post', $postId),
             ]);
         }
@@ -62,6 +84,23 @@ class PostMode
             checked($on, true, false),
             esc_html__('Render this post as Carve markup', 'carve-markup'),
         );
+        $attribution = (string)get_post_meta($post->ID, self::ATTRIBUTION_META, true);
+        $source = (string)get_post_meta($post->ID, self::SOURCE_META, true);
+        echo '<p><label for="wpcarve_attribution"><strong>' . esc_html__('Attribution', 'carve-markup') . '</strong></label><br>';
+        $this->select('wpcarve_attribution', $attribution, [
+            '' => __('Use site default', 'carve-markup'),
+            'show' => __('Show', 'carve-markup'),
+            'hide' => __('Hide', 'carve-markup'),
+        ]);
+        echo '</p><p><label for="wpcarve_source_access"><strong>' . esc_html__('Original .crv source', 'carve-markup') . '</strong></label><br>';
+        $this->select('wpcarve_source_access', $source, [
+            '' => __('Use site default', 'carve-markup'),
+            'none' => __('Do not publish', 'carve-markup'),
+            'view' => __('View inline', 'carve-markup'),
+            'download' => __('Download', 'carve-markup'),
+            'both' => __('View and download', 'carve-markup'),
+        ]);
+        echo '</p><p class="description">' . esc_html__('Source publication can expose comments and metadata omitted from the rendered article.', 'carve-markup') . '</p>';
     }
 
     public function save(int $postId): void
@@ -85,5 +124,43 @@ class PostMode
         } else {
             delete_post_meta($postId, '_wpcarve_enabled');
         }
+
+        $this->saveChoice($postId, self::ATTRIBUTION_META, 'wpcarve_attribution', ['show', 'hide']);
+        $this->saveChoice($postId, self::SOURCE_META, 'wpcarve_source_access', ['none', 'view', 'download', 'both']);
+    }
+
+    /**
+     * @param int $postId
+     * @param string $metaKey
+     * @param string $field
+     * @param array<int, string> $allowed
+     */
+    private function saveChoice(int $postId, string $metaKey, string $field, array $allowed): void
+    {
+        $value = sanitize_key((string)($_POST[$field] ?? ''));
+        if (in_array($value, $allowed, true)) {
+            update_post_meta($postId, $metaKey, $value);
+        } else {
+            delete_post_meta($postId, $metaKey);
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param string $current
+     * @param array<string, string> $options
+     */
+    private function select(string $name, string $current, array $options): void
+    {
+        printf('<select id="%1$s" name="%1$s">', esc_attr($name));
+        foreach ($options as $value => $label) {
+            printf(
+                '<option value="%s" %s>%s</option>',
+                esc_attr($value),
+                selected($current, $value, false),
+                esc_html($label),
+            );
+        }
+        echo '</select>';
     }
 }

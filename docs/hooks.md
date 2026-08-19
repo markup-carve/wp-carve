@@ -13,6 +13,18 @@ add_filter('wpcarve_source', function (string $carve, string $context): string {
 }, 10, 2);
 ```
 
+### `wpcarve_source_footer_html`
+
+Filter the complete attribution/source footer after its safe built-in markup is
+assembled. Receives the footer HTML, post, and effective source mode (`none`,
+`view`, `download`, or `both`). Returning an empty string suppresses it.
+
+```php
+add_filter('wpcarve_source_footer_html', function (string $html, WP_Post $post, string $mode): string {
+    return $html;
+}, 10, 3);
+```
+
 ### `wpcarve_rendered_html`
 
 Filter the rendered HTML before it is returned to WordPress.
