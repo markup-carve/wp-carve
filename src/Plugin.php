@@ -400,6 +400,10 @@ class Plugin
             // Default mode when a Carve block is opened.
             'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
             'savedCarveBlocks' => $this->savedCarveBlocks(),
+            'toDocumentUrl' => get_the_ID() > 0 ? wp_nonce_url(
+                admin_url('admin-post.php?action=wpcarve_to_document&post=' . (int)get_the_ID()),
+                'wpcarve_to_document_' . (int)get_the_ID(),
+            ) : '',
         ]);
     }
 

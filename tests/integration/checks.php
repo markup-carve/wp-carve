@@ -101,6 +101,8 @@ $postId = wp_insert_post([
 ]);
 update_post_meta($postId, '_wpcarve_enabled', '1');
 $GLOBALS['post'] = get_post($postId);
+$documentEditor = new \WpCarve\Admin\PostEditor(new \WpCarve\Converter([]));
+$carve_check('Carve Documents use the dedicated source editor', $documentEditor->forceClassic(true, get_post($postId)) === false);
 $content = apply_filters('the_content', get_post($postId)->post_content);
 $carve_check(
     'the_content renders Carve for an opt-in post',

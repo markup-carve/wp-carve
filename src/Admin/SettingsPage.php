@@ -214,6 +214,7 @@ class SettingsPage
         $this->group(__('Attribution & source', 'carve-markup'), __('Shown only on public, singular Carve posts and pages. Publishing source can reveal comments or metadata that rendered HTML omits.', 'carve-markup'));
         $this->grid();
         $this->toggle($s, 'attribution_enabled', __('Written with Carve', 'carve-markup'), __('Add a compact footer linking to the Carve project.', 'carve-markup'));
+        $this->toggle($s, 'attribution_plugin_link', __('WordPress plugin link', 'carve-markup'), __('Also link to the official Carve Markup listing on WordPress.org.', 'carve-markup'));
         $this->select(
             $s,
             'source_access',

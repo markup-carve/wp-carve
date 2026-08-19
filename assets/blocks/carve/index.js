@@ -411,6 +411,8 @@
 		const [ commandOpen, setCommandOpen ] = useState( false );
 		const [ commandQuery, setCommandQuery ] = useState( '' );
 		const [ bibliographyError, setBibliographyError ] = useState( '' );
+		const [ movingToDocument, setMovingToDocument ] = useState( false );
+		const [ moveError, setMoveError ] = useState( '' );
 		const taRef = useRef( null );
 		const previewRef = useRef( null );
 		const timer = useRef( null );
@@ -751,6 +753,22 @@
 				.catch( () => setImportOpen( false ) );
 		}
 
+		function moveToDocument() {
+			if ( ! cfg.toDocumentUrl || movingToDocument ) {
+				return;
+			}
+			setMovingToDocument( true );
+			setMoveError( '' );
+			const editor = wp.data && wp.data.dispatch( 'core/editor' );
+			const save = editor && editor.savePost ? editor.savePost() : Promise.resolve();
+			Promise.resolve( save )
+				.then( () => window.location.assign( cfg.toDocumentUrl ) )
+				.catch( () => {
+					setMovingToDocument( false );
+					setMoveError( __( 'Save failed. The post was not converted.', 'carve-markup' ) );
+				} );
+		}
+
 		// --- toolbar ---
 		const toolbar =
 			( mode === 'write' || mode === 'split' ) &&
@@ -949,6 +967,12 @@
 		}
 
 		const words = source.trim() ? source.trim().split( /\s+/ ).length : 0;
+		const topLevelBlocks = wp.data && wp.data.select( 'core/block-editor' )
+			? wp.data.select( 'core/block-editor' ).getBlocks()
+			: [];
+		const canMoveToDocument = !! cfg.toDocumentUrl
+			&& topLevelBlocks.length === 1
+			&& topLevelBlocks[ 0 ].name === 'carve/markup';
 
 		return el(
 			'div',
@@ -987,7 +1011,15 @@
 						Button,
 						{ variant: 'secondary', size: 'small', isDestructive: true, onClick: () => setAttributes( { carve: '' } ) },
 						__( 'Clear', 'carve-markup' )
-					)
+					),
+					canMoveToDocument && ' ',
+					canMoveToDocument &&
+						el(
+							Button,
+							{ variant: 'secondary', size: 'small', isBusy: movingToDocument, disabled: movingToDocument, onClick: moveToDocument },
+							__( 'Move to Carve Document', 'carve-markup' )
+						),
+					moveError && el( Notice, { status: 'error', isDismissible: false }, moveError )
 				),
 				el(
 					PanelBody,

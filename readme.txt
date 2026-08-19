@@ -71,5 +71,6 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 = 0.1.0 =
 * Initial release: render Carve in posts, pages and comments; [carve] shortcode and carve/markup + carve/slides blocks.
 * Visual (WYSIWYG) editor with Write / Split / Visual / Preview tabs, a unified toolbar, an in-block code-language picker and keyboard shortcuts.
+* Source-first Carve Documents with Write / Split / Preview views, a formatting toolbar, direct `.crv` import/download, and lossless conversion to a Gutenberg Carve block.
 * Import Markdown / Djot / BBCode / HTML and export posts as .crv.
 * Live in-browser preview, frontmatter-to-meta, content profiles, table of contents, heading permalinks, smart quotes, diagram renderers, media embeds, bundled syntax highlighting, render caching and a REST endpoint.
