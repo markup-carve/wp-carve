@@ -72,3 +72,22 @@ With `diagram_export` enabled (off by default), hovering a rendered diagram on t
 | `paste_ingest` | `true` | Paste Markdown / Djot / BBCode / HTML and convert to Carve. |
 | `frontmatter_meta` | `true` | Map `---` frontmatter to excerpt / SEO / meta. |
 | `render_cache` | `true` | Cache rendered HTML in post meta on save. |
+
+## Attribution and original source
+
+| Key | Default | What it does |
+| --- | --- | --- |
+| `attribution_enabled` | `false` | Append “Written with Carve” and link to the Carve project on public, singular Carve posts. |
+| `source_access` | `none` | Publish the stored `.crv` source as `none`, inline `view`, `download`, or `both`. |
+
+The two settings are independent: crediting Carve never publishes source by
+itself. Each post can inherit or override both choices in its **Carve** editor
+panel. Drafts, password-protected posts, feeds, excerpts, archives, and
+non-Carve posts expose neither footer nor source. The download endpoint checks
+the post and its effective source setting again on every request.
+
+Source access is deliberately explicit because original markup can contain
+comments, frontmatter, reference definitions, or other material omitted from
+the rendered page. Whole-post mode returns `post_content` byte-for-byte; a post
+made from Carve blocks returns the blocks' Carve attributes without Gutenberg's
+serialization comments.

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an opt-in “Written with Carve” article footer plus independent inline
+  viewing and lossless `.crv` download of the original public post source, with
+  site defaults and per-post overrides.
+
 ## [0.1.3] - 2026-08-18
 
 ### Added

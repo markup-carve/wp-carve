@@ -1951,3 +1951,30 @@
 :root[data-theme="dark"] .wpcarve-block.is-carve-fullscreen {
 		background: #0d1117;
 	}
+.wpcarve-meta {
+	margin-block-start: 2rem;
+	padding-block-start: 0.75rem;
+	border-block-start: 1px solid currentColor;
+	color: color-mix(in srgb, currentColor 72%, transparent);
+	font-size: 0.875em;
+}
+
+.wpcarve-meta > p {
+	margin: 0;
+}
+
+.wpcarve-source-details {
+	margin-block-start: 0.75rem;
+}
+
+.wpcarve-source-details summary {
+	cursor: pointer;
+}
+
+.wpcarve-source-details pre {
+	max-block-size: 32rem;
+	overflow: auto;
+	margin-block-start: 0.75rem;
+	padding: 1rem;
+	font-size: 0.875rem;
+}

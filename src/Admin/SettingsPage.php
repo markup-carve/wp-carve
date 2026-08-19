@@ -211,6 +211,22 @@ class SettingsPage
         $this->toggle($s, 'frontmatter_meta', __('Frontmatter to meta', 'carve-markup'), __('Map frontmatter to post meta and SEO fields.', 'carve-markup'));
         $this->toggle($s, 'render_cache', __('Render cache', 'carve-markup'), __('Cache rendered HTML on save.', 'carve-markup'));
         $this->gridEnd();
+        $this->group(__('Attribution & source', 'carve-markup'), __('Shown only on public, singular Carve posts and pages. Publishing source can reveal comments or metadata that rendered HTML omits.', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'attribution_enabled', __('Written with Carve', 'carve-markup'), __('Add a compact footer linking to the Carve project.', 'carve-markup'));
+        $this->select(
+            $s,
+            'source_access',
+            __('Publish original .crv source', 'carve-markup'),
+            [
+                'none' => __('Do not publish', 'carve-markup'),
+                'view' => __('View inline', 'carve-markup'),
+                'download' => __('Download', 'carve-markup'),
+                'both' => __('View and download', 'carve-markup'),
+            ],
+            __('Independent from attribution. The stored source is exposed losslessly, not reconstructed from HTML.', 'carve-markup'),
+        );
+        $this->gridEnd();
         $this->panelEnd();
 
         submit_button();

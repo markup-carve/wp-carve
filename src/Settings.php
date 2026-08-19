@@ -58,6 +58,10 @@ class Settings
             'paste_ingest' => true,
             'frontmatter_meta' => true,
             'render_cache' => true,
+            // Public attribution/source footer. Source publication is a
+            // separate, explicit opt-in from crediting Carve.
+            'attribution_enabled' => false,
+            'source_access' => 'none',
         ];
 
         // Diagram renderer toggles (default off), derived from the registry so
@@ -117,6 +121,8 @@ class Settings
         'comment_profile',
         'comment_soft_break',
         'diagram_export',
+        'attribution_enabled',
+        'source_access',
     ];
 
     /**

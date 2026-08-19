@@ -32,6 +32,10 @@ function wpcarve_test_set_post(int $id, array $fields): void
     $post->post_excerpt = (string)($fields['post_excerpt'] ?? '');
     $post->post_type = (string)($fields['post_type'] ?? 'post');
     $post->post_author = (int)($fields['post_author'] ?? 0);
+    $post->post_status = (string)($fields['post_status'] ?? 'publish');
+    $post->post_password = (string)($fields['post_password'] ?? '');
+    $post->post_name = (string)($fields['post_name'] ?? 'demo-post');
+    $post->post_title = (string)($fields['post_title'] ?? 'Demo post');
     $GLOBALS['_wpcarve_test_posts'][$id] = $post;
     $GLOBALS['_wpcarve_test_current_post'] = $id;
 }
@@ -48,6 +52,14 @@ if (!class_exists('WP_Post')) {
         public string $post_type = 'post';
 
         public int $post_author = 0;
+
+        public string $post_status = 'publish';
+
+        public string $post_password = '';
+
+        public string $post_name = '';
+
+        public string $post_title = '';
     }
 }
 
@@ -188,6 +200,57 @@ if (!function_exists('esc_attr__')) {
     function esc_attr__(string $text, string $domain = 'default'): string
     {
         return esc_attr($text);
+    }
+}
+
+if (!function_exists('is_singular')) {
+    function is_singular(): bool
+    {
+        return true;
+    }
+}
+
+if (!function_exists('in_the_loop')) {
+    function in_the_loop(): bool
+    {
+        return true;
+    }
+}
+
+if (!function_exists('is_main_query')) {
+    function is_main_query(): bool
+    {
+        return true;
+    }
+}
+
+if (!function_exists('is_feed')) {
+    function is_feed(): bool
+    {
+        return false;
+    }
+}
+
+if (!function_exists('esc_url')) {
+    function esc_url(string $url): string
+    {
+        return $url;
+    }
+}
+
+if (!function_exists('get_permalink')) {
+    function get_permalink(WP_Post|int $post): string
+    {
+        $id = $post instanceof WP_Post ? $post->ID : $post;
+
+        return 'http://example.test/?p=' . $id;
+    }
+}
+
+if (!function_exists('add_query_arg')) {
+    function add_query_arg(string $key, string $value, string $url): string
+    {
+        return $url . (str_contains($url, '?') ? '&' : '?') . rawurlencode($key) . '=' . rawurlencode($value);
     }
 }
 
