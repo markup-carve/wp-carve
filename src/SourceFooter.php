@@ -20,6 +20,11 @@ class SourceFooter
      */
     public const PROJECT_URL = 'https://markup-carve.github.io/carve/';
 
+    /**
+     * @var string
+     */
+    public const WORDPRESS_PLUGIN_URL = 'https://wordpress.org/plugins/carve-markup/';
+
     public function register(): void
     {
         add_filter('the_content', [$this, 'append'], 20);
@@ -49,6 +54,13 @@ class SourceFooter
                 esc_html__('Written with', 'carve-markup'),
                 esc_url(self::PROJECT_URL),
             );
+            if (Settings::get('attribution_plugin_link')) {
+                $parts[] = sprintf(
+                    '<a class="wpcarve-plugin-link" href="%s">%s</a>',
+                    esc_url(self::WORDPRESS_PLUGIN_URL),
+                    esc_html__('Carve WordPress plugin', 'carve-markup'),
+                );
+            }
         }
         if ($mode === 'download' || $mode === 'both') {
             $parts[] = sprintf(

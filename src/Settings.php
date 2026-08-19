@@ -61,6 +61,7 @@ class Settings
             // Public attribution/source footer. Source publication is a
             // separate, explicit opt-in from crediting Carve.
             'attribution_enabled' => false,
+            'attribution_plugin_link' => true,
             'source_access' => 'none',
         ];
 
@@ -122,6 +123,7 @@ class Settings
         'comment_soft_break',
         'diagram_export',
         'attribution_enabled',
+        'attribution_plugin_link',
         'source_access',
     ];
 

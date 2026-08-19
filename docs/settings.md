@@ -78,6 +78,7 @@ With `diagram_export` enabled (off by default), hovering a rendered diagram on t
 | Key | Default | What it does |
 | --- | --- | --- |
 | `attribution_enabled` | `false` | Append “Written with Carve” and link to the Carve project on public, singular Carve posts. |
+| `attribution_plugin_link` | `true` | Include a link to the official Carve Markup WordPress plugin when attribution is shown. |
 | `source_access` | `none` | Publish the stored `.crv` source as `none`, inline `view`, `download`, or `both`. |
 
 The two settings are independent: crediting Carve never publishes source by

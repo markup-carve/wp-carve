@@ -38,6 +38,8 @@ class SourceFooterTest extends TestCase
 
         $this->assertStringContainsString('Written with', $html);
         $this->assertStringContainsString(SourceFooter::PROJECT_URL, $html);
+        $this->assertStringContainsString(SourceFooter::WORDPRESS_PLUGIN_URL, $html);
+        $this->assertStringContainsString('Carve WordPress plugin', $html);
         $this->assertStringContainsString('View .crv source', $html);
         $this->assertStringContainsString('wpcarve_source=7', $html);
         $this->assertStringContainsString('&lt;script&gt;must be escaped&lt;/script&gt;', $html);

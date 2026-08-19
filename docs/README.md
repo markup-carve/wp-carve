@@ -5,6 +5,7 @@ Reference docs for the Carve Markup WordPress plugin. Start with the project
 
 - [Settings](settings.md) — every option on **Settings → Carve Markup** and the matching settings key.
 - [Blocks](blocks.md) — the Carve and Carve Slides Gutenberg blocks (modes, toolbar, import).
+- [Carve Documents](carve-documents.md) — source-first whole-post editing, creation, import, preview, and export.
 - [Profiles & rendering](profiles.md) — content profiles, sanitization, extensions.
 - [Hooks](hooks.md) — filters and actions, and how to register your own carve-php extension.
 - [WP-CLI](wp-cli.md) — the `wp carve migrate` command (analysis + safe conversion).
