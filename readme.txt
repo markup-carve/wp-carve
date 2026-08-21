@@ -2,7 +2,7 @@
 Contributors: markmarkmark
 Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.2
 Stable tag: 0.1.3
 License: MIT
