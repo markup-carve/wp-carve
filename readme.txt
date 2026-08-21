@@ -2,7 +2,7 @@
 Contributors: markmarkmark
 Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 8.2
 Stable tag: 0.1.3
 License: MIT
@@ -40,6 +40,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 
 == Changelog ==
 
+= 0.1.4 =
+* New: source-first Carve Documents (Posts -> Add Carve Document) store the whole post body as raw `.crv`, with Write / Split / Preview views, a formatting toolbar, `.crv` download, and lossless conversion to and from a Gutenberg Carve block.
+* New: opt-in "Written with Carve" article footer, plus independent inline viewing and lossless `.crv` download of the original public post source, with site defaults and per-post overrides.
+
 = 0.1.3 =
 * New: Carve Workbench document health diagnostics, heading navigation, searchable commands, and semantic changes since the last save.
 * New: per-block CSL-JSON bibliographies with numbered or author-date citations, unresolved-key diagnostics, references, and backlinks.
@@ -71,6 +75,5 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 = 0.1.0 =
 * Initial release: render Carve in posts, pages and comments; [carve] shortcode and carve/markup + carve/slides blocks.
 * Visual (WYSIWYG) editor with Write / Split / Visual / Preview tabs, a unified toolbar, an in-block code-language picker and keyboard shortcuts.
-* Source-first Carve Documents with Write / Split / Preview views, a formatting toolbar, direct `.crv` import/download, and lossless conversion to a Gutenberg Carve block.
 * Import Markdown / Djot / BBCode / HTML and export posts as .crv.
 * Live in-browser preview, frontmatter-to-meta, content profiles, table of contents, heading permalinks, smart quotes, diagram renderers, media embeds, bundled syntax highlighting, render caching and a REST endpoint.
