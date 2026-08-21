@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Carve Documents: a source-first post mode (Posts -> Add Carve Document) that
+  stores the whole post body as raw `.crv`, with Write/Split/Preview views, a
+  formatting toolbar, `.crv` download, and lossless conversion to and from a
+  Gutenberg Carve block (#83).
 - Added an opt-in “Written with Carve” article footer plus independent inline
   viewing and lossless `.crv` download of the original public post source, with
-  site defaults and per-post overrides.
+  site defaults and per-post overrides (#82).
+- `attribution_plugin_link` (default `true`) controls whether that footer also
+  links to the Carve Markup WordPress plugin listing (#83).
 
 ## [0.1.3] - 2026-08-18
 
