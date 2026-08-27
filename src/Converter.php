@@ -454,6 +454,21 @@ class Converter
             $converter->addExtension(new TabNormalizeExtension(width: (int)($this->settings['tab_width'] ?? 2)));
         }
 
+        // Wiki links have to be recognized here too, or `[[Page Title]]` reaches
+        // an excerpt as its markup - which is the one thing an excerpt must not
+        // show. Every other construct is already handled: the plain-text
+        // renderer knows the core markers, and a mention or tag reads correctly
+        // as `@name` and `#tag` whether or not it became a link.
+        //
+        // The resolver deliberately does NOT look anything up. Plain text
+        // discards the href, so resolving would spend a get_page_by_path() per
+        // link on every archive page to produce a string nothing reads.
+        if (!$isComment && !empty($this->settings['wikilinks_enabled'])) {
+            $converter->addExtension(new WikilinksExtension(
+                urlGenerator: static fn (string $page): string => '#',
+            ));
+        }
+
         /**
          * Allow add-ons to register parser-level carve-php extensions on the
          * plain-text converter.
