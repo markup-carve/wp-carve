@@ -394,16 +394,16 @@
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "0.1.5",
+            "version": "0.1.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "f30ebd165f89e000b0ecbf9929c5df6acf19abb7"
+                "reference": "d8b44f5086761a29dc9bec7e1fb8429a8375584a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/f30ebd165f89e000b0ecbf9929c5df6acf19abb7",
-                "reference": "f30ebd165f89e000b0ecbf9929c5df6acf19abb7",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/d8b44f5086761a29dc9bec7e1fb8429a8375584a",
+                "reference": "d8b44f5086761a29dc9bec7e1fb8429a8375584a",
                 "shasum": ""
             },
             "require": {
@@ -452,7 +452,7 @@
             ],
             "support": {
                 "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/0.1.5"
+                "source": "https://github.com/markup-carve/carve-php/tree/0.1.6"
             },
             "funding": [
                 {
@@ -460,7 +460,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-18T11:58:16+00:00"
+            "time": "2026-08-27T00:10:47+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",

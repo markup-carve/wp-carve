@@ -108,12 +108,17 @@ class Converter
         // kses allows data-* globally and texturize ignores attributes.
         // Chart.js configs additionally get their dataset appended as a plain
         // table - readable without JS, indexable, and screen-reader friendly.
+        // The container carries engine-authored attributes besides the class
+        // - carve-php 0.1.6 began emitting role="img" and an aria-label - so
+        // they are matched and carried over rather than dropped. Requiring the
+        // class to be the only attribute silently stopped matching when those
+        // arrived, which left the config in a script tag for kses to strip.
         $html = (string)preg_replace_callback(
-            '/<div class="([^"]*)">\s*<script type="application\/json">(.*?)<\/script>\s*<\/div>/s',
+            '/<div class="([^"]*)"([^>]*)>\s*<script type="application\/json">(.*?)<\/script>\s*<\/div>/s',
             static function (array $m): string {
-                $out = '<div class="' . $m[1] . '" data-carve-json="' . esc_attr($m[2]) . '"></div>';
+                $out = '<div class="' . $m[1] . '"' . $m[2] . ' data-carve-json="' . esc_attr($m[3]) . '"></div>';
                 if (preg_match('/(^| )chart( |$)/', $m[1]) === 1) {
-                    $out .= self::chartDataTable($m[2]);
+                    $out .= self::chartDataTable($m[3]);
                 }
 
                 return $out;

@@ -13,6 +13,8 @@ return RectorConfig::configure()
         // Only downgrade bundled packages that use PHP 8.1/8.2-only syntax
         // (readonly classes, trait constants, enum ->value in const exprs).
         // WordPress.org's SVN pre-commit lint runs on an older PHP.
+        // carve-php 0.1.6 introduced readonly classes and enums in src/.
+        __DIR__ . '/vendor/markup-carve/carve-php',
         __DIR__ . '/vendor/torchlight/engine',
         __DIR__ . '/vendor/phiki/phiki',
         __DIR__ . '/vendor/nette/schema',

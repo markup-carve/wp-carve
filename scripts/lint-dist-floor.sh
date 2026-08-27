@@ -48,7 +48,7 @@ DIST="${1:-$REPO/build/dist/carve-markup}"
 # (BlockQuoteLazyMode) and one readonly promoted property
 # (SentinelSpaceExhaustedException). The downgrade itself still runs: the same
 # staged tree reports 71 before it and 37 after.
-DOWNGRADE_TARGET_CEILING="${DOWNGRADE_TARGET_CEILING:-37}"
+DOWNGRADE_TARGET_CEILING="${DOWNGRADE_TARGET_CEILING:-25}"
 
 if [ ! -d "$DIST" ]; then
 	echo "::error::Staged distribution not found at $DIST. Run scripts/build-dist.sh first."
