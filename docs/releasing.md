@@ -51,48 +51,41 @@ triggers an automated deploy to the WordPress.org plugin SVN.
 `.distignore` controls what is excluded from the deployed SVN tree (tests,
 build tooling, docs, vendor cruft).
 
-## One-time prerequisites for WordPress.org
+## WordPress.org listing
 
-These are **not yet done** and are the gate to a public listing:
+The plugin is **listed**: <https://wordpress.org/plugins/carve-markup/>, under
+the slug `carve-markup` that `SLUG` in `deploy.yml` has to keep matching. The
+one-time work below is done, and is recorded so that a later move - a rename, a
+second plugin, a transferred account - starts from what was actually needed
+rather than from scratch.
 
-1. **Submit the plugin for review.** Create a WordPress.org account, then submit
-   the plugin zip at <https://wordpress.org/plugins/developers/add/>. A human
-   reviewer checks it (typically days to a few weeks). The chosen permalink
-   becomes the **slug**; it must match `SLUG: carve-markup` in `deploy.yml`
-   (change one to match the other if the assigned slug differs).
+1. **Submitted and reviewed.** The assigned permalink became the slug.
+2. **Plugin Check passes**, and does not rely on anyone remembering to run it:
+   the `plugin-check` job in `ci.yml` runs it on every push.
+3. **License.** MIT, which is GPL-compatible and was accepted.
+4. **SVN secrets.** `SVN_USERNAME` and `SVN_PASSWORD` are set; `deploy.yml`
+   reads both and fails loudly rather than skipping when either is missing.
+5. **Directory assets** are in `.wordpress-org/`, which the 10up action syncs to
+   the SVN `assets/` directory: `icon-128x128.png`, `icon-256x256.png`,
+   `banner-772x250.png`, `banner-1544x500.png`, and `screenshot-1.png` through
+   `screenshot-4.png` matched to `== Screenshots ==` in `readme.txt`.
 
-2. **Pass Plugin Check.** Install the official `Plugin Check (PCP)` plugin and
-   run it locally before submitting. Fix every error and as many warnings as
-   possible. Common items: proper escaping/sanitization, text-domain on every
-   `__()`/`esc_*__()`, no direct file access (the `ABSPATH` guards already
-   handle this), prefixed globals/options/hooks.
+The one item that stays live for every release:
 
-3. **License compatibility.** WordPress.org requires a GPL-compatible license.
-   MIT is GPL-compatible, so the current `License: MIT` is acceptable - but
-   confirm the reviewer is happy with MIT rather than GPLv2+.
+- **`Tested up to`** in `readme.txt` wants checking against the current
+  WordPress release before each deploy. Nothing enforces it, because a plugin
+  that has not been tested against a release should not claim it has.
 
-4. **Set the SVN secrets.** After approval, add repository secrets
-   `SVN_USERNAME` and `SVN_PASSWORD` (your WordPress.org login) so the deploy
-   workflow can push to SVN. Until these exist the workflow will fail at the
-   deploy step.
+## Checklist before tagging a release
 
-5. **Add the directory assets** (optional but expected) under a top-level
-   `.wordpress-org/` folder, which the 10up action syncs to the SVN `assets/`
-   dir: `icon-256x256.png`, `banner-772x250.png` (and `@2x`), and
-   `screenshot-1.png` … matched to the `== Screenshots ==` section of
-   `readme.txt`.
-
-6. **`Tested up to`.** Keep `readme.txt`'s `Tested up to:` current with the
-   latest WordPress release before each submission/update.
-
-## Checklist before tagging 0.1.0
+Was written for 0.1.0 and kept its four one-time items long after they were
+done, which is how a checklist stops being read. Those moved to the listing
+section above; what is left runs every time.
 
 - [ ] `composer update` + `npm update` run; lockfiles committed (deps at latest).
 - [ ] `npm run build` run against the updated deps (engine + editor bundles rebuilt + committed).
-- [ ] `./scripts/version.sh 0.1.0` run; versions consistent.
+- [ ] `./scripts/version.sh X.Y.Z` run; versions consistent.
 - [ ] `CHANGELOG.md` + `readme.txt` changelog updated.
+- [ ] `readme.txt` `Tested up to:` checked against the current WordPress release.
 - [ ] `composer test`, `composer stan`, `composer cs-check`, `npm run test:js` all green.
-- [ ] Plugin Check (PCP) passes.
-- [ ] WordPress.org listing approved and slug confirmed.
-- [ ] `SVN_USERNAME` / `SVN_PASSWORD` secrets set.
-- [ ] `.wordpress-org/` assets added.
+- [ ] `bash scripts/lint-dist-floor.sh` green against a freshly staged and downgraded tree.
