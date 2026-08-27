@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bd500183b950a23411b657df001c6545",
+    "content-hash": "eda2d5d17dd7227fbaf64f7bbbb3ee2f",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -350,22 +350,21 @@
         },
         {
             "name": "markup-carve/carve-grammars",
-            "version": "dev-main",
+            "version": "v0.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "7ef51b6ae5f7eff2556d90d8aa64b78d03a92b0f"
+                "reference": "406a75b692f6c32873f1b1c5720fd23fb6a72b26"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/7ef51b6ae5f7eff2556d90d8aa64b78d03a92b0f",
-                "reference": "7ef51b6ae5f7eff2556d90d8aa64b78d03a92b0f",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/406a75b692f6c32873f1b1c5720fd23fb6a72b26",
+                "reference": "406a75b692f6c32873f1b1c5720fd23fb6a72b26",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1"
             },
-            "default-branch": true,
             "type": "library",
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -391,7 +390,7 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-08-18T11:49:04+00:00"
+            "time": "2026-08-27T01:19:24+00:00"
         },
         {
             "name": "markup-carve/carve-php",
@@ -4069,10 +4068,8 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "dev",
-    "stability-flags": {
-        "markup-carve/carve-grammars": 20
-    },
+    "minimum-stability": "stable",
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
