@@ -124,6 +124,62 @@ if (!function_exists('wpcarve_test_reset_hooks')) {
     }
 }
 
+/**
+ * URL and lookup helpers the link-shaping settings build on.
+ *
+ * Without these `function_exists()` is false, every one of those helpers takes
+ * its fallback branch, and the tests exercising them pass for the wrong reason
+ * - `wikilinkUrl()` in particular could only ever return `#`, so the resolution
+ * half was unreachable while looking covered.
+ *
+ * `wpcarve_test_set_pages()` is how a test says which pages exist.
+ */
+if (!function_exists('home_url')) {
+    /** @var array<string, \WP_Post> */
+    $GLOBALS['wpcarve_test_pages'] = [];
+
+    /**
+     * @param array<string, int> $bySlug Slug to post ID.
+     */
+    function wpcarve_test_set_pages(array $bySlug): void
+    {
+        $GLOBALS['wpcarve_test_pages'] = $bySlug;
+    }
+
+    function home_url(string $path = ''): string
+    {
+        return 'https://example.test' . $path;
+    }
+
+    function wp_parse_url(string $url, int $component = -1): mixed
+    {
+        return parse_url($url, $component);
+    }
+
+    function sanitize_title(string $title): string
+    {
+        return trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($title)) ?? '', '-');
+    }
+
+    function get_page_by_path(string $path, string $output = 'OBJECT', array $types = ['page']): ?WP_Post
+    {
+        $id = $GLOBALS['wpcarve_test_pages'][$path] ?? null;
+        if ($id === null) {
+            return null;
+        }
+
+        $post = new WP_Post();
+        $post->ID = $id;
+        $post->post_name = $path;
+
+        return $post;
+    }
+}
+
+if (!defined('OBJECT')) {
+    define('OBJECT', 'OBJECT');
+}
+
 if (!function_exists('get_post')) {
     function get_post(?int $id = null): ?WP_Post
     {

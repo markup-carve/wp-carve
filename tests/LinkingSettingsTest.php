@@ -19,6 +19,16 @@ use WpCarve\Converter;
 #[UsesClass(Converter::class)]
 class LinkingSettingsTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        // In tearDown, not at the end of each test body: a failing assertion
+        // never reaches the end of the body, and a filter left registered then
+        // surfaces as a failure in the NEXT test instead of this one.
+        wpcarve_test_reset_hooks();
+        wpcarve_test_set_pages([]);
+        parent::tearDown();
+    }
+
     public function testHeadingNumbersAreOffByDefault(): void
     {
         $this->assertStringNotContainsString('section-number', (new Converter([]))->toHtml('# Top'));
@@ -97,6 +107,64 @@ class LinkingSettingsTest extends TestCase
     public function testWikilinksAreLiteralByDefault(): void
     {
         $this->assertStringNotContainsString('wikilink', (new Converter([]))->toHtml('See [[Getting Started]].'));
+    }
+
+    public function testALinkToThisSiteIsNotExternal(): void
+    {
+        // The half that needs a real host to mean anything: with no
+        // `home_url()` every absolute URL looks external, so this passes for
+        // the wrong reason unless the site knows its own name.
+        $html = (new Converter(['external_links' => true, 'external_links_new_tab' => true]))
+            ->toHtml('[a](https://example.test/page)');
+
+        $this->assertStringNotContainsString('target=', $html);
+        $this->assertStringNotContainsString('rel=', $html);
+    }
+
+    public function testAnotherHostCanBeDeclaredInternal(): void
+    {
+        add_filter('wpcarve_internal_hosts', static function (array $hosts): array {
+            $hosts[] = 'staging.example.test';
+
+            return $hosts;
+        }, 10, 1);
+
+        $html = (new Converter(['external_links' => true, 'external_links_new_tab' => true]))
+            ->toHtml('[a](https://staging.example.test/page)');
+
+        $this->assertStringNotContainsString('target=', $html);
+    }
+
+    public function testMentionTemplatesAreBuiltFromTheSiteUrl(): void
+    {
+        $html = (new Converter(['mentions_enabled' => true]))->toHtml('Ask @alice about #carve.');
+
+        $this->assertStringContainsString('https://example.test/author/alice/', $html);
+        $this->assertStringContainsString('https://example.test/tag/carve/', $html);
+    }
+
+    public function testAResolvedWikilinkPointsAtThePost(): void
+    {
+        // The resolution path. It was unreachable while `get_page_by_path` did
+        // not exist, so every wikilink assertion here was really an assertion
+        // about the fallback.
+        wpcarve_test_set_pages(['getting-started' => 42]);
+
+        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See [[Getting Started]].');
+
+        $this->assertStringContainsString('/?p=42', $html);
+        $this->assertStringNotContainsString('href="#"', $html);
+    }
+
+    public function testAFilterCanResolveAWikilinkItself(): void
+    {
+        // Two accepted arguments, or the registry hands the closure only the
+        // value and PHP raises ArgumentCountError.
+        add_filter('wpcarve_wikilink_url', static fn (?string $url, string $page): string => '/docs/' . strtolower($page[0]), 10, 2);
+
+        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See [[Zebra]].');
+
+        $this->assertStringContainsString('/docs/z', $html);
     }
 
     public function testAnUnresolvedWikilinkStaysInTheTextAsABrokenLink(): void
