@@ -30,6 +30,7 @@ use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Extension\WikilinksExtension;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\PlainTextRenderer;
+use MarkupCarve\Carve\Renderer\RenderMode;
 use MarkupCarve\Carve\Renderer\SoftBreakMode;
 use MarkupCarve\Carve\SafeMode;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
@@ -94,7 +95,7 @@ class Converter
          * Filter the raw Carve source before it is converted.
          *
          * @param string $carve The Carve source.
-         * @param string $context 'post', 'comment', or 'editor'.
+         * @param string $context 'post', 'comment', 'editor', or 'feed'.
          */
         $carve = (string)apply_filters('wpcarve_source', $carve, $context);
 
@@ -368,6 +369,12 @@ class Converter
         // round trip, so the 'editor' context renders like a post but omits those
         // extensions (and the abbreviation defs, see toHtml()).
         $isEditor = $context === 'editor';
+        // A feed renders like a post and then degrades. Nothing in a feed
+        // reader runs the plugin's JavaScript, so a diagram's hydration
+        // container arrives as an EMPTY div and the diagram is simply gone -
+        // not broken-looking, gone. Static mode falls back to the source as a
+        // code block, which a reader can at least read.
+        $isFeed = $context === 'feed';
         $safeMode = $this->safeModeFor($context);
         $cacheKey = $context
             . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '')
@@ -390,6 +397,10 @@ class Converter
         // Carve preserves tabs by default; opt into normalization for consistent display.
         if (!empty($this->settings['normalize_tabs'])) {
             $converter->addExtension(new TabNormalizeExtension(width: (int)($this->settings['tab_width'] ?? 2)));
+        }
+
+        if ($isFeed) {
+            $converter->setRenderMode(RenderMode::STATIC);
         }
 
         if (!$isComment) {
