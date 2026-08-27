@@ -51,9 +51,15 @@ class CarveBlock
         }
         $citationMode = (string)($attributes['citationMode'] ?? 'numbered');
         $safe = Plugin::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
+        // A block post reaches a feed through this callback and never through
+        // Plugin::maybeRenderPost, which bails on any post without
+        // `_wpcarve_enabled`. So the feed context has to be chosen here too, or
+        // a Carve BLOCK keeps handing feed readers hydration containers while a
+        // Carve POST degrades correctly.
+        $context = function_exists('is_feed') && is_feed() ? 'feed' : 'post';
         $html = $this->converter->toHtml(
             $carve,
-            'post',
+            $context,
             $profile !== '' ? $profile : null,
             $safe,
             $bibliography,
