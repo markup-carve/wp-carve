@@ -167,6 +167,49 @@ class LinkingSettingsTest extends TestCase
         $this->assertStringContainsString('/docs/z', $html);
     }
 
+    public function testAnExcerptShowsTheWikilinkLabelNotItsMarkup(): void
+    {
+        // An excerpt is the one place markup must not appear, and `[[...]]` was
+        // reaching it: the plain-text converter knows the core markers but not
+        // this extension, so the brackets came through verbatim.
+        $source = 'See [[Getting Started]] for more.';
+
+        $this->assertSame(
+            'See [[Getting Started]] for more.',
+            trim((new Converter([]))->toText($source)),
+            'off by default, so the markup is the literal text it is',
+        );
+        $this->assertSame(
+            'See Getting Started for more.',
+            trim((new Converter(['wikilinks_enabled' => true]))->toText($source)),
+        );
+    }
+
+    public function testAnExcerptDoesNotResolveWikilinksAgainstTheDatabase(): void
+    {
+        // Plain text discards the href, so resolving would spend a lookup per
+        // link on every archive page for a string nothing reads. Pinned by the
+        // OUTPUT being identical whether or not the page exists.
+        wpcarve_test_set_pages(['getting-started' => 42]);
+        $resolved = trim((new Converter(['wikilinks_enabled' => true]))->toText('See [[Getting Started]].'));
+
+        wpcarve_test_set_pages([]);
+        $unresolved = trim((new Converter(['wikilinks_enabled' => true]))->toText('See [[Getting Started]].'));
+
+        $this->assertSame($resolved, $unresolved);
+        $this->assertSame('See Getting Started.', $resolved);
+    }
+
+    public function testCommentsDoNotResolveWikilinks(): void
+    {
+        // Comments get no post extensions, and a commenter should not be able
+        // to mint links into the site by typing brackets.
+        $this->assertSame(
+            'See [[Getting Started]].',
+            trim((new Converter(['wikilinks_enabled' => true]))->toText('See [[Getting Started]].', 'comment')),
+        );
+    }
+
     public function testAnUnresolvedWikilinkStaysInTheTextAsABrokenLink(): void
     {
         // Not dropped and not guessed at: the anchor keeps its class and its
