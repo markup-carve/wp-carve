@@ -38,13 +38,13 @@ name: Engine drift
 # because the pinned grammar declares the same carve-js revision this repo does.
 # When a grammar release exists again, this goes back to a version constraint.
 #
-# The PHP engine is a released Composer dependency now, and it gets its own
-# check rather than the revision check, because a release can go wrong in a way
-# a revision cannot: `dev-main#<rev> as 0.1.4` installs a revision while telling
-# every reader it is the 0.1.4 release. That is what this repo shipped until the
-# constraint became `^0.1.4`, and the pin was one commit short of the tag. So the
-# check refuses an aliased or revision-shaped constraint, and then requires the
-# locked reference to be the commit the tag actually points at.
+# The PHP engine deliberately follows `dev-main` during release preparation.
+# Composer still locks that moving branch to one exact commit, so this job
+# verifies both halves: the manifest must name the branch (without a commit
+# fragment), and the lock must resolve to the current upstream main head. The
+# `0.1.x-dev` alias only lets the media extension's compatible 0.1 constraint
+# intersect with the root branch requirement; unlike the old `as 0.1.4` alias,
+# it does not claim that an unreleased commit is a published release.
 
 on:
   schedule:
@@ -123,19 +123,15 @@ jobs:
           check '@markup-carve/carve' carve-js carve-js
           check '@markup-carve/carve-grammars' carve-grammars carve-grammars
 
-      - name: The released PHP engine is the tag it claims to be, and that tag is on main
+      - name: The PHP engine development lock is the current main head
         run: |
           set -euo pipefail
 
           pkg='markup-carve/carve-php'
 
-          # A revision pin ties composer.json to composer.lock by comparing the
-          # two hashes directly, and a version constraint cannot do that: the
-          # constraint and the locked release are separately well-formed even
-          # when the lockfile no longer answers the manifest. Composer's own
-          # lock check is what closes that, and it reports the version that
-          # fails to satisfy the constraint. `--no-check-all` keeps the
-          # commit-ref warning on carve-grammars from turning into a failure.
+          # Composer's own lock check closes the manifest/lock mismatch case.
+          # `--no-check-all` keeps the separate carve-grammars commit-ref
+          # warning from turning into a failure here.
           if ! composer validate --no-check-publish --no-check-all; then
             echo "::error::composer.json and composer.lock disagree - run composer update"
             exit 1
@@ -146,52 +142,24 @@ jobs:
             echo "::error::${pkg} is not required by this repo - this check is watching nothing"
             exit 1
           fi
-          if printf '%s' "${constraint}" | grep -qE '[0-9a-f]{40}'; then
-            echo "::error::${pkg} is \"${constraint}\" - it pins a revision; it must require a published release"
-            exit 1
-          fi
-
-          # `<rev> as <version>` makes a revision answer to a release number it
-          # is not, and Composer records the lie in the lockfile's aliases.
-          if php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["aliases"] ?? [] as $a) if (($a["package"] ?? "") === $argv[1]) exit(0); exit(1);' "${pkg}"; then
-            echo "::error::composer.lock aliases ${pkg} to a version it is not"
+          if [ "${constraint}" != 'dev-main as 0.1.x-dev' ]; then
+            echo "::error::${pkg} is \"${constraint}\" - release preparation must track dev-main as 0.1.x-dev"
             exit 1
           fi
 
           version="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === $argv[1]) { echo $p["version"] ?? ""; break; }' "${pkg}")"
-          if ! printf '%s' "${version}" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::${pkg} resolves to \"${version}\" - a branch, not a published release"
+          if [ "${version}" != 'dev-main' ]; then
+            echo "::error::${pkg} resolves to \"${version}\" rather than dev-main"
             exit 1
           fi
 
           locked="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === $argv[1]) { echo $p["source"]["reference"] ?? ""; break; }' "${pkg}")"
-          tag=""
-          for candidate in "${version}" "v${version}" "${version#v}"; do
-            if git -C carve-php rev-parse -q --verify "refs/tags/${candidate}^{commit}" >/dev/null 2>&1; then
-              tag="${candidate}"
-              break
-            fi
-          done
-          if [ -z "${tag}" ]; then
-            echo "::error::${pkg} resolves to ${version}, which is not a tag in markup-carve/carve-php"
+          head="$(git -C carve-php rev-parse origin/main)"
+          if [ "${locked}" != "${head}" ]; then
+            echo "::error::composer.lock resolves ${pkg} ${version} to ${locked}, but main is ${head}; run composer update ${pkg}"
             exit 1
           fi
-
-          tagged="$(git -C carve-php rev-parse "refs/tags/${tag}^{commit}")"
-          if [ "${locked}" != "${tagged}" ]; then
-            echo "::error::composer.lock resolves ${pkg} ${version} to ${locked}, but tag ${tag} is ${tagged}"
-            exit 1
-          fi
-          if ! git -C carve-php merge-base --is-ancestor "${tagged}" origin/main; then
-            echo "::error::${pkg} ${version} is not on markup-carve/carve-php main"
-            exit 1
-          fi
-
-          behind="$(git -C carve-php rev-list --count "${tagged}..origin/main")"
-          echo "${pkg}: ${version} (${tagged}); markup-carve/carve-php main is ${behind} commit(s) ahead"
-          if [ "${behind}" -gt 0 ]; then
-            echo "::warning::${pkg} ${version} is ${behind} commit(s) behind markup-carve/carve-php main"
-          fi
+          echo "${pkg}: ${version} (${locked}), exactly at markup-carve/carve-php main"
 
       - name: Every Composer development dependency pins a reachable main revision
         run: |

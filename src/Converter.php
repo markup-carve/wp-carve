@@ -131,14 +131,6 @@ class Converter
             $html,
         );
 
-        // See the note in addPostExtensions: an external link with no target
-        // still gets an empty `target=""`. Anchored to the attribute run this
-        // extension writes, so a `target=""` an author wrote by hand in
-        // borrowed HTML is left alone.
-        if (!empty($this->settings['external_links']) && empty($this->settings['external_links_new_tab'])) {
-            $html = (string)preg_replace('/(<a\b[^>]*?) target=""/', '$1', $html);
-        }
-
         // Rendering is always sanitized: the engine escapes raw HTML and strips
         // event handlers, and the generated markup additionally passes through
         // wp_kses so only allowlisted tags/attributes ever reach output. There is
@@ -656,13 +648,6 @@ class Converter
         }
 
         if (!empty($s['external_links'])) {
-            // ExternalLinksExtension sets `target` unconditionally, so an empty
-            // one is written as `target=""` rather than omitted
-            // (markup-carve/carve-php#1823). Marking a link as external and
-            // opening it in a new tab are separate choices - the first is a
-            // security and provenance hint, the second is a browsing
-            // preference many sites deliberately do not impose - so the empty
-            // attribute is stripped below rather than the option removed.
             $converter->addExtension(new ExternalLinksExtension(
                 internalHosts: self::internalHosts(),
                 target: !empty($s['external_links_new_tab']) ? '_blank' : '',
