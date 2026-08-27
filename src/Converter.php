@@ -466,6 +466,12 @@ class Converter
     ): void {
         $s = $this->settings;
 
+        // carve-php ships more extensions than this method registers, and every
+        // one of them is reachable through the `wpcarve_converter` action
+        // without patching the plugin. docs/extensions.md accounts for each
+        // absence - an unexplained one reads as an oversight rather than a
+        // decision, and the question gets re-asked every release.
+        //
         // Semantic inline spans round-trip; always on.
         $converter->addExtension(new SemanticSpanExtension());
         $converter->addExtension(new CitationsExtension(
