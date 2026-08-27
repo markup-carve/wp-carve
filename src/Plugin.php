@@ -294,11 +294,21 @@ class Plugin
         }
 
         $safe = self::safeForAuthor((int)$post->post_author);
-        $cached = RenderCache::read($post->ID, $safe);
-        if ($cached !== null) {
-            $rendered = $cached;
+
+        // A feed reader runs none of this plugin's JavaScript, so the
+        // interactive render hands it empty hydration containers where the
+        // diagrams were. The feed context renders the same document in static
+        // mode, which degrades each one to its source as a code block.
+        //
+        // The cache is skipped in BOTH directions on purpose: it stores the
+        // interactive render for the 'post' context, so reading it here would
+        // serve exactly the markup this avoids, and writing to it would put
+        // feed markup on the page.
+        if (function_exists('is_feed') && is_feed()) {
+            $rendered = $this->converter->toHtml($post->post_content, 'feed', null, $safe);
         } else {
-            $rendered = $this->converter->toHtml($post->post_content, 'post', null, $safe);
+            $cached = RenderCache::read($post->ID, $safe);
+            $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe);
         }
 
         // Carve already produced block HTML; keep wpautop away from it.

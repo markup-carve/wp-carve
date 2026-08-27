@@ -168,6 +168,11 @@ per context).
 
 - `post` - front-end post/page rendering.
 - `comment` - comment rendering (uses the comment profile).
+- `feed` - RSS and Atom output. Renders like `post` but in the engine's static
+  mode, because nothing in a feed reader runs this plugin's JavaScript, so a
+  diagram's hydration container would arrive empty. Register content extensions
+  for it alongside `post`; anything that needs client-side JavaScript to appear
+  is pointless here.
 - `editor` - the compatibility render used by linting and REST clients that
   request an editor-safe HTML seed. The built-in Gutenberg visual editor now
   loads source through the JavaScript AST bridge, but this context remains for
