@@ -14,9 +14,8 @@
         "markup-carve/carve-php": "^0.1.5",
         "markup-carve/carve-php-media-embed": "^0.1.1",
         "torchlight/engine": "^1.0",
-        "markup-carve/carve-grammars": "dev-main#7ef51b6ae5f7eff2556d90d8aa64b78d03a92b0f"
+        "markup-carve/carve-grammars": "^0.1.5"
     },
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "require-dev": {
         "php-collective/code-sniffer": "^0.6.8",
