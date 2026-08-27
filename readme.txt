@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.3
+Stable tag: 0.1.4
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -43,6 +43,7 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 = 0.1.4 =
 * New: source-first Carve Documents (Posts -> Add Carve Document) store the whole post body as raw `.crv`, with Write / Split / Preview views, a formatting toolbar, `.crv` download, and lossless conversion to and from a Gutenberg Carve block.
 * New: opt-in "Written with Carve" article footer, plus independent inline viewing and lossless `.crv` download of the original public post source, with site defaults and per-post overrides.
+* Changed: bundled the latest carve-php development engine for the upcoming release, including correct omission of an external link target when new-tab behavior is disabled.
 
 = 0.1.3 =
 * New: Carve Workbench document health diagnostics, heading navigation, searchable commands, and semantic changes since the last save.

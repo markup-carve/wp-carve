@@ -2,9 +2,9 @@
 # corpus, measured at the pinned freeze.
 #
 #   corpus  markup-carve/carve 375e1f37042c, the 0.1.4 release, 1538 documents
-#   engine  markup-carve/carve-php 0.1.6, the published release composer.lock installs
+#   engine  markup-carve/carve-php 17d9339, the dev-main revision composer.lock installs
 #
-# Both sides are fixed releases, so this list is the whole result and not a
+# Both sides are fixed revisions, so this list is the whole result and not a
 # snapshot of one. A NAME APPEARING HERE is a divergence introduced by a change
 # in this repository, because there are none to inherit: the list is EMPTY, and
 # 0 of 1538 documents render differently.

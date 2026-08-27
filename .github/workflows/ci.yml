@@ -47,9 +47,9 @@ jobs:
   # comment content on the front end, so this is what a WordPress site
   # publishes.
   #
-  # BOTH SIDES ARE PINNED. The engine is a published release by maintainer
-  # ruling, because this plugin ships to WordPress.org and cannot install a
-  # revision; the corpus is pinned to the spec freeze for the same reason. An
+  # BOTH SIDES ARE PINNED. Composer resolves the engine's dev-main requirement
+  # to the exact commit recorded in composer.lock, which is what the plugin
+  # bundles; the corpus is pinned to the spec freeze for the same reason. An
   # unpinned corpus made this job measure UPSTREAM MOVEMENT: two spec pull
   # requests landing on carve main took the corpus from 1239 documents to 1241,
   # the residual went to 193, and the job failed a branch that had changed
@@ -64,15 +64,12 @@ jobs:
   # With both ends fixed the divergent set is a constant, so the recorded
   # divergences are a LIST OF NAMES rather than a count - a document regressing
   # while another is fixed leaves a count untouched. It is still a residual and
-  # not a defect list: this repository cannot move the engine faster than a
-  # release exists, and most of the 195 is the distance between 0.1.4 and
-  # carve-php main rather than anything unimplemented.
+  # not a defect list: the two projects can implement corpus changes at
+  # different times, even though release preparation refreshes the lock to main.
   #
-  # WHEN carve-php PUBLISHES A RELEASE, both ends move together: bump the
-  # requirement, re-measure through the installed engine, and rewrite
-  # scripts/corpus-divergences-at-freeze.txt from that run. The corpus ref is
-  # worth revisiting in the same change - the freeze is only the right reference
-  # while the shipped engine predates it.
+  # WHEN THE LOCK MOVES, re-measure through the installed engine and rewrite
+  # scripts/corpus-divergences-at-freeze.txt if the named result changes. The
+  # corpus ref is worth revisiting in the same change.
   corpus:
     name: The shipped engine against the frozen spec corpus
     runs-on: ubuntu-latest
@@ -81,7 +78,7 @@ jobs:
 
       # The spec freeze: carve 0.1.4 (375e1f3), 1538 documents. Pinned to a
       # RELEASE rather than tracking carve main, because the engine on the other
-      # side of this comparison is a fixed published release too. With one end
+      # side of this comparison is an exact lockfile revision too. With one end
       # fixed and the other moving, the number this job produces measures the
       # spec's pace, and a breach carries no information about the branch that
       # hit it.
@@ -102,7 +99,7 @@ jobs:
           php-version: '8.2'
           coverage: none
 
-      # The engine AS THIS PLUGIN INSTALLS IT: the locked release, runtime
+      # The engine AS THIS PLUGIN INSTALLS IT: the locked revision, runtime
       # dependencies only, the same resolution a site gets.
       - name: Install runtime dependencies
         run: composer install --no-dev --prefer-dist --no-progress

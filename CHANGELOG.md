@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-08-28
+
+### Changed
+
+- Updated the bundled `markup-carve/carve-php` engine to the latest `dev-main`
+  revision for the upcoming release, including the upstream fix that omits an
+  external link's `target` attribute when opening links in a new tab is disabled.
+- Removed wp-carve's temporary post-render cleanup for the empty external-link
+  target now that the engine handles that configuration directly.
+
 ### Added
 
 - Carve Documents: a source-first post mode (Posts -> Add Carve Document) that

@@ -120,7 +120,7 @@ function declaredCorpusSize(string $corpusDir): int
 /**
  * Hold the divergent documents against the list recorded at the pinned freeze.
  *
- * The corpus is pinned to a commit and the engine to a published release, so
+ * The corpus is pinned to a commit and the engine to a lockfile revision, so
  * both sides of this measurement are fixed and the divergent set is a constant
  * that only THIS repository can move. Comparing counts would miss the case that
  * matters most: one document regressing while another is fixed leaves the total
@@ -209,7 +209,7 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
     if ($regressed !== []) {
         fwrite(STDERR, sprintf(
             "::error::%d document(s) render differently now that rendered correctly at the freeze: %s. The corpus and the "
-            . "engine release are both pinned, so this is a change in this pull request and not upstream movement.\n",
+            . "engine revision are both pinned, so this is a change in this pull request and not upstream movement.\n",
             count($regressed),
             implode(', ', $regressed),
         ));
