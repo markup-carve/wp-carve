@@ -13,17 +13,21 @@ use MarkupCarve\Carve\Event\RenderEvent;
 use MarkupCarve\Carve\Extension\CitationsExtension;
 use MarkupCarve\Carve\Extension\CodeGroupExtension;
 use MarkupCarve\Carve\Extension\DetailsExtension;
+use MarkupCarve\Carve\Extension\ExternalLinksExtension;
 use MarkupCarve\Carve\Extension\FencedRenderExtension;
 use MarkupCarve\Carve\Extension\HeadingLevelShiftExtension;
+use MarkupCarve\Carve\Extension\HeadingNumbersExtension;
 use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
 use MarkupCarve\Carve\Extension\ImgFenceExtension;
 use MarkupCarve\Carve\Extension\ListTableExtension;
+use MarkupCarve\Carve\Extension\MentionsExtension;
 use MarkupCarve\Carve\Extension\SemanticSpanExtension;
 use MarkupCarve\Carve\Extension\SmartQuotesExtension;
 use MarkupCarve\Carve\Extension\SpoilerExtension;
 use MarkupCarve\Carve\Extension\TableOfContentsExtension;
 use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
+use MarkupCarve\Carve\Extension\WikilinksExtension;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\PlainTextRenderer;
 use MarkupCarve\Carve\Renderer\SoftBreakMode;
@@ -125,6 +129,14 @@ class Converter
             },
             $html,
         );
+
+        // See the note in addPostExtensions: an external link with no target
+        // still gets an empty `target=""`. Anchored to the attribute run this
+        // extension writes, so a `target=""` an author wrote by hand in
+        // borrowed HTML is left alone.
+        if (!empty($this->settings['external_links']) && empty($this->settings['external_links_new_tab'])) {
+            $html = (string)preg_replace('/(<a\b[^>]*?) target=""/', '$1', $html);
+        }
 
         // Rendering is always sanitized: the engine escapes raw HTML and strips
         // event handlers, and the generated markup additionally passes through
@@ -453,9 +465,83 @@ class Converter
      */
 
     /**
+     * The hosts that count as this site, so everything else is "external".
+     *
+     * A site can be reachable on more than one host - a staging domain, a
+     * multisite mapping, a CDN - and only the site knows which. The filter is
+     * the answer to that; the default is the one host WordPress is sure of.
+     *
+     * @return array<int, string>
+     */
+    private static function internalHosts(): array
+    {
+        $hosts = [];
+        if (function_exists('home_url') && function_exists('wp_parse_url')) {
+            $host = wp_parse_url((string)home_url(), PHP_URL_HOST);
+            if (is_string($host) && $host !== '') {
+                $hosts[] = $host;
+            }
+        }
+
+        /** @var array<int, string> $filtered */
+        $filtered = (array)apply_filters('wpcarve_internal_hosts', $hosts);
+
+        return array_values(array_filter(array_map('strval', $filtered), static fn (string $h): bool => $h !== ''));
+    }
+
+    /**
+     * A `{name}` URL template for an author or tag archive.
+     *
+     * Built from `home_url()` rather than `get_author_posts_url()` because the
+     * extension needs a TEMPLATE and those functions need a resolved term - and
+     * because a mention may name someone who is not a user here. Sites that
+     * have moved their author base, or that route mentions somewhere else
+     * entirely, replace the whole template through the filter.
+     */
+    private static function archiveTemplate(string $filter, string $base): string
+    {
+        $template = '/' . $base . '/{name}/';
+        if (function_exists('home_url')) {
+            $template = (string)home_url('/' . $base . '/{name}/');
+        }
+
+        return (string)apply_filters($filter, $template, $base);
+    }
+
+    /**
+     * Resolve `[[Page Title]]` against real content.
+     *
+     * An unresolved link deliberately becomes `#` rather than disappearing or
+     * guessing a URL: the anchor stays in the document, keeps its `wikilink`
+     * class and its `data-wikilink` title, and a theme can style
+     * `a.wikilink[href="#"]` as a broken link the way a wiki does. Silently
+     * dropping it would hide the fact that a page is missing, which is the one
+     * thing this construct is for.
+     */
+    private static function wikilinkUrl(string $page): string
+    {
+        /** @var string|null $resolved */
+        $resolved = apply_filters('wpcarve_wikilink_url', null, $page);
+        if (is_string($resolved) && $resolved !== '') {
+            return $resolved;
+        }
+
+        if (!function_exists('get_page_by_path') || !function_exists('sanitize_title')) {
+            return '#';
+        }
+
+        $post = get_page_by_path(sanitize_title($page), OBJECT, ['post', 'page']);
+        if ($post === null || !function_exists('get_permalink')) {
+            return '#';
+        }
+
+        return (string)get_permalink($post);
+    }
+
+    /**
      * @param \MarkupCarve\Carve\CarveConverter $converter
      * @param bool $forEditor
-@param array<int, mixed>|null $bibliography
+     * @param array<int, mixed>|null $bibliography
      * @param string $citationMode
      */
     private function addPostExtensions(
@@ -517,6 +603,41 @@ class Converter
 
         if (!empty($s['permalinks_enabled']) && !$forEditor) {
             $converter->addExtension(new HeadingPermalinksExtension(showOnHover: true));
+        }
+
+        // Numbering is generated markup, not content, so it stays out of the
+        // editor - serializing it back would freeze a site setting into the
+        // post source, the same reason permalinks are gated above.
+        if (!empty($s['heading_numbers']) && !$forEditor) {
+            $converter->addExtension(new HeadingNumbersExtension());
+        }
+
+        if (!empty($s['external_links'])) {
+            // ExternalLinksExtension sets `target` unconditionally, so an empty
+            // one is written as `target=""` rather than omitted
+            // (markup-carve/carve-php#1823). Marking a link as external and
+            // opening it in a new tab are separate choices - the first is a
+            // security and provenance hint, the second is a browsing
+            // preference many sites deliberately do not impose - so the empty
+            // attribute is stripped below rather than the option removed.
+            $converter->addExtension(new ExternalLinksExtension(
+                internalHosts: self::internalHosts(),
+                target: !empty($s['external_links_new_tab']) ? '_blank' : '',
+                nofollow: !empty($s['external_links_nofollow']),
+            ));
+        }
+
+        if (!empty($s['mentions_enabled'])) {
+            $converter->addExtension(new MentionsExtension(
+                mentionUrl: self::archiveTemplate('wpcarve_mention_url', 'author'),
+                tagUrl: self::archiveTemplate('wpcarve_tag_url', 'tag'),
+            ));
+        }
+
+        if (!empty($s['wikilinks_enabled'])) {
+            $converter->addExtension(new WikilinksExtension(
+                urlGenerator: static fn (string $page): string => self::wikilinkUrl($page),
+            ));
         }
 
         if (!empty($s['smart_quotes'])) {

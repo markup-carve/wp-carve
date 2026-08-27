@@ -157,6 +157,47 @@ Length of the comment-preview rate-limit window, in seconds. Default
 add_filter('wpcarve_preview_rate_window', fn (int $seconds): int => 30);
 ```
 
+### `wpcarve_internal_hosts`
+
+Hosts that count as this site, so everything else is external. Used when
+`external_links` is on. Defaults to the host of `home_url()`; add staging
+domains, mapped multisite hosts or a CDN.
+
+``` php
+add_filter('wpcarve_internal_hosts', function (array $hosts): array {
+    $hosts[] = 'staging.example.com';
+
+    return $hosts;
+});
+```
+
+### `wpcarve_mention_url` / `wpcarve_tag_url`
+
+The `{name}` URL template a mention or tag links to, when `mentions_enabled`
+is on. Defaults to `home_url('/author/{name}/')` and `home_url('/tag/{name}/')`.
+Replace the whole template if your author base or permalink structure differs,
+or to route mentions somewhere other than an archive.
+
+``` php
+add_filter('wpcarve_mention_url', fn (string $template): string => 'https://social.example/@{name}');
+```
+
+### `wpcarve_wikilink_url`
+
+Resolve `[[Page Title]]` yourself when `wikilinks_enabled` is on. Return a URL
+string to use it, or `null` to fall through to the default lookup (a post or
+page whose slug matches the sanitized title). An unresolved link becomes `#`
+and keeps its `wikilink` class, so it can be styled as a broken link rather
+than silently dropped.
+
+``` php
+add_filter('wpcarve_wikilink_url', function (?string $url, string $page): ?string {
+    $match = get_posts(['title' => $page, 'numberposts' => 1, 'post_type' => 'docs']);
+
+    return $match ? (string)get_permalink($match[0]) : $url;
+}, 10, 2);
+```
+
 ## Actions
 
 ### `wpcarve_converter`

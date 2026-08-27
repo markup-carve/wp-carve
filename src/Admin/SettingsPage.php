@@ -154,6 +154,15 @@ class SettingsPage
         $this->grid();
         $this->number($s, 'heading_shift', __('Heading shift', 'carve-markup'), __('Demote headings by N levels (0-5).', 'carve-markup'));
         $this->toggle($s, 'permalinks_enabled', __('Heading permalinks', 'carve-markup'), __('Add click-to-copy anchors to headings.', 'carve-markup'));
+        $this->toggle($s, 'heading_numbers', __('Number headings', 'carve-markup'), __('Prefix each heading with its section number (1, 1.1, 1.2).', 'carve-markup'));
+        $this->gridEnd();
+        $this->group(__('Links', 'carve-markup'));
+        $this->grid();
+        $this->toggle($s, 'external_links', __('Mark external links', 'carve-markup'), __('Add rel="noopener noreferrer" to links pointing off this site.', 'carve-markup'));
+        $this->toggle($s, 'external_links_new_tab', __('Open external links in a new tab', 'carve-markup'), '', 'external_links');
+        $this->toggle($s, 'external_links_nofollow', __('Add nofollow to external links', 'carve-markup'), '', 'external_links');
+        $this->toggle($s, 'mentions_enabled', __('Link mentions and tags', 'carve-markup'), __('Turn @name into an author archive link and #tag into a tag archive link.', 'carve-markup'));
+        $this->toggle($s, 'wikilinks_enabled', __('Resolve wiki links', 'carve-markup'), __('Turn [[Page Title]] into a link to the matching post or page. Unresolved links stay in the text so a theme can style them as broken.', 'carve-markup'));
         $this->gridEnd();
         $this->group(__('Table of contents', 'carve-markup'));
         $this->grid();
