@@ -63,16 +63,64 @@ if (!class_exists('WP_Post')) {
     }
 }
 
-if (!function_exists('apply_filters')) {
+/**
+ * A real hook registry, not a pair of no-ops.
+ *
+ * `apply_filters` used to return its value untouched and `do_action` used to do
+ * nothing, so every filter and action this plugin documents was unreachable
+ * from a test - including `wpcarve_converter`, which docs/hooks.md calls "the
+ * supported extension point". A change that stopped firing it, or fired it with
+ * the wrong arguments, broke every integration and no test could tell.
+ *
+ * Small on purpose: priority ordering and argument count, which is what the
+ * hooks here rely on. Not `current_filter`, not `remove_action` by callable
+ * identity, not `did_action`. Reach for a WordPress test suite before growing
+ * this into one.
+ */
+if (!function_exists('wpcarve_test_reset_hooks')) {
+    /** @var array<string, array<int, array<int, callable>>> */
+    $GLOBALS['wpcarve_test_hooks'] = [];
+
+    function wpcarve_test_reset_hooks(): void
+    {
+        $GLOBALS['wpcarve_test_hooks'] = [];
+    }
+
+    function add_action(string $tag, callable $callback, int $priority = 10, int $acceptedArgs = 1): void
+    {
+        add_filter($tag, $callback, $priority, $acceptedArgs);
+    }
+
+    function add_filter(string $tag, callable $callback, int $priority = 10, int $acceptedArgs = 1): void
+    {
+        $GLOBALS['wpcarve_test_hooks'][$tag][$priority][] = [$callback, $acceptedArgs];
+    }
+
     function apply_filters(string $tag, mixed $value, mixed ...$args): mixed
     {
+        foreach (wpcarve_test_callbacks($tag) as [$callback, $acceptedArgs]) {
+            $value = $callback(...array_slice([$value, ...$args], 0, $acceptedArgs));
+        }
+
         return $value;
     }
-}
 
-if (!function_exists('do_action')) {
     function do_action(string $tag, mixed ...$args): void
     {
+        foreach (wpcarve_test_callbacks($tag) as [$callback, $acceptedArgs]) {
+            $callback(...array_slice($args, 0, $acceptedArgs));
+        }
+    }
+
+    /**
+     * @return array<int, array{0: callable, 1: int}>
+     */
+    function wpcarve_test_callbacks(string $tag): array
+    {
+        $byPriority = $GLOBALS['wpcarve_test_hooks'][$tag] ?? [];
+        ksort($byPriority);
+
+        return array_merge(...array_values($byPriority)) ?: [];
     }
 }
 
