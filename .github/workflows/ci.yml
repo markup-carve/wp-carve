@@ -79,17 +79,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # The spec freeze: 0f6b990, 1245 documents, the freeze the maintainer
-      # declared on markup-carve/carve#1366. Pinned rather than tracking
-      # carve main, because the engine on the other side of this comparison is a
-      # fixed published release. With one end fixed and the other moving, the
-      # number this job produces is a measurement of the spec's pace, and a
-      # breach carries no information about the branch that hit it.
+      # The spec freeze: carve 0.1.4 (375e1f3), 1538 documents. Pinned to a
+      # RELEASE rather than tracking carve main, because the engine on the other
+      # side of this comparison is a fixed published release too. With one end
+      # fixed and the other moving, the number this job produces measures the
+      # spec's pace, and a breach carries no information about the branch that
+      # hit it.
+      #
+      # Both ends moved together when carve-php 0.1.6 shipped, which is what the
+      # header below asks for. The residual went from 195 documents to zero, so
+      # any name this job now reports was introduced here.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 0f6b990383090c805064922286eb6571e22206d2
+          ref: 375e1f37042cf631604de32f140352231656d1e2
           path: carve-freeze
 
       - name: Setup PHP

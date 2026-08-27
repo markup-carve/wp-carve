@@ -131,6 +131,13 @@ function declaredCorpusSize(string $corpusDir): int
  *
  * @return int Process exit status.
  */
+/**
+ * Written on its own line in the baseline to declare, explicitly, that the
+ * shipped engine renders every corpus document correctly. Distinguishes a
+ * deliberate zero from a baseline that did not load.
+ */
+const NONE_SENTINEL = '(none)';
+
 function compareAgainstBaseline(string $path, array $wrong, array $present): int
 {
     if (!file_exists($path)) {
@@ -148,8 +155,34 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
         $recorded[] = $line;
     }
 
-    if ($recorded === []) {
-        fwrite(STDERR, "::error::{$path} names no documents at all; that is a wiring problem, not a tree that renders the whole corpus correctly\n");
+    // A file with no names used to be rejected outright, because an empty list
+    // and a list that failed to load are the same bytes and only one of them is
+    // a result. Since carve-php 0.1.6 against the carve 0.1.4 corpus the empty
+    // list is the true answer, so the two states are told apart by a sentinel
+    // instead: `(none)` sits where the names sit, so anything that truncates
+    // the names away takes it too and still fails here.
+    $declaresNone = in_array(NONE_SENTINEL, $recorded, true);
+    $recorded = array_values(array_diff($recorded, [NONE_SENTINEL]));
+
+    if ($recorded === [] && !$declaresNone) {
+        fwrite(STDERR, sprintf(
+            "::error::%s names no documents and does not carry the %s line either, so it cannot say whether the corpus "
+            . "renders clean or the baseline failed to load. Write %s on its own line to declare zero divergences.\n",
+            $path,
+            NONE_SENTINEL,
+            NONE_SENTINEL,
+        ));
+
+        return 1;
+    }
+
+    if ($recorded !== [] && $declaresNone) {
+        fwrite(STDERR, sprintf(
+            "::error::%s carries %s and also names %d document(s). Those cannot both be true; delete whichever is stale.\n",
+            $path,
+            NONE_SENTINEL,
+            count($recorded),
+        ));
 
         return 1;
     }

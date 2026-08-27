@@ -209,6 +209,12 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString('data-carve-json=', $html);
         $this->assertStringContainsString('class="chart"', $html);
         $this->assertStringNotContainsString('<script', $html);
+
+        // The engine's accessibility attributes have to survive the rewrite.
+        // They are the reason it stopped matching in the first place, and
+        // dropping them would trade one silent regression for another.
+        $this->assertStringContainsString('role="img"', $html);
+        $this->assertStringContainsString('aria-label="chart"', $html);
     }
 
     public function testChartConfigGetsDataTableFallback(): void
