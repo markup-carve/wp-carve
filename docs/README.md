@@ -8,6 +8,7 @@ Reference docs for the Carve Markup WordPress plugin. Start with the project
 - [Carve Documents](carve-documents.md) — source-first whole-post editing, creation, import, preview, and export.
 - [Profiles & rendering](profiles.md) — content profiles, sanitization, extensions.
 - [Hooks](hooks.md) — filters and actions, and how to register your own carve-php extension.
+- [Engine extensions](extensions.md) — which carve-php extensions are on by default, why each of the others is not, and how to turn one on.
 - [WP-CLI](wp-cli.md) — the `wp carve migrate` command (analysis + safe conversion).
 - [Visual editor](visual-editor.md) — the optional Tiptap WYSIWYG editor and its lossless AST bridge.
 - [Carve Workbench](workbench.md) — diagnostics, navigation, semantic changes, commands, and citations.
