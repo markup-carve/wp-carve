@@ -76,7 +76,7 @@ class Converter
      * @param string $context
      * @param string|null $profileOverride
      * @param bool|null $safe
-@param array<int, mixed>|null $bibliography
+     * @param array<int, mixed>|null $bibliography
      * @param string $citationMode
      */
     public function toHtml(
@@ -404,7 +404,7 @@ class Converter
         }
 
         if (!$isComment) {
-            $this->addPostExtensions($converter, $isEditor, $bibliography, $citationMode);
+            $this->addPostExtensions($converter, $isEditor, $bibliography, $citationMode, $isFeed);
         }
 
         /**
@@ -554,12 +554,14 @@ class Converter
      * @param bool $forEditor
      * @param array<int, mixed>|null $bibliography
      * @param string $citationMode
+     * @param bool $forFeed
      */
     private function addPostExtensions(
         CarveConverter $converter,
         bool $forEditor = false,
         ?array $bibliography = null,
         string $citationMode = 'numbered',
+        bool $forFeed = false,
     ): void {
         $s = $this->settings;
 
@@ -604,7 +606,9 @@ class Converter
             $converter->addExtension(new HeadingLevelShiftExtension(shift: $shift));
         }
 
-        if (!empty($s['toc_enabled']) && !$forEditor) {
+        // Not in a feed: a table of contents is a list of `#anchor` links into
+        // a page the reader is not on, so every entry is dead there.
+        if (!empty($s['toc_enabled']) && !$forEditor && !$forFeed) {
             $position = (string)($s['toc_position'] ?? 'top');
             $converter->addExtension(new TableOfContentsExtension(
                 minLevel: (int)($s['toc_min_level'] ?? 2),
@@ -618,13 +622,20 @@ class Converter
             ));
         }
 
-        if (!empty($s['permalinks_enabled']) && !$forEditor) {
+        // Not in a feed either, and for a sharper reason: `showOnHover` marks
+        // the anchor for CSS that hides it until hover, and a feed carries no
+        // CSS - so every heading arrives with a bare visible pilcrow.
+        if (!empty($s['permalinks_enabled']) && !$forEditor && !$forFeed) {
             $converter->addExtension(new HeadingPermalinksExtension(showOnHover: true));
         }
 
         // Numbering is generated markup, not content, so it stays out of the
         // editor - serializing it back would freeze a site setting into the
         // post source, the same reason permalinks are gated above.
+        //
+        // It DOES go in a feed, unlike the two above: a section number is
+        // static text that reads correctly with no CSS, no JavaScript and no
+        // page to anchor into.
         if (!empty($s['heading_numbers']) && !$forEditor) {
             $converter->addExtension(new HeadingNumbersExtension());
         }

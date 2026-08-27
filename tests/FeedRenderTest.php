@@ -63,6 +63,35 @@ class FeedRenderTest extends TestCase
         );
     }
 
+    public function testAFeedCarriesNoTableOfContents(): void
+    {
+        // Every entry is a `#anchor` into a page the reader is not on.
+        $settings = ['toc_enabled' => true, 'toc_position' => 'top'];
+        $source = "# One\n\n## Two\n\nBody.";
+
+        $this->assertStringContainsString('Table of Contents', (new Converter($settings))->toHtml($source, 'post'));
+        $this->assertStringNotContainsString('Table of Contents', (new Converter($settings))->toHtml($source, 'feed'));
+    }
+
+    public function testAFeedCarriesNoHeadingPermalinks(): void
+    {
+        // `showOnHover` marks the anchor for CSS that hides it until hover, and
+        // a feed carries no CSS - so the pilcrow shows on every heading.
+        $settings = ['permalinks_enabled' => true];
+
+        $this->assertStringContainsString('permalink', (new Converter($settings))->toHtml('# One', 'post'));
+        $this->assertStringNotContainsString('permalink', (new Converter($settings))->toHtml('# One', 'feed'));
+    }
+
+    public function testAFeedKEEPSHeadingNumbers(): void
+    {
+        // Unlike the two above: a section number is static text that reads
+        // correctly with no CSS, no JavaScript and no page to anchor into.
+        $html = (new Converter(['heading_numbers' => true]))->toHtml("# One\n\n## Two", 'feed');
+
+        $this->assertStringContainsString('section-number', $html);
+    }
+
     public function testOrdinaryProseIsUnchangedInAFeed(): void
     {
         // Static mode is for client-rendered constructs. Everything else has to
