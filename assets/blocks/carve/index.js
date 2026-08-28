@@ -391,7 +391,8 @@
 
 	function Edit( props ) {
 		const { attributes, setAttributes, clientId } = props;
-		const blockProps = useBlockProps( { className: 'wpcarve-block' } );
+		const blockRef = useRef( null );
+		const blockProps = useBlockProps( { className: 'wpcarve-block', ref: blockRef } );
 		const source = attributes.carve || '';
 
 		const hasVisual = !! cfg.visualEditor;
@@ -418,7 +419,17 @@
 		const timer = useRef( null );
 
 		useEffect( () => {
-			if ( ! fullscreen ) {
+			const syncFullscreen = () => {
+				setFullscreen( document.fullscreenElement === blockRef.current );
+			};
+			document.addEventListener( 'fullscreenchange', syncFullscreen );
+			return () => document.removeEventListener( 'fullscreenchange', syncFullscreen );
+		}, [] );
+
+		// Escape is handled natively when the Fullscreen API is available. Keep
+		// the listener for browsers where the fixed-position fallback is used.
+		useEffect( () => {
+			if ( ! fullscreen || document.fullscreenElement ) {
 				return undefined;
 			}
 			const exitOnEscape = ( event ) => {
@@ -429,6 +440,19 @@
 			window.addEventListener( 'keydown', exitOnEscape );
 			return () => window.removeEventListener( 'keydown', exitOnEscape );
 		}, [ fullscreen ] );
+
+		function toggleFullscreen() {
+			if ( document.fullscreenElement ) {
+				document.exitFullscreen();
+				return;
+			}
+			const block = blockRef.current;
+			if ( block && block.requestFullscreen ) {
+				block.requestFullscreen().catch( () => setFullscreen( true ) );
+				return;
+			}
+			setFullscreen( ! fullscreen );
+		}
 
 		const showPreview = mode === 'preview' || mode === 'split';
 		const engine = window.wpCarveEngine;
@@ -892,7 +916,7 @@
 					variant: 'tertiary',
 					className: 'wpcarve-fullscreen-toggle',
 					isPressed: fullscreen,
-					onClick: () => setFullscreen( ! fullscreen ),
+					onClick: toggleFullscreen,
 					icon: fullscreen ? 'fullscreen-exit-alt' : 'fullscreen-alt',
 					label: fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Full screen', 'carve-markup' ),
 					showTooltip: true,
