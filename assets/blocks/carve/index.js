@@ -349,6 +349,11 @@
 					__( 'The visual editor could not preserve the rendered result for these constructs. Edit in the Visual tab anyway, or go back to the Write tab to keep them intact.', 'carve-markup' )
 				),
 				el(
+					'p',
+					{ className: 'description' },
+					__( 'The source comparison below shows the complete serialization and may also include harmless canonical formatting changes.', 'carve-markup' )
+				),
+				el(
 					'pre',
 					{ className: 'wpcarve-ve-diff' },
 					lossy.removed.slice( 0, 15 ).map( ( l, i ) => el( 'div', { key: 'r' + i, className: 'wpcarve-diff-del' }, '- ' + l ) ),
