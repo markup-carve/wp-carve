@@ -417,6 +417,19 @@
 		const previewRef = useRef( null );
 		const timer = useRef( null );
 
+		useEffect( () => {
+			if ( ! fullscreen ) {
+				return undefined;
+			}
+			const exitOnEscape = ( event ) => {
+				if ( event.key === 'Escape' ) {
+					setFullscreen( false );
+				}
+			};
+			window.addEventListener( 'keydown', exitOnEscape );
+			return () => window.removeEventListener( 'keydown', exitOnEscape );
+		}, [ fullscreen ] );
+
 		const showPreview = mode === 'preview' || mode === 'split';
 		const engine = window.wpCarveEngine;
 		const workbench = engine && engine.analyzeDocument
@@ -881,9 +894,10 @@
 					isPressed: fullscreen,
 					onClick: () => setFullscreen( ! fullscreen ),
 					icon: fullscreen ? 'fullscreen-exit-alt' : 'fullscreen-alt',
-					label: fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Distraction-free', 'carve-markup' ),
+					label: fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Full screen', 'carve-markup' ),
 					showTooltip: true,
-				}
+				},
+				fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Full screen', 'carve-markup' )
 			)
 		);
 
@@ -974,9 +988,13 @@
 			&& topLevelBlocks.length === 1
 			&& topLevelBlocks[ 0 ].name === 'carve/markup';
 
+		const blockClassName = ( blockProps.className || '' )
+			+ ( mode === 'split' ? ' is-carve-split-mode' : '' )
+			+ ( fullscreen ? ' is-carve-fullscreen' : '' );
+
 		return el(
 			'div',
-			{ ...blockProps, className: ( blockProps.className || '' ) + ( fullscreen ? ' is-carve-fullscreen' : '' ) },
+			{ ...blockProps, className: blockClassName },
 			toolbar,
 			el(
 				InspectorControls,
