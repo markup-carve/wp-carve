@@ -391,7 +391,8 @@
 
 	function Edit( props ) {
 		const { attributes, setAttributes, clientId } = props;
-		const blockProps = useBlockProps( { className: 'wpcarve-block' } );
+		const blockRef = useRef( null );
+		const blockProps = useBlockProps( { className: 'wpcarve-block', ref: blockRef } );
 		const source = attributes.carve || '';
 
 		const hasVisual = !! cfg.visualEditor;
@@ -416,6 +417,42 @@
 		const taRef = useRef( null );
 		const previewRef = useRef( null );
 		const timer = useRef( null );
+
+		useEffect( () => {
+			const syncFullscreen = () => {
+				setFullscreen( document.fullscreenElement === blockRef.current );
+			};
+			document.addEventListener( 'fullscreenchange', syncFullscreen );
+			return () => document.removeEventListener( 'fullscreenchange', syncFullscreen );
+		}, [] );
+
+		// Escape is handled natively when the Fullscreen API is available. Keep
+		// the listener for browsers where the fixed-position fallback is used.
+		useEffect( () => {
+			if ( ! fullscreen || document.fullscreenElement ) {
+				return undefined;
+			}
+			const exitOnEscape = ( event ) => {
+				if ( event.key === 'Escape' ) {
+					setFullscreen( false );
+				}
+			};
+			window.addEventListener( 'keydown', exitOnEscape );
+			return () => window.removeEventListener( 'keydown', exitOnEscape );
+		}, [ fullscreen ] );
+
+		function toggleFullscreen() {
+			if ( document.fullscreenElement ) {
+				document.exitFullscreen();
+				return;
+			}
+			const block = blockRef.current;
+			if ( block && block.requestFullscreen ) {
+				block.requestFullscreen().catch( () => setFullscreen( true ) );
+				return;
+			}
+			setFullscreen( ! fullscreen );
+		}
 
 		const showPreview = mode === 'preview' || mode === 'split';
 		const engine = window.wpCarveEngine;
@@ -879,11 +916,12 @@
 					variant: 'tertiary',
 					className: 'wpcarve-fullscreen-toggle',
 					isPressed: fullscreen,
-					onClick: () => setFullscreen( ! fullscreen ),
+					onClick: toggleFullscreen,
 					icon: fullscreen ? 'fullscreen-exit-alt' : 'fullscreen-alt',
-					label: fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Distraction-free', 'carve-markup' ),
+					label: fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Full screen', 'carve-markup' ),
 					showTooltip: true,
-				}
+				},
+				fullscreen ? __( 'Exit full screen', 'carve-markup' ) : __( 'Full screen', 'carve-markup' )
 			)
 		);
 
@@ -974,9 +1012,13 @@
 			&& topLevelBlocks.length === 1
 			&& topLevelBlocks[ 0 ].name === 'carve/markup';
 
+		const blockClassName = ( blockProps.className || '' )
+			+ ( mode === 'split' ? ' is-carve-split-mode' : '' )
+			+ ( fullscreen ? ' is-carve-fullscreen' : '' );
+
 		return el(
 			'div',
-			{ ...blockProps, className: ( blockProps.className || '' ) + ( fullscreen ? ' is-carve-fullscreen' : '' ) },
+			{ ...blockProps, className: blockClassName },
 			toolbar,
 			el(
 				InspectorControls,

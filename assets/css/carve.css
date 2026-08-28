@@ -9,7 +9,7 @@
 	margin-bottom: 8px;
 }
 
-/* Distraction-free / full-screen Write mode. */
+/* Full-screen editing in every Carve editor mode. */
 .wpcarve-block.is-carve-fullscreen {
 	position: fixed;
 	inset: 0;
@@ -19,6 +19,26 @@
 	padding: 24px clamp( 16px, 8vw, 120px );
 	background: #fff;
 	overflow: auto;
+}
+
+/* Native fullscreen moves the block into the browser's top layer. */
+.wpcarve-block:fullscreen {
+	width: 100%;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+/* The editor's normal content column is too narrow to divide into two useful
+   panes. Let Split mode use the canvas width without changing the block's
+   persisted wide/full alignment on the front end. */
+@media (min-width: 782px) {
+	.wpcarve-block.is-carve-split-mode:not(.is-carve-fullscreen) {
+		position: relative;
+		left: 50%;
+		width: min( 1400px, calc( 100vw - 48px ) );
+		max-width: none;
+		transform: translateX( -50% );
+	}
 }
 
 .wpcarve-block.is-carve-fullscreen .wpcarve-source {
