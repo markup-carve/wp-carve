@@ -30,6 +30,17 @@ use WpCarve\Rest\RenderController;
  */
 class Plugin
 {
+    /**
+     * @var list<string>
+     */
+    private const CARVE_BLOCKS = [
+        'carve/markup',
+        'carve/slides',
+        'carve/admonition',
+        'carve/code-group',
+        'carve/table-spans',
+    ];
+
     private Converter $converter;
 
     public function boot(): void
@@ -241,7 +252,7 @@ class Plugin
             $src = (string)$post->post_excerpt;
         } elseif (get_post_meta($post->ID, '_wpcarve_enabled', true)) {
             $src = (string)$post->post_content;
-        } elseif (has_block('carve/markup', $post)) {
+        } elseif (self::postHasCarveBlock($post)) {
             // Block posts previously fell through to core, which drops the
             // dynamic block entirely (empty excerpt) - or, when the comment
             // delimiters are malformed (an unescaped --> inside the attribute
@@ -269,11 +280,17 @@ class Plugin
     public static function carveFromBlocks(string $content): string
     {
         $src = '';
-        foreach (parse_blocks($content) as $block) {
-            if (($block['blockName'] ?? '') === 'carve/markup') {
-                $src .= (string)($block['attrs']['carve'] ?? '') . "\n\n";
+        $collect = static function (array $blocks) use (&$collect, &$src): void {
+            foreach ($blocks as $block) {
+                if (self::isCarveBlockName((string)($block['blockName'] ?? ''))) {
+                    $src .= (string)($block['attrs']['carve'] ?? '') . "\n\n";
+                }
+                if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
+                    $collect($block['innerBlocks']);
+                }
             }
-        }
+        };
+        $collect(parse_blocks($content));
         if (trim($src) === '' && preg_match_all('/"carve"\s*:\s*("(?:[^"\\\\]|\\\\.)*")/s', $content, $m)) {
             foreach ($m[1] as $json) {
                 $decoded = json_decode($json);
@@ -284,6 +301,22 @@ class Plugin
         }
 
         return trim($src);
+    }
+
+    public static function isCarveBlockName(string $name): bool
+    {
+        return in_array($name, self::CARVE_BLOCKS, true);
+    }
+
+    public static function postHasCarveBlock(WP_Post $post): bool
+    {
+        foreach (self::CARVE_BLOCKS as $name) {
+            if (has_block($name, $post)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function maybeRenderPost(string $content): string
@@ -433,7 +466,7 @@ class Plugin
         $sources = [];
         $collect = static function (array $blocks) use (&$collect, &$sources): void {
             foreach ($blocks as $block) {
-                if (($block['blockName'] ?? '') === 'carve/markup') {
+                if (self::isCarveBlockName((string)($block['blockName'] ?? ''))) {
                     $sources[] = (string)($block['attrs']['carve'] ?? '');
                 }
                 if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
@@ -532,8 +565,7 @@ class Plugin
             return;
         }
         $isCarve = get_post_meta($post->ID, '_wpcarve_enabled', true)
-            || has_block('carve/markup', $post)
-            || has_block('carve/slides', $post);
+            || self::postHasCarveBlock($post);
         if (!$isCarve) {
             return;
         }
@@ -588,8 +620,7 @@ class Plugin
         foreach ($this->queriedPosts() as $post) {
             if (
                 get_post_meta($post->ID, '_wpcarve_enabled', true)
-                || has_block('carve/markup', $post)
-                || has_block('carve/slides', $post)
+                || self::postHasCarveBlock($post)
                 // A synced/reusable block (core/block) only stores a reference
                 // here; do_blocks() resolves the referenced block later, which
                 // may contain Carve. We cannot cheaply see inside, so enqueue
@@ -657,7 +688,7 @@ class Plugin
         $post = get_post();
         // Carve is present either as whole-post mode (meta) or a Carve block;
         // all such surfaces need the shared enhancements.
-        $hasCarveBlock = $post && (has_block('carve/markup', $post) || has_block('carve/slides', $post));
+        $hasCarveBlock = $post instanceof WP_Post && self::postHasCarveBlock($post);
         if (!$post || (!get_post_meta($post->ID, '_wpcarve_enabled', true) && !$hasCarveBlock)) {
             return;
         }

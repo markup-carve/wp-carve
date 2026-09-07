@@ -12,6 +12,7 @@ use MarkupCarve\Carve\Converter\DjotToCarve;
 use MarkupCarve\Carve\Converter\HtmlToCarve;
 use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_Post;
+use WpCarve\Plugin;
 
 /**
  * Import a Markdown / Djot / HTML / Carve file as a new Carve post, and export a
@@ -135,8 +136,7 @@ class ImportExport
             return $actions;
         }
         $isCarve = get_post_meta($post->ID, '_wpcarve_enabled', true)
-            || has_block('carve/markup', $post)
-            || has_block('carve/slides', $post);
+            || Plugin::postHasCarveBlock($post);
         if (!$isCarve) {
             return $actions;
         }
@@ -174,17 +174,10 @@ class ImportExport
     private function extractSource(WP_Post $post): string
     {
         $content = (string)$post->post_content;
-        if (!has_block('carve/markup', $post)) {
+        if (!Plugin::postHasCarveBlock($post)) {
             return $content;
         }
-        // Pull the carve attribute out of each carve/markup block.
-        $out = [];
-        foreach (parse_blocks($content) as $block) {
-            if (($block['blockName'] ?? '') === 'carve/markup' && isset($block['attrs']['carve'])) {
-                $out[] = (string)$block['attrs']['carve'];
-            }
-        }
 
-        return $out !== [] ? implode("\n\n", $out) : $content;
+        return Plugin::carveFromBlocks($content);
     }
 }

@@ -45,6 +45,84 @@ $carve_check(
 $registry = WP_Block_Type_Registry::get_instance();
 $carve_check('carve/markup block registered', $registry->is_registered('carve/markup'));
 $carve_check('carve/slides block registered', $registry->is_registered('carve/slides'));
+$carve_check('carve/admonition block registered', $registry->is_registered('carve/admonition'));
+$carve_check('carve/code-group block registered', $registry->is_registered('carve/code-group'));
+$carve_check('carve/table-spans block registered', $registry->is_registered('carve/table-spans'));
+$carve_check(
+    'native blocks carry the shared stylesheet',
+    in_array('wpcarve', $registry->get_registered('carve/admonition')?->style_handles ?? [], true),
+);
+
+$native = render_block([
+    'blockName' => 'carve/admonition',
+    'attrs' => ['carve' => "::: note\nNative block\n:::\n"],
+    'innerBlocks' => [],
+    'innerHTML' => '',
+    'innerContent' => [],
+]);
+$carve_check('native Carve block renders its source', str_contains($native, 'Native block'));
+
+$native_code_group = render_block([
+    'blockName' => 'carve/code-group',
+    'attrs' => ['carve' => "::: code-group\n``` php\n\$a = 1;\n```\n\n``` js\nconst a = 1;\n```\n:::\n"],
+    'innerBlocks' => [],
+    'innerHTML' => '',
+    'innerContent' => [],
+]);
+$carve_check('native code group renders tab panels', str_contains($native_code_group, 'code-group-panel'));
+
+$native_table = render_block([
+    'blockName' => 'carve/table-spans',
+    'attrs' => ['carve' => "|= Heading |= Value |\n| Group | First |\n| ^ | Second |\n| Wide | < |\n"],
+    'innerBlocks' => [],
+    'innerHTML' => '',
+    'innerContent' => [],
+]);
+$carve_check(
+    'native span table renders both span directions',
+    str_contains($native_table, 'rowspan=') && str_contains($native_table, 'colspan='),
+);
+
+$native_serialized = serialize_block([
+    'blockName' => 'carve/admonition',
+    'attrs' => ['carve' => "::: tip\nKept source\n:::\n"],
+    'innerBlocks' => [],
+    'innerHTML' => '',
+    'innerContent' => [],
+]);
+$native_post_id = wp_insert_post([
+    'post_title' => 'Native Carve integration fixture',
+    'post_content' => $native_serialized,
+    'post_status' => 'draft',
+]);
+$native_post = get_post($native_post_id);
+$carve_check(
+    'native-only posts are detected as Carve',
+    $native_post instanceof WP_Post && \WpCarve\Plugin::postHasCarveBlock($native_post),
+);
+wp_delete_post($native_post_id, true);
+$carve_check(
+    'native source extraction is lossless',
+    \WpCarve\Plugin::carveFromBlocks($native_serialized) === "::: tip\nKept source\n:::",
+);
+$nested_native = serialize_block([
+    'blockName' => 'core/group',
+    'attrs' => [],
+    'innerBlocks' => [[
+        'blockName' => 'carve/admonition',
+        'attrs' => ['carve' => "::: warning\nNested source\n:::\n"],
+        'innerBlocks' => [],
+        'innerHTML' => '',
+        'innerContent' => [],
+    ]],
+    'innerHTML' => '',
+    'innerContent' => [null],
+]);
+$mixed_nested = $native_serialized . "\n" . $nested_native;
+$carve_check(
+    'source extraction includes nested native blocks',
+    str_contains(\WpCarve\Plugin::carveFromBlocks($mixed_nested), 'Nested source'),
+);
 
 // --- REST routes registered ---------------------------------------------------
 $routes = rest_get_server()->get_routes();

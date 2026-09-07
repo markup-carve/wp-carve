@@ -17,6 +17,8 @@ Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-p
 - **Gutenberg block** with a source editor and preview. Its optional Tiptap
   visual editor loads directly from the Carve AST and preserves unsupported
   constructs as source instead of dropping them through an HTML conversion.
+- **Focused native blocks** for admonitions, code groups, and tables with spans,
+  while the general Carve block remains best for complete documents.
 - **In-browser live preview.** Carve has a real JS engine (`@markup-carve/carve`), so the block previews **instantly client-side**, no server round-trip. Run `npm run build` to bundle the engine (`assets/js/vendor/carve.js`); without it the editor falls back to the REST render endpoint.
 - **Content profiles** (`full` / `article` / `comment` / `minimal`) + **safe mode** (XSS hardening) via carve-php's `Profile` + `SafeMode`.
 - **Table of contents**, **heading permalinks**, **smart quotes**, **Mermaid**, **tab normalization**, **Torchlight syntax highlighting** - carve-php extensions, toggled in settings.
@@ -69,5 +71,4 @@ See [`docs/`](docs/README.md): [settings](docs/settings.md),
 ## Roadmap
 
 - Visual editor: a Tiptap WYSIWYG editor ships behind the `visual_editor_mode` setting; headings, marks, lists, quotes, code blocks, tables, math, footnotes, admonitions and nested containers (tabs, code-groups) all round-trip (see [docs/visual-editor.md](docs/visual-editor.md)). Interactive per-widget editing of tabs/code-groups (a tab bar in the editor) is future work.
-- Native per-construct blocks (admonition, code-group, table-with-spans).
 - Lossless HTML ↔ Carve round-trip editing.

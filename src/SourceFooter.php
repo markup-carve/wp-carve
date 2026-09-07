@@ -144,7 +144,7 @@ class SourceFooter
     private function isCarve(WP_Post $post): bool
     {
         return (bool)get_post_meta($post->ID, '_wpcarve_enabled', true)
-            || has_block('carve/markup', $post);
+            || Plugin::postHasCarveBlock($post);
     }
 
     private function isPublic(WP_Post $post): bool

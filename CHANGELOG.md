@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Native block-editor blocks for admonitions, code groups, and tables with
+  spans, each retaining copyable Carve source and a server-rendered preview.
+- Carve excerpts, source viewing, and `.crv` exports now include focused native
+  blocks and slide blocks, including those nested inside Groups or Columns.
+
+### Fixed
+
+- Visual editing no longer overwrites a newer block value after Undo, a
+  revision restore, or another editor changes the source during the session.
+
 ## [0.1.4] - 2026-08-28
 
 ### Changed

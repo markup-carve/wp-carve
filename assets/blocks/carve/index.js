@@ -19,7 +19,6 @@
 		ToolbarButton,
 		ToolbarDropdownMenu,
 	} = wp.components;
-	const ServerSideRender = wp.serverSideRender;
 	const { __ } = wp.i18n;
 
 	cfg = cfg || {};
@@ -115,15 +114,31 @@
 	function VisualMode( { attributes, setAttributes, approved, onApprove, onExit } ) {
 		const hostRef = useRef( null );
 		const ctlRef = useRef( null );
+		const currentSourceRef = useRef( attributes.carve || '' );
+		const visualRevisionRef = useRef( attributes.carve || '' );
+		const sessionActiveRef = useRef( true );
 		const [ lossy, setLossy ] = useState( null );
 		const [ ready, setReady ] = useState( false );
 		const [ failed, setFailed ] = useState( false );
+		const [ revisionConflict, setRevisionConflict ] = useState( false );
 		// eslint-disable-next-line no-unused-vars
 		const [ tick, setTick ] = useState( 0 );
 
 		useEffect( () => {
+			const current = attributes.carve || '';
+			currentSourceRef.current = current;
+			if ( current !== visualRevisionRef.current ) {
+				setRevisionConflict( true );
+				sessionActiveRef.current = false;
+				ctlRef.current?.destroy();
+				ctlRef.current = null;
+			}
+		}, [ attributes.carve ] );
+
+		useEffect( () => {
 			let active = true;
 			let ctl = null;
+			sessionActiveRef.current = true;
 			// Seed directly from Carve source through carve-grammars' AST loader.
 			// Preservation mode keeps unsupported subtrees source-local and makes an
 			// untouched open/save byte-for-byte lossless, which the old rendered-HTML
@@ -133,12 +148,22 @@
 			}
 			import( /* webpackIgnore: true */ cfg.visualEditor )
 					.then( ( mod ) =>
-						mod.initVisualEditor( hostRef.current, attributes.carve || '', ( carve ) =>
-							setAttributes( { carve } )
-						)
+						mod.initVisualEditor( hostRef.current, visualRevisionRef.current, ( carve ) => {
+							// Undo, collaborative editing, or a revision restore can replace
+							// the block source while the lazy visual editor is still open.
+							// Never overwrite that newer source with a serialization based on
+							// the stale visual snapshot.
+							if ( currentSourceRef.current !== visualRevisionRef.current ) {
+								setRevisionConflict( true );
+								return;
+							}
+							visualRevisionRef.current = carve;
+							currentSourceRef.current = carve;
+							setAttributes( { carve } );
+						} )
 					)
 					.then( ( instance ) => {
-						if ( ! active ) {
+						if ( ! active || ! sessionActiveRef.current ) {
 							instance.destroy();
 							return;
 						}
@@ -180,9 +205,11 @@
 					.catch( () => setFailed( true ) );
 			return () => {
 				active = false;
-				if ( ctl ) {
+				sessionActiveRef.current = false;
+				if ( ctl && ctlRef.current === ctl ) {
 					ctl.destroy();
 				}
+				ctlRef.current = null;
 			};
 			// Mount once per Visual-mode entry; edits flow out via onChange.
 			// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -378,18 +405,28 @@
 				el( Button, { variant: 'secondary', size: 'small', onClick: onExit }, __( 'Back to Write', 'carve-markup' ) )
 			);
 
+		const revisionNotice = revisionConflict &&
+			el(
+				Notice,
+				{ status: 'error', isDismissible: false },
+				__( 'The block source changed outside this Visual session. Your newer revision was kept; reopen Visual mode to edit it.', 'carve-markup' ),
+				' ',
+				el( Button, { variant: 'secondary', size: 'small', onClick: onExit }, __( 'Back to Write', 'carve-markup' ) )
+			);
+
 		return el(
 			'div',
 			{ className: 'wpcarve-ve-wrap' },
 			failNotice,
-			visualToolbar,
-			modal,
+			revisionNotice,
+			revisionConflict ? null : visualToolbar,
+			revisionConflict ? null : modal,
 			el( 'div', {
 				className: 'wpcarve-ve',
 				ref: hostRef,
 				// Keep it mounted (needed to compute the round-trip) but hidden
 				// while the approval modal is up.
-				style: gated ? { display: 'none' } : undefined,
+				style: gated || revisionConflict ? { display: 'none' } : undefined,
 			} )
 		);
 	}
@@ -1236,6 +1273,65 @@
 		edit: Edit,
 		save: () => null, // dynamic (server-rendered)
 	} );
+
+	function NativeFragmentEdit( props ) {
+		const { attributes, setAttributes, name } = props;
+		const [ html, setHtml ] = useState( '' );
+		const timer = useRef( null );
+		const labels = {
+			'carve/admonition': __( 'Admonition source', 'carve-markup' ),
+			'carve/code-group': __( 'Code group source', 'carve-markup' ),
+			'carve/table-spans': __( 'Table with spans source', 'carve-markup' ),
+		};
+		const help = {
+			'carve/admonition': __( 'Use a ::: note, tip, warning, or danger container. Nested Carve remains editable as source.', 'carve-markup' ),
+			'carve/code-group': __( 'Put fenced code blocks directly inside a code-group container; each language becomes a tab.', 'carve-markup' ),
+			'carve/table-spans': __( 'Use Carve table markers, including ^ for row spans and < for column spans.', 'carve-markup' ),
+		};
+		const examples = {
+			'carve/admonition': '::: note\nWrite the note here.\n:::\n',
+			'carve/code-group': '::: code-group\n``` php\n$a = 1;\n```\n\n``` js\nconst a = 1;\n```\n:::\n',
+			'carve/table-spans': '|= Heading |= Value |\n| Group | First |\n| ^ | Second |\n| Wide | < |\n',
+		};
+		useEffect( () => {
+			clearTimeout( timer.current );
+			timer.current = setTimeout( () => renderPreview( attributes.carve || '', setHtml ), 150 );
+			return () => clearTimeout( timer.current );
+		}, [ attributes.carve ] );
+		return el(
+			'div',
+			useBlockProps( { className: 'wpcarve-native-block' } ),
+			el( TextareaControl, {
+				label: labels[ name ],
+				help: help[ name ],
+				value: attributes.carve || '',
+				placeholder: examples[ name ],
+				onChange: ( carve ) => setAttributes( { carve } ),
+				rows: 10,
+				__nextHasNoMarginBottom: true,
+			} ),
+			el( 'div', {
+				className: 'wpcarve wpcarve-preview',
+				dangerouslySetInnerHTML: { __html: html },
+			} )
+		);
+	}
+
+	[
+		[ 'carve/admonition', __( 'Carve Admonition', 'carve-markup' ), 'info' ],
+		[ 'carve/code-group', __( 'Carve Code Group', 'carve-markup' ), 'editor-code' ],
+		[ 'carve/table-spans', __( 'Carve Table with Spans', 'carve-markup' ), 'editor-table' ],
+	].forEach( ( [ name, title, icon ] ) => registerBlockType( name, {
+		apiVersion: 3,
+		title,
+		category: 'text',
+		icon,
+		description: __( 'A focused Carve construct with source-preserving server preview.', 'carve-markup' ),
+		attributes: { carve: { type: 'string', default: '' } },
+		supports: { html: false },
+		edit: NativeFragmentEdit,
+		save: () => null,
+	} ) );
 
 	function SlidesEdit( props ) {
 		const { attributes, setAttributes } = props;
