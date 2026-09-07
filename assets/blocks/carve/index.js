@@ -41,7 +41,7 @@
 	// Innovation A: prefer the in-browser Carve engine for instant preview.
 	// `window.wpCarveEngine` is set by the optional carve-js module bundle
 	// (assets/js/vendor/carve.js). Falls back to the REST render endpoint.
-	function renderPreview( source, done, profile, forceServer, context, bibliography, citationMode ) {
+	function renderPreview( source, done, fail, profile, forceServer, context, bibliography, citationMode ) {
 		const engine = window.wpCarveEngine;
 		const ctx = context || 'post';
 		// The in-browser engine can't apply a WordPress content profile, nor the
@@ -68,7 +68,7 @@
 			data: { carve: source, context: ctx, profile: profile || '', post_id: postId, bibliography: bibliography || [], citation_mode: citationMode || 'numbered' },
 		} )
 			.then( ( res ) => done( res.html || '' ) )
-			.catch( () => done( '' ) );
+			.catch( ( error ) => fail( error.message || cfg.previewError || __( 'Preview failed.', 'carve-markup' ) ) );
 	}
 
 	// Optional Tiptap visual editor. Lazy-loaded as an ES module
@@ -441,6 +441,7 @@
 		const startMode = hasVisual && cfg.startMode === 'visual' ? 'visual' : 'write';
 		const [ mode, setMode ] = useState( startMode );
 		const [ html, setHtml ] = useState( '' );
+		const [ previewError, setPreviewError ] = useState( '' );
 		const [ ingest, setIngest ] = useState( null );
 		const [ tableOpen, setTableOpen ] = useState( false );
 		const [ cols, setCols ] = useState( 3 );
@@ -525,7 +526,16 @@
 			// in Split stays responsive.
 			let bibliography = [];
 			try { bibliography = attributes.bibliography ? JSON.parse( attributes.bibliography ) : []; } catch ( error ) { bibliography = []; }
-			timer.current = setTimeout( () => renderPreview( source, setHtml, attributes.profile || '', true, 'post', bibliography, attributes.citationMode ), 200 );
+			timer.current = setTimeout( () => renderPreview(
+				source,
+				( rendered ) => { setPreviewError( '' ); setHtml( rendered ); },
+				setPreviewError,
+				attributes.profile || '',
+				true,
+				'post',
+				bibliography,
+				attributes.citationMode
+			), 200 );
 			return () => clearTimeout( timer.current );
 		}, [ source, mode, showPreview, attributes.profile, attributes.bibliography, attributes.citationMode ] );
 
@@ -1023,11 +1033,13 @@
 			onScroll: syncScroll,
 		} );
 
-		const previewField = el( 'div', {
-			ref: previewRef,
-			className: 'wpcarve wpcarve-preview',
-			dangerouslySetInnerHTML: { __html: html },
-		} );
+		const previewField = previewError
+			? el( Notice, { status: 'error', isDismissible: false }, previewError )
+			: el( 'div', {
+				ref: previewRef,
+				className: 'wpcarve wpcarve-preview',
+				dangerouslySetInnerHTML: { __html: html },
+			} );
 
 		let body;
 		if ( mode === 'visual' ) {

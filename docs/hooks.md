@@ -137,6 +137,15 @@ Override the base URL for KaTeX assets (css / js / `contrib/auto-render.min.js`)
 add_filter('wpcarve_katex_base', fn (string $base): string => 'https://example.test/katex');
 ```
 
+### `wpcarve_render_max_bytes`
+
+Maximum source size, in bytes, accepted by the authenticated render-preview
+endpoint. Default `1000000` (one megabyte). Oversized requests receive `413`.
+
+```php
+add_filter('wpcarve_render_max_bytes', fn (int $bytes): int => 2 * 1024 * 1024);
+```
+
 ### `wpcarve_preview_rate_limit`
 
 Number of anonymous comment-preview requests (`POST /wp-json/carve/v1/preview-comment`)

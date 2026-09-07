@@ -430,6 +430,7 @@ class Plugin
         wp_enqueue_script('wpcarve-slides', WPCARVE_URL . 'assets/js/slides.js', [], $this->assetVersion('assets/js/slides.js'), true);
         wp_localize_script('wpcarve-editor', 'wpCarve', [
             'restRender' => esc_url_raw(rest_url('carve/v1/render')),
+            'previewError' => __('Preview failed. Check the document size and try again.', 'carve-markup'),
             'restIngest' => esc_url_raw(rest_url('carve/v1/ingest')),
             'nonce' => wp_create_nonce('wp_rest'),
             'livePreview' => (bool)Settings::get('live_preview'),

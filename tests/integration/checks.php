@@ -150,6 +150,73 @@ $preview_html = (string)($preview_response->get_data()['html'] ?? '');
 $carve_check('comment preview renders strong', str_contains($preview_html, '<strong>strong</strong>'));
 $carve_check('comment preview strips script', !str_contains($preview_html, '<script'));
 
+// --- Deterministic REST / UGC / embed fuzz battery ---------------------------
+// Generated combinations keep this cheap enough for every supported WordPress
+// matrix cell while exercising malformed delimiters, controls, raw markup,
+// URL schemes, and embed-shaped input through the real REST dispatcher.
+$carve_fuzz_user = get_current_user_id();
+wp_set_current_user(1);
+$carve_atoms = [
+    '<script>alert(1)</script>', '<img src=x onerror=alert(1)>',
+    '[x](javascript:alert(1))', ':media[javascript:alert(1)]',
+    ':youtube[../../etc/passwd]', "\0\x1f", '```=html', '{{{{{{',
+];
+for ($i = 0; $i < 64; $i++) {
+    $payload = $carve_atoms[$i % count($carve_atoms)]
+        . str_repeat(['*', '_', '`', ':', '[', '<'][$i % 6], $i % 23)
+        . $carve_atoms[intdiv($i, count($carve_atoms)) % count($carve_atoms)]
+        . "\n\nfuzz-marker-{$i}";
+    $request = new WP_REST_Request('POST', '/carve/v1/render');
+    $request->set_param('carve', $payload);
+    $request->set_param('context', $i % 2 === 0 ? 'comment' : 'post');
+    $response = rest_get_server()->dispatch($request);
+    $render_data = $response->get_data();
+    $html = (string)($render_data['html'] ?? '');
+    $safe = $response->get_status() === 200
+        && array_key_exists('html', $render_data)
+        && str_contains($html, "fuzz-marker-{$i}")
+        && !preg_match('/<(?:script|iframe|object|embed)\b|<[a-z][^>]*(?:\s|\/)on[a-z]+\s*=|\bsrcdoc\s*=|(?:href|src|formaction)=["\']?(?:javascript:|data:text\/html)/i', $html);
+    $carve_check("REST fuzz {$i}", $safe, $carve_snippet($html));
+
+    $ingest = new WP_REST_Request('POST', '/carve/v1/ingest');
+    $ingest->set_param('source', $payload);
+    $ingest->set_param('from', ['auto', 'markdown', 'djot', 'bbcode', 'html'][$i % 5]);
+    $ingested = rest_get_server()->dispatch($ingest);
+    $data = $ingested->get_data();
+    $carve_check("ingest fuzz {$i}", $ingested->get_status() === 200 && is_string($data['carve'] ?? null));
+}
+
+$oversized_render = new WP_REST_Request('POST', '/carve/v1/render');
+$oversized_render->set_param('carve', str_repeat('x', 1000001));
+$carve_check(
+    'REST render rejects oversized work',
+    rest_get_server()->dispatch($oversized_render)->get_status() === 413,
+);
+$small_render_limit = static fn (): int => 12;
+add_filter('wpcarve_render_max_bytes', $small_render_limit);
+$filtered_render = new WP_REST_Request('POST', '/carve/v1/render');
+$filtered_render->set_param('carve', str_repeat('x', 13));
+$carve_check('REST render limit is filterable', rest_get_server()->dispatch($filtered_render)->get_status() === 413);
+remove_filter('wpcarve_render_max_bytes', $small_render_limit);
+wp_set_current_user($carve_fuzz_user);
+
+// The unauthenticated comment endpoint gets the same hostile grammar shapes.
+$disable_fuzz_limit = static fn (): int => 0;
+add_filter('wpcarve_preview_rate_limit', $disable_fuzz_limit);
+for ($i = 0; $i < 16; $i++) {
+    $request = new WP_REST_Request('POST', '/carve/v1/preview-comment');
+    $request->set_param('carve', $carve_atoms[$i % count($carve_atoms)] . str_repeat(':', $i));
+    $response = rest_get_server()->dispatch($request);
+    $html = (string)($response->get_data()['html'] ?? '');
+    $carve_check(
+        "public UGC fuzz {$i}",
+        $response->get_status() === 200
+            && !preg_match('/<(?:script|iframe|object|embed)\b|<[a-z][^>]*(?:\s|\/)on[a-z]+\s*=|\bsrcdoc\s*=|(?:href|src|formaction)=["\']?(?:javascript:|data:text\/html)/i', $html),
+        $carve_snippet($html),
+    );
+}
+remove_filter('wpcarve_preview_rate_limit', $disable_fuzz_limit);
+
 // --- Public comment preview: anonymous rate limit ----------------------------
 // An unauthenticated caller with a tight allowance: the request past the limit
 // in the window is rejected with 429, so the public renderer cannot be abused

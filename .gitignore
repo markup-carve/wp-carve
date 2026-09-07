@@ -17,6 +17,7 @@
 .phpunit.cache/
 /build/
 .wp-env.override.json
+.wp-env.ci.json
 .idea/
 
 # Scratch / temporary files (never track) - underscore-prefixed

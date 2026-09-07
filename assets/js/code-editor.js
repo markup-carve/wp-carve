@@ -48,10 +48,14 @@
 			data: { carve: source, context: 'post', post_id: postId },
 		} )
 			.then( ( res ) => {
+				preview.classList.remove( 'wpcarve-preview-error' );
 				preview.innerHTML = res.html || '';
 				syncFromSource();
 			} )
-			.catch( () => {} );
+			.catch( ( error ) => {
+				preview.classList.add( 'wpcarve-preview-error' );
+				preview.textContent = error.message || cfg.previewError || 'Preview failed.';
+			} );
 	}
 
 	// Turn the classic editor textarea into a plain code editor. Falls back to

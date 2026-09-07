@@ -1,0 +1,63 @@
+name: Engine synchronization
+
+on:
+  schedule:
+    - cron: "20 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: engine-synchronization
+  cancel-in-progress: false
+
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: composer:v2
+          coverage: none
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Resolve current engines and rebuild shipped browser bundles
+        run: |
+          set -euo pipefail
+          composer require markup-carve/carve-grammars markup-carve/carve-php-media-embed --no-update --no-interaction --no-scripts --no-plugins
+          composer update markup-carve/carve-php markup-carve/carve-grammars markup-carve/carve-php-media-embed --with-dependencies --no-progress --no-scripts --no-plugins
+          npm install --ignore-scripts @markup-carve/carve@latest @markup-carve/carve-grammars@latest
+          npm run build
+
+      - name: Open or refresh the synchronization pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- composer.json composer.lock package.json package-lock.json assets/js/vendor)" ]; then
+            echo "Engines and shipped bundles are current."
+            exit 0
+          fi
+          branch='automation/engine-synchronization'
+          expected="$(git ls-remote origin "refs/heads/${branch}" | cut -f1)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -C "${branch}"
+          git add composer.json composer.lock package.json package-lock.json assets/js/vendor
+          git commit -m 'chore: synchronize Carve engines'
+          git push --force-with-lease="refs/heads/${branch}:${expected}" origin "${branch}"
+          if [ -z "$(gh pr list --head "${branch}" --state open --json number --jq '.[0].number')" ]; then
+            printf '%s\n' '## Summary' '' '- synchronize the PHP, JavaScript, and grammar engines' '- rebuild the browser bundles from the resolved lockfiles' '' 'CI provides the compatibility and corpus review before this automated update is merged.' > "${RUNNER_TEMP}/body.md"
+            gh pr create --base main --head "${branch}" --title 'chore: synchronize Carve engines' --body-file "${RUNNER_TEMP}/body.md"
+          fi
+          gh workflow run ci.yml --ref "${branch}"

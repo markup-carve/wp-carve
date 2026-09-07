@@ -93,11 +93,24 @@ jobs:
 
           check() {
             local pkg="$1" dir="$2" repo="$3"
-            local spec rev behind
+            local spec rev behind installed latest
             spec="$(spec_of "${pkg}")"
             if [ -z "${spec}" ]; then
               echo "::error::${pkg} is not a dependency of this repo - this workflow is watching nothing"
               exit 1
+            fi
+            if [[ "${spec}" != *#* ]]; then
+              installed="$(node -p "require('./package-lock.json').packages['node_modules/${pkg}']?.version ?? ''")"
+              latest="$(npm view "${pkg}" version)"
+              echo "${pkg}: released constraint ${spec}, lock ${installed}, registry latest ${latest}"
+              if [ -z "${installed}" ]; then
+                echo "::error::${pkg} is absent from package-lock.json"
+                exit 1
+              fi
+              if [ "${installed}" != "${latest}" ]; then
+                echo "::warning::${pkg} ${installed} is behind registry latest ${latest}; the synchronization workflow will open an update PR"
+              fi
+              return
             fi
             rev="${spec##*#}"
             if ! printf '%s' "${rev}" | grep -qE '^[0-9a-f]{40}$'; then
@@ -156,8 +169,8 @@ jobs:
           locked="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === $argv[1]) { echo $p["source"]["reference"] ?? ""; break; }' "${pkg}")"
           head="$(git -C carve-php rev-parse origin/main)"
           if [ "${locked}" != "${head}" ]; then
-            echo "::error::composer.lock resolves ${pkg} ${version} to ${locked}, but main is ${head}; run composer update ${pkg}"
-            exit 1
+            echo "::warning::composer.lock resolves ${pkg} ${version} to ${locked}, but main is ${head}; the synchronization workflow will open an update PR"
+            exit 0
           fi
           echo "${pkg}: ${version} (${locked}), exactly at markup-carve/carve-php main"
 
@@ -167,12 +180,18 @@ jobs:
 
           check() {
             local pkg="$1" dir="$2" repo="$3"
-            local constraint rev locked behind
+            local constraint rev locked behind metadata installed latest
             constraint="$(php -r '$c=json_decode(file_get_contents("composer.json"), true); echo $c["require"][$argv[1]] ?? "";' "${pkg}")"
             rev="$(printf '%s' "${constraint}" | grep -oE '[0-9a-f]{40}' || true)"
             if [ -z "${rev}" ]; then
-              echo "::error::${pkg} is \"${constraint}\" - development dependencies must pin a 40-hex revision"
-              exit 1
+              metadata="$(composer show "${pkg}" --locked --latest --format=json)"
+              installed="$(printf '%s' "${metadata}" | php -r '$d=json_decode(stream_get_contents(STDIN), true); echo ltrim($d["versions"][0] ?? "", "v");')"
+              latest="$(printf '%s' "${metadata}" | php -r '$d=json_decode(stream_get_contents(STDIN), true); echo ltrim($d["latest"] ?? "", "v");')"
+              echo "${pkg}: released constraint ${constraint}, lock ${installed}, registry latest ${latest}"
+              if [ "${installed}" != "${latest}" ]; then
+                echo "::warning::${pkg} ${installed} is behind registry latest ${latest}; the synchronization workflow will open an update PR"
+              fi
+              return
             fi
             locked="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === $argv[1]) { echo $p["source"]["reference"] ?? ""; break; }' "${pkg}")"
             if [ "${rev}" != "${locked}" ]; then
@@ -195,6 +214,7 @@ jobs:
           }
 
           check 'markup-carve/carve-grammars' carve-grammars carve-grammars
+          check 'markup-carve/carve-php-media-embed' carve-php-media-embed carve-php-media-embed
 
       - name: The declared pins and the lockfile agree
         run: |
@@ -209,8 +229,18 @@ jobs:
           # of one dependency is the state pinning exists to remove, so both are
           # compared against the manifest rather than only the resolved URL.
           agree() {
-            local pkg="$1" declared locked root
-            declared="$(node -p "const p=require('./package.json'); ((p.dependencies||{})['${pkg}'] ?? (p.devDependencies||{})['${pkg}'] ?? '').split('#').pop()")"
+            local pkg="$1" declared locked root spec
+            spec="$(node -p "const p=require('./package.json'); (p.dependencies||{})['${pkg}'] ?? (p.devDependencies||{})['${pkg}'] ?? ''")"
+            if [[ "${spec}" != *#* ]]; then
+              root="$(node -p "const r=require('./package-lock.json').packages['']; (r.dependencies||{})['${pkg}'] ?? (r.devDependencies||{})['${pkg}'] ?? ''")"
+              if [ "${spec}" != "${root}" ]; then
+                echo "::error::package.json requires ${pkg} ${spec}, but package-lock.json records ${root}"
+                exit 1
+              fi
+              echo "package.json and package-lock.json agree on released ${pkg} ${spec}"
+              return
+            fi
+            declared="${spec##*#}"
             locked="$(node -p "const l=require('./package-lock.json').packages['node_modules/${pkg}']; l ? String(l.resolved).split('#').pop() : ''")"
             if [ -z "${locked}" ]; then
               echo "::error::the lockfile has no entry for ${pkg}, so nothing here is reproducible"
