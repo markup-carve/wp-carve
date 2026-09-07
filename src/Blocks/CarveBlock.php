@@ -29,9 +29,21 @@ class CarveBlock
 
     public function registerType(): void
     {
+        wp_register_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], WPCARVE_VERSION);
         register_block_type(WPCARVE_DIR . 'assets/blocks/carve', [
             'render_callback' => [$this, 'render'],
         ]);
+        foreach (['carve/admonition', 'carve/code-group', 'carve/table-spans'] as $name) {
+            register_block_type($name, [
+                'api_version' => '3',
+                'style_handles' => ['wpcarve'],
+                'supports' => ['html' => false],
+                'attributes' => [
+                    'carve' => ['type' => 'string', 'default' => ''],
+                ],
+                'render_callback' => [$this, 'render'],
+            ]);
+        }
     }
 
     /**

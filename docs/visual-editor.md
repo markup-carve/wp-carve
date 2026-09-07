@@ -64,6 +64,19 @@ Constructs it cannot edit without changing are caught by the warning above
 rather than silently changed. New rich mappings are added **upstream** in `carve-grammars`
 so every consumer (wp-carve, carve-wysiwyg, the playground) benefits.
 
+## Native construct blocks
+
+The inserter also provides focused blocks for admonitions, code groups, and
+tables with row or column spans. Each stores the construct's Carve source and
+uses the same server renderer as the general Carve block. This keeps advanced
+syntax visible and copyable instead of hiding it in opaque block attributes.
+Use the general Carve block when several constructs belong in one document.
+
+Visual sessions are revision-safe: if Undo, a revision restore, or another
+editor changes the block source while Visual mode is open, the stale visual
+serialization is refused. The newer source remains intact and the writer is
+asked to reopen Visual mode from that revision.
+
 The upstream mounted-editor corpus ratchet currently keeps rendered output
 equivalent for 729 of 892 conformance documents on both Tiptap 2 and 3. The
 remaining 163 are protected by this warning gate; most exercise deliberately
