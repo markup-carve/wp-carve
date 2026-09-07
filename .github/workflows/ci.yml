@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -182,23 +183,36 @@ jobs:
       # The engine ships as a COMMITTED bundle under assets/js/vendor. Nothing
       # else rebuilt it, so moving the pin in package.json alone changed what
       # CI resolved while the plugin kept shipping the old engine. Rebuilding
-      # here and failing on a diff is what makes the pin load-bearing.
+      # here and failing on changes to the known outputs makes the pin load-bearing.
       - name: The committed engine bundles match the pin
         run: |
           npm run build
-          git diff --exit-code -- assets/js/vendor \
+          test -z "$(git status --porcelain -- assets/js/vendor)" \
             || { echo "::error::assets/js/vendor is stale - run 'npm run build' and commit the result."; exit 1; }
 
   integration:
-    name: WP integration
+    name: WP ${{ matrix.wordpress }} / PHP ${{ matrix.php }} / Gutenberg ${{ matrix.gutenberg }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - wordpress: "6.3"
+            php: "8.2"
+            gutenberg: "none"
+          - wordpress: "latest"
+            php: "8.2"
+            gutenberg: "none"
+          - wordpress: "latest"
+            php: "8.4"
+            gutenberg: "latest"
     steps:
       - uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php }}
           tools: composer:v2
           coverage: none
 
@@ -210,13 +224,35 @@ jobs:
           node-version: 22
 
       - name: Start WordPress
-        run: npx @wordpress/env@11.6.0 start
+        run: |
+          core='null'
+          if [ '${{ matrix.wordpress }}' != 'latest' ]; then
+            core='"WordPress/WordPress#${{ matrix.wordpress }}"'
+          fi
+          jq ".core=${core} | .phpVersion=\"${{ matrix.php }}\"" .wp-env.json > .wp-env.ci.json
+          npx @wordpress/env@11.6.0 --config .wp-env.ci.json start
 
       - name: Activate plugin
-        run: npx @wordpress/env@11.6.0 run cli wp plugin activate carve-markup
+        run: |
+          npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp plugin activate carve-markup
+          if [ '${{ matrix.gutenberg }}' = 'latest' ]; then
+            npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp plugin install gutenberg --activate
+            npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp plugin status gutenberg
+          fi
 
       - name: Run integration checks
-        run: npx @wordpress/env@11.6.0 run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/checks.php
+        run: npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/checks.php
+
+  integration-summary:
+    name: WP integration
+    runs-on: ubuntu-latest
+    needs: integration
+    if: always()
+    steps:
+      - name: Require every integration matrix cell
+        env:
+          RESULT: ${{ needs.integration.result }}
+        run: test "${RESULT}" = success
 
   dist-floor:
     name: The shipped tree parses on the PHP it promises

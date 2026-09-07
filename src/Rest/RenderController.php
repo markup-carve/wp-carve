@@ -24,6 +24,11 @@ use WpCarve\Settings;
  */
 class RenderController
 {
+    /**
+     * @var int
+     */
+    private const MAX_RENDER_BYTES = 1000000;
+
     public function __construct(private Converter $converter)
     {
     }
@@ -156,6 +161,13 @@ class RenderController
     public function render(WP_REST_Request $request): WP_REST_Response
     {
         $carve = (string)$request->get_param('carve');
+        $maximum = max(1, (int)apply_filters('wpcarve_render_max_bytes', self::MAX_RENDER_BYTES));
+        if (strlen($carve) > $maximum) {
+            return new WP_REST_Response(
+                ['message' => __('The document is too large to preview.', 'carve-markup')],
+                413,
+            );
+        }
         $requestedContext = (string)$request->get_param('context');
         // 'editor' seeds the visual editor and omits non-round-trippable markup
         // (TOC, permalinks, ...); anything unrecognized falls back to 'post'.

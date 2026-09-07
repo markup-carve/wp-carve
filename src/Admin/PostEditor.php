@@ -150,6 +150,7 @@ class PostEditor
         );
         wp_localize_script('wpcarve-code-editor', 'wpCarve', [
             'restRender' => esc_url_raw(rest_url('carve/v1/render')),
+            'previewError' => __('Preview failed. Check the document size and try again.', 'carve-markup'),
             'livePreview' => (bool)Settings::get('live_preview'),
             'codeEditor' => $codeEditor === false ? null : $codeEditor,
         ]);

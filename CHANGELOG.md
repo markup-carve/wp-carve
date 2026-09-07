@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Visual editing no longer overwrites a newer block value after Undo, a
   revision restore, or another editor changes the source during the session.
 
+### Security
+
+- Bound authenticated REST rendering to one megabyte by default. Sites can
+  adjust the limit with `wpcarve_render_max_bytes`.
+
 ## [0.1.4] - 2026-08-28
 
 ### Changed
