@@ -13,8 +13,8 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "^0.1.5",
-    "@markup-carve/carve-grammars": "^0.1.5"
+    "@markup-carve/carve": "^0.1.6",
+    "@markup-carve/carve-grammars": "^0.1.6"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",

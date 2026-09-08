@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eb17476b35b80552f3585508fd284748",
+    "content-hash": "cf1c8bc63bb878daf8623ad257c243eb",
     "packages": [
         {
             "name": "dereuromark/media-embed",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dereuromark/media-embed.git",
-                "reference": "b75858432507c91d2d4471e621d701e298f0c286"
+                "reference": "aa200fae31aedb61800ec237a13b243aee208ca9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dereuromark/media-embed/zipball/b75858432507c91d2d4471e621d701e298f0c286",
-                "reference": "b75858432507c91d2d4471e621d701e298f0c286",
+                "url": "https://api.github.com/repos/dereuromark/media-embed/zipball/aa200fae31aedb61800ec237a13b243aee208ca9",
+                "reference": "aa200fae31aedb61800ec237a13b243aee208ca9",
                 "shasum": ""
             },
             "require": {
@@ -82,7 +82,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-29T12:26:13+00:00"
+            "time": "2026-08-25T16:42:22+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
