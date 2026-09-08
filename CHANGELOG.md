@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Improved Carve split editing and switched the editor to native browser
+  fullscreen.
 - Updated the bundled `markup-carve/carve-php` engine to the 0.1.7 release
   commit, and `markup-carve/carve-grammars` to v0.1.6. The engine's 0.1.7 is
   mostly a parser-correctness pass on how nested containers own the blocks
