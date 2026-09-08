@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated the bundled `markup-carve/carve-php` engine to the 0.1.7 release
+  commit, and `markup-carve/carve-grammars` to v0.1.6. The engine's 0.1.7 is
+  mostly a parser-correctness pass on how nested containers own the blocks
+  written beneath them: a definition, comment, or other block opener written at
+  or past a list item's, description body's, or footnote body's content column
+  now goes to the right owner, and a container body keeps its own indented
+  content. Documents mixing quotes, lists, description bodies, and footnote
+  bodies can therefore render differently, and more correctly, than they did
+  under the previous pin.
+
 ### Added
 
 - Native block-editor blocks for admonitions, code groups, and tables with
