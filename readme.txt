@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.4
+Stable tag: 0.1.5
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,14 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.5 =
+* New: native block-editor blocks for admonitions, code groups, and tables with spans, each retaining copyable Carve source and a server-rendered preview.
+* New: Carve excerpts, source viewing, and `.crv` exports now include focused native blocks and slide blocks, including those nested inside Groups or Columns.
+* Changed: improved Carve split editing and switched the editor to native browser fullscreen.
+* Changed: bundled the carve-php 0.1.7 engine (and carve-grammars v0.1.6), a parser-correctness pass on how nested containers own the blocks written beneath them; documents mixing quotes, lists, description bodies, and footnote bodies can render differently and more correctly.
+* Fixed: visual editing no longer overwrites a newer block value after Undo, a revision restore, or another editor changing the source during the session.
+* Security: bound authenticated REST rendering to one megabyte by default, adjustable with the `wpcarve_render_max_bytes` filter.
 
 = 0.1.4 =
 * New: source-first Carve Documents (Posts -> Add Carve Document) store the whole post body as raw `.crv`, with Write / Split / Preview views, a formatting toolbar, `.crv` download, and lossless conversion to and from a Gutenberg Carve block.
