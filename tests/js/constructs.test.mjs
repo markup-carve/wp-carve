@@ -70,6 +70,10 @@ const CASES = {
 	spoiler: [ '::: spoiler\nHidden body.\n:::', '<div class="spoiler">' ],
 	// Thematic break.
 	horizontalRule: [ 'Above.\n\n---\n\nBelow.', '<hr>' ],
+	// These payloads are child text in the current editor schema, making them
+	// directly caret-editable while the serializer still accepts legacy attrs.
+	literalInline: [ 'Pronounce !`/kaet/`.', '<p>Pronounce /kaet/.</p>' ],
+	rawInline: [ 'A `<br>`{=html} break.', '<br>' ],
 };
 
 for (const [name, [carve, expected]] of Object.entries(CASES)) {
@@ -86,3 +90,19 @@ for (const [name, [carve, expected]] of Object.entries(CASES)) {
 		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(carve)}\n  serialized: ${JSON.stringify(roundTrip(carve))}`);
 	});
 }
+
+test('inline comments, literals, and raw inline payloads are directly editable text', () => {
+	const doc = carveToProseMirror('Keep {% review this %}, !`literal`, and `<b>`{=html}.', { unsupported: 'preserve' });
+	const paragraph = doc.content.find((node) => node.type === 'paragraph');
+	const byType = Object.fromEntries(
+		paragraph.content
+			.filter((node) => [ 'carveCommentInline', 'carveLiteral', 'carveRawInline' ].includes(node.type))
+			.map((node) => [ node.type, node ]),
+	);
+
+	for (const type of [ 'carveCommentInline', 'carveLiteral', 'carveRawInline' ]) {
+		assert.equal(byType[type]?.content?.[0]?.type, 'text', `${type} must expose child text`);
+		assert.equal(byType[type]?.attrs?.content, undefined, `${type} must not hide new payloads in attrs.content`);
+	}
+	assert.equal(serializeToCarve(doc), 'Keep {% review this %}, !`literal`, and `<b>`{=html}.');
+});
