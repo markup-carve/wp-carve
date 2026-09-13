@@ -101,6 +101,103 @@
 	opacity: 1;
 }
 
+/* Attribute-heavy inline constructs use a compact, anchored editor supplied
+   by carve-grammars. Keep that chrome legible inside both wp-admin themes. */
+.wpcarve-ve-surface .carve-inline-control {
+	position: relative;
+	display: inline-flex;
+	vertical-align: baseline;
+}
+
+.wpcarve-ve-surface .carve-inline-control-trigger {
+	padding: 0.1em 0.45em;
+	border: 1px solid #8c8f94;
+	border-radius: 999px;
+	background: #f6f7f7;
+	color: #1d2327;
+	cursor: pointer;
+	font: 0.875em monospace;
+}
+
+.wpcarve-ve-surface .carve-inline-control-editor {
+	position: absolute;
+	z-index: 20;
+	top: calc( 100% + 4px );
+	left: 0;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 6px;
+	min-width: min( 352px, 80vw );
+	padding: 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	color: #1d2327;
+	box-shadow: 0 6px 20px rgba( 0, 0, 0, 0.18 );
+}
+
+.wpcarve-ve-surface .carve-inline-control-editor[hidden],
+.wpcarve-ve-surface .carve-embed-editor[hidden] {
+	display: none;
+}
+
+.wpcarve-ve-surface .carve-inline-control-editor > input,
+.wpcarve-ve-surface .carve-inline-control-editor > label,
+.wpcarve-ve-surface .carve-inline-choices,
+.wpcarve-ve-surface .carve-inline-field-actions {
+	grid-column: 1 / -1;
+}
+
+.wpcarve-ve-surface .carve-inline-control-editor label {
+	display: grid;
+	gap: 3px;
+	font-size: 12px;
+}
+
+.wpcarve-ve-surface .carve-inline-control-editor input,
+.wpcarve-ve-surface .carve-inline-control-editor textarea,
+.wpcarve-ve-surface .carve-embed-editor input {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	padding: 6px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	color: #1d2327;
+	font: inherit;
+}
+
+.wpcarve-ve-surface .carve-inline-field-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.wpcarve-ve-surface .carve-inline-choices {
+	display: grid;
+	max-height: 176px;
+	overflow-y: auto;
+}
+
+.wpcarve-ve-surface .carve-inline-choices[hidden] {
+	display: none;
+}
+
+.wpcarve-ve-surface .carve-embed-editor {
+	display: grid;
+	grid-template-columns: 1fr auto auto;
+	gap: 6px;
+	padding: 10px;
+	border-top: 1px solid #dcdcde;
+	background: #fff;
+	color: #1d2327;
+}
+
+.wpcarve-ve-surface .carve-embed-editor label {
+	grid-column: 1 / -1;
+}
+
 /* Task lists (Tiptap): keep the checkbox and its text on one line. Without this
    the block <div><p> drops below the inline <label>, looking like a leading
    newline before the text. */
