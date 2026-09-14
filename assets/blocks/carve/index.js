@@ -443,6 +443,7 @@
 		const [ html, setHtml ] = useState( '' );
 		const [ previewError, setPreviewError ] = useState( '' );
 		const [ ingest, setIngest ] = useState( null );
+		const [ ingestReport, setIngestReport ] = useState( null );
 		const [ tableOpen, setTableOpen ] = useState( false );
 		const [ cols, setCols ] = useState( 3 );
 		const [ rows, setRows ] = useState( 2 );
@@ -824,22 +825,26 @@
 		}
 
 		function doPasteIngest() {
+			setIngestReport( null );
 			ingestNow( ingest, 'auto' )
 				.then( ( res ) => {
 					setAttributes( { carve: source + res.carve } );
+					setIngestReport( res.report || null );
 					setIngest( null );
 				} )
-				.catch( () => setIngest( null ) );
+				.catch( () => { setIngestReport( null ); setIngest( null ); } );
 		}
 
 		function doImport() {
+			setIngestReport( null );
 			ingestNow( importText, importFrom )
 				.then( ( res ) => {
 					blockInsert( res.carve || '' );
+					setIngestReport( res.report || null );
 					setImportOpen( false );
 					setImportText( '' );
 				} )
-				.catch( () => setImportOpen( false ) );
+				.catch( () => { setIngestReport( null ); setImportOpen( false ); } );
 		}
 
 		function moveToDocument() {
@@ -1219,6 +1224,19 @@
 				)
 			),
 			tabs,
+			ingestReport && ingestReport.diagnostics && ingestReport.diagnostics.some(
+				( item ) => ! [ 'preserved', 'normalized' ].includes( item.fidelity )
+			) &&
+				el(
+					Notice,
+					{ status: 'warning', isDismissible: true, onRemove: () => setIngestReport( null ) },
+					__( 'Import completed with fidelity findings. Review the converted source before saving.', 'carve-markup' ),
+					el( 'ul', null, ingestReport.diagnostics.filter(
+						( item ) => ! [ 'preserved', 'normalized' ].includes( item.fidelity )
+					).map( ( item, index ) =>
+						el( 'li', { key: item.code + '-' + index }, item.message )
+					) )
+				),
 			ingest &&
 				el(
 					Notice,

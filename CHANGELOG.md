@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Import and paste conversions now retain version 2 fidelity reports. The block
+  editor shows findings after conversion, imported posts keep an audit report,
+  and bulk migration requires review for non-lossless results.
+
+### Changed
+
+- Bulk and CLI migration now require `--force` for unverified Markdown as well
+  as degraded/dropped results, and show the findings before that decision.
+
 ## [0.1.5] - 2026-09-09
 
 ### Changed

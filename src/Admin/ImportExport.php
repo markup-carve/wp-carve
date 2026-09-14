@@ -93,7 +93,7 @@ class ImportExport
         }
         $raw = (string)file_get_contents($tmp);
         $ext = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
-        $carve = $this->toCarve($raw, $ext);
+        [$carve, $report] = $this->toCarve($raw, $ext);
 
         $title = sanitize_text_field(wp_unslash($_POST['wpcarve_title'] ?? ''));
         if ($title === '') {
@@ -109,19 +109,31 @@ class ImportExport
             wp_die(esc_html__('Could not create the post.', 'carve-markup'));
         }
         update_post_meta((int)$postId, '_wpcarve_enabled', 1);
+        if ($report !== null) {
+            update_post_meta((int)$postId, '_wpcarve_import_report', wp_slash(wp_json_encode($report)));
+        }
 
         wp_safe_redirect(admin_url('post.php?post=' . (int)$postId . '&action=edit'));
         exit;
     }
 
-    private function toCarve(string $raw, string $ext): string
+    /**
+     * Convert imported bytes and retain their fidelity assessment.
+     *
+     * @return array{string, array<string, mixed>|null}
+     */
+    private function toCarve(string $raw, string $ext): array
     {
-        return match ($ext) {
-            'md', 'markdown', 'txt' => (new MarkdownToCarve())->convert($raw),
-            'djot', 'dj' => (new DjotToCarve())->convert($raw),
-            'html', 'htm' => (new HtmlToCarve())->convert($raw),
-            default => $raw, // .crv (already Carve)
+        if (!in_array($ext, ['md', 'markdown', 'txt', 'djot', 'dj', 'html', 'htm'], true)) {
+            return [$raw, null];
+        }
+        $result = match ($ext) {
+            'md', 'markdown', 'txt' => (new MarkdownToCarve())->convertWithFidelityReport($raw),
+            'djot', 'dj' => (new DjotToCarve())->convertWithFidelityReport($raw),
+            'html', 'htm' => (new HtmlToCarve())->convertWithFidelityReport($raw),
         };
+
+        return [$result->value, $result->report()];
     }
 
     /**

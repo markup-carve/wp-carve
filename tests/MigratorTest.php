@@ -61,7 +61,8 @@ class MigratorTest extends TestCase
 
         $analysis = (new Migrator())->analyze(4);
 
-        $this->assertTrue($analysis['can_auto_migrate']);
+        $this->assertFalse($analysis['can_auto_migrate']);
+        $this->assertSame('fidelity-unverified', $analysis['report']['diagnostics'][0]['code']);
     }
 
     public function testMarkdownIsDetected(): void
@@ -71,7 +72,8 @@ class MigratorTest extends TestCase
         $analysis = (new Migrator())->analyze(5);
 
         $this->assertSame('markdown', $analysis['source']);
-        $this->assertTrue($analysis['can_auto_migrate']);
+        $this->assertFalse($analysis['can_auto_migrate']);
+        $this->assertSame('Migration fidelity requires review.', $analysis['reason']);
     }
 
     public function testHtmlIsDetected(): void
@@ -87,11 +89,13 @@ class MigratorTest extends TestCase
     {
         wpcarve_test_set_post(7, ['post_content' => "# Heading\n\nsome **text**"]);
 
-        $len = (new Migrator())->migrate(7);
+        $len = (new Migrator())->migrate(7, true);
 
         $this->assertNotNull($len);
         $this->assertGreaterThan(0, $len);
         $this->assertSame(1, $GLOBALS['_wpcarve_test_meta'][7]['_wpcarve_enabled']);
+        $report = json_decode(stripslashes($GLOBALS['_wpcarve_test_meta'][7]['_wpcarve_import_report']), true);
+        $this->assertSame(2, $report['schemaVersion']);
     }
 
     public function testMigrateReturnsNullForBlockPostWithoutForce(): void
