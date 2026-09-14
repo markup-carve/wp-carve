@@ -17,9 +17,10 @@ use WpCarve\Migration\Migrator;
  *   wp carve migrate --post_type=post [--dry-run] [--force]
  *   wp carve migrate --post=123 --force
  *
- * Each post is analyzed first: posts using the block editor or non-trivial
- * shortcodes are skipped (use --force to convert anyway). Markdown vs HTML is
- * auto-detected. Converted posts are flagged to render as Carve.
+ * Each post is analyzed first. Structural risks and unverified/degraded
+ * importer fidelity are skipped unless --force explicitly accepts them.
+ * Markdown vs HTML is auto-detected. Converted posts are flagged as Carve and
+ * retain their importer-fidelity report for review.
  *
  * @param array<int, string> $args
  * @param array<string, string> $assoc
@@ -52,7 +53,9 @@ class MigrateCommand
             $analysis = $migrator->analyze($id);
 
             if (!$analysis['can_auto_migrate'] && !$force) {
-                WP_CLI::log(sprintf('skip  #%d (%s): %s', $id, $analysis['source'], $analysis['reason']));
+                $codes = implode(', ', array_column($analysis['report']['diagnostics'] ?? [], 'code'));
+                WP_CLI::log(sprintf('skip  #%d (%s): %s%s', $id, $analysis['source'], $analysis['reason'], $codes === '' ? '' : ' [' . $codes . ']'));
+                $migrator->forgetAnalysis($id);
                 $skipped++;
 
                 continue;
@@ -60,6 +63,7 @@ class MigrateCommand
 
             if ($dryRun) {
                 WP_CLI::log(sprintf('[dry-run] would migrate #%d from %s', $id, $analysis['source']));
+                $migrator->forgetAnalysis($id);
                 $migrated++;
 
                 continue;

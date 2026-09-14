@@ -61,16 +61,22 @@ class PasteController
         if ($from === '' || $from === 'auto') {
             $from = $this->sniff($source);
         }
+        if (!in_array($from, ['markdown', 'djot', 'bbcode', 'html'], true)) {
+            return new WP_REST_Response(['carve' => $source, 'from' => $from, 'report' => null], 200);
+        }
 
-        $carve = match ($from) {
-            'markdown' => (new MarkdownToCarve())->convert($source),
-            'djot' => (new DjotToCarve())->convert($source),
-            'bbcode' => (new BbcodeToCarve())->convert($source),
-            'html' => (new HtmlToCarve())->convert($source),
-            default => $source,
+        $result = match ($from) {
+            'markdown' => (new MarkdownToCarve())->convertWithFidelityReport($source),
+            'djot' => (new DjotToCarve())->convertWithFidelityReport($source),
+            'bbcode' => (new BbcodeToCarve())->convertWithFidelityReport($source),
+            'html' => (new HtmlToCarve())->convertWithFidelityReport($source),
         };
 
-        return new WP_REST_Response(['carve' => $carve, 'from' => $from], 200);
+        return new WP_REST_Response([
+            'carve' => $result->value,
+            'from' => $from,
+            'report' => $result->report(),
+        ], 200);
     }
 
     private function sniff(string $source): string

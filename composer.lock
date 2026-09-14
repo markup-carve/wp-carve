@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cf1c8bc63bb878daf8623ad257c243eb",
+    "content-hash": "e44da3077ce2c796eba91c365c10328e",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -394,16 +394,16 @@
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "dev-main",
+            "version": "dev-feature/importer-fidelity-v2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "9fd773b229d4d63b8b468b87b122943d563c80dc"
+                "reference": "32d0148ef9f41a871133e033e9cb0a947de667dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/9fd773b229d4d63b8b468b87b122943d563c80dc",
-                "reference": "9fd773b229d4d63b8b468b87b122943d563c80dc",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/32d0148ef9f41a871133e033e9cb0a947de667dc",
+                "reference": "32d0148ef9f41a871133e033e9cb0a947de667dc",
                 "shasum": ""
             },
             "require": {
@@ -419,7 +419,6 @@
             "suggest": {
                 "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/punctuation identically and other scripts fall back to the generated `section` id."
             },
-            "default-branch": true,
             "bin": [
                 "bin/carve"
             ],
@@ -453,7 +452,7 @@
             ],
             "support": {
                 "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/main"
+                "source": "https://github.com/markup-carve/carve-php/tree/feature/importer-fidelity-v2"
             },
             "funding": [
                 {
@@ -461,7 +460,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-07T20:57:46+00:00"
+            "time": "2026-09-14T08:33:06+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
@@ -4071,7 +4070,7 @@
     "aliases": [
         {
             "package": "markup-carve/carve-php",
-            "version": "dev-main",
+            "version": "dev-feature/importer-fidelity-v2",
             "alias": "0.1.x-dev",
             "alias_normalized": "0.1.9999999.9999999-dev"
         }

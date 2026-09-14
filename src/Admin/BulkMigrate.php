@@ -65,7 +65,7 @@ class BulkMigrate
         $paged = isset($_GET['paged']) ? max(1, (int)$_GET['paged']) : 1;
 
         echo '<div class="wrap"><h1>' . esc_html__('Carve Migrate', 'carve-markup') . '</h1>';
-        echo '<p>' . esc_html__('Convert existing posts into Carve in bulk. Each post is analyzed first: posts using the block editor or non-trivial shortcodes are flagged and skipped unless you force them. This list is the dry-run preview - nothing changes until you migrate.', 'carve-markup') . '</p>';
+        echo '<p>' . esc_html__('Convert existing posts into Carve in bulk. Structural risks and importer-fidelity findings are flagged and skipped unless you force them. This list is the dry-run preview - nothing changes until you migrate.', 'carve-markup') . '</p>';
 
         $this->maybeRenderResultNotice();
         $this->renderPostTypeFilter($postType);
@@ -115,9 +115,10 @@ class BulkMigrate
                 : esc_html($title);
             echo '</td>';
             echo '<td>' . esc_html((string)$analysis['source']) . '</td>';
+            $findingMessages = array_column($analysis['report']['diagnostics'] ?? [], 'message');
             echo '<td>' . ($eligible
                 ? '<span class="dashicons dashicons-yes" aria-hidden="true"></span> ' . esc_html__('Ready', 'carve-markup')
-                : esc_html((string)$analysis['reason']))
+                : esc_html((string)$analysis['reason']) . ($findingMessages === [] ? '' : '<br><small>' . esc_html(implode(' ', $findingMessages)) . '</small>'))
                 . '</td>';
             echo '</tr>';
         }
@@ -125,7 +126,7 @@ class BulkMigrate
         echo '</tbody></table>';
 
         echo '<p><label><input type="checkbox" name="force" value="1"> '
-            . esc_html__('Force: also convert flagged posts (block editor / shortcodes). This can lose content - back up first.', 'carve-markup')
+            . esc_html__('Force: convert posts with unverified fidelity or structural risks (block editor / shortcodes). Review findings and back up first.', 'carve-markup')
             . '</label></p>';
 
         $this->renderPagination($query, $postType, $paged);
