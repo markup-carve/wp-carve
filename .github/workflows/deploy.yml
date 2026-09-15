@@ -11,6 +11,7 @@ jobs:
   deploy:
     name: Deploy to WordPress.org
     runs-on: ubuntu-latest
+    environment: release
 
     steps:
       # GATE: the notes are not the workflow's to write. A CHANGELOG entry is
