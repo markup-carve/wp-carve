@@ -131,6 +131,11 @@ class Converter
             $html,
         );
 
+        // A {.diff} language fence keeps its language while its leading +/-/space
+        // become diff markers. The engine leaves them as text; present them here,
+        // before sanitizing (the added spans are allowlisted).
+        $html = self::presentLanguageDiff($html);
+
         // Rendering is always sanitized: the engine escapes raw HTML and strips
         // event handlers, and the generated markup additionally passes through
         // wp_kses so only allowlisted tags/attributes ever reach output. There is
@@ -145,6 +150,42 @@ class Converter
          * @param string $context 'post', 'comment', or 'editor'.
          */
         return (string)apply_filters('wpcarve_rendered_html', $html, $carve, $context);
+    }
+
+    /**
+     * Present a `{.diff}` language fence: `<pre class="diff"><code class="language-x">`
+     * with the leading `+`/`-`/space left as text. Each line is wrapped as
+     * `<span class="line diff add|remove">` with a `<span class="diff-marker">`,
+     * matching the carve-grammars class contract. A block whose code was already
+     * highlighted into spans (Torchlight) is left untouched.
+     */
+    private static function presentLanguageDiff(string $html): string
+    {
+        return (string)preg_replace_callback(
+            '/<pre class="([^"]*)"><code class="(language-[^"]*)">(.*?)<\/code><\/pre>/s',
+            static function (array $m): string {
+                // Present only a fence carrying the exact `diff` class token (not
+                // `diff-example` etc.) whose code is not already highlighted into
+                // spans (Torchlight, which is left as-is - see the method docblock).
+                if (!in_array('diff', explode(' ', $m[1]), true) || str_contains($m[3], '<span')) {
+                    return $m[0];
+                }
+                // Drop only the renderer's single structural terminal newline, so
+                // intentional trailing blank lines survive like an ordinary fence.
+                $code = substr($m[3], -1) === "\n" ? substr($m[3], 0, -1) : $m[3];
+                $out = '';
+                foreach (explode("\n", $code) as $line) {
+                    $marker = $line !== '' && in_array($line[0], ['+', '-', ' '], true) ? $line[0] : '';
+                    $body = $marker !== '' ? substr($line, 1) : $line;
+                    $lineClass = $marker === '+' ? 'line diff add' : ($marker === '-' ? 'line diff remove' : 'line');
+                    $markerSpan = $marker !== '' ? '<span class="diff-marker">' . esc_html($marker) . '</span>' : '';
+                    $out .= '<span class="' . $lineClass . '">' . $markerSpan . $body . '</span>' . "\n";
+                }
+
+                return '<pre class="' . $m[1] . ' has-diff"><code class="' . $m[2] . '">' . rtrim($out, "\n") . '</code></pre>';
+            },
+            $html,
+        ) ?? $html;
     }
 
     /**

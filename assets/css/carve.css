@@ -606,6 +606,35 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	border-radius: 0;
 }
 
+/* {.diff} language-fence presentation (Converter::presentLanguageDiff). */
+.wpcarve pre.has-diff .line,
+.wpcarve-preview pre.has-diff .line {
+	display: inline-block;
+	width: 100%;
+}
+.wpcarve pre.has-diff .line.diff.add,
+.wpcarve-preview pre.has-diff .line.diff.add {
+	background: rgb(46 160 67 / 15%);
+}
+.wpcarve pre.has-diff .line.diff.remove,
+.wpcarve-preview pre.has-diff .line.diff.remove {
+	background: rgb(248 81 73 / 15%);
+}
+.wpcarve pre.has-diff .diff-marker,
+.wpcarve-preview pre.has-diff .diff-marker {
+	display: inline-block;
+	width: 1ch;
+	font-weight: 700;
+}
+.wpcarve pre.has-diff .line.diff.add .diff-marker,
+.wpcarve-preview pre.has-diff .line.diff.add .diff-marker {
+	color: #1a7f37;
+}
+.wpcarve pre.has-diff .line.diff.remove .diff-marker,
+.wpcarve-preview pre.has-diff .line.diff.remove .diff-marker {
+	color: #cf222e;
+}
+
 /* Inline code (outside <pre>): a subtle background chip so it reads as code. */
 .wpcarve :not(pre) > code,
 .wpcarve-preview :not(pre) > code {

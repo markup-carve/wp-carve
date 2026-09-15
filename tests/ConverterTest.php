@@ -19,6 +19,43 @@ class ConverterTest extends TestCase
         $this->assertSame('', $converter->toHtml('   '));
     }
 
+    public function testPresentsADiffLanguageFence(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("{.diff}\n```js\n  keep();\n- old();\n+ fresh();\n```\n");
+
+        $this->assertStringContainsString('has-diff', $html);
+        $this->assertStringContainsString('class="line diff remove"', $html);
+        $this->assertStringContainsString('class="line diff add"', $html);
+        $this->assertStringContainsString('<span class="diff-marker">-</span>', $html);
+        $this->assertStringContainsString('<span class="diff-marker">+</span>', $html);
+        // Only the marker character is stripped; the space after it stays.
+        $this->assertStringContainsString('<span class="diff-marker">-</span> old();', $html);
+    }
+
+    public function testAnOrdinaryFenceGetsNoDiffPresentation(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("```js\n- old();\n```\n");
+
+        $this->assertStringNotContainsString('has-diff', $html);
+        $this->assertStringNotContainsString('diff-marker', $html);
+    }
+
+    public function testAClassContainingDiffAsSubstringGetsNoDiffPresentation(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("{.diff-example}\n```js\n- old();\n```\n");
+
+        // The fence still renders (with its custom class), it just is not a diff.
+        $this->assertStringContainsString('diff-example', $html);
+        $this->assertStringNotContainsString('has-diff', $html);
+        $this->assertStringNotContainsString('diff-marker', $html);
+    }
+
     public function testRendersHeadingAndEmphasis(): void
     {
         $converter = new Converter([]);
