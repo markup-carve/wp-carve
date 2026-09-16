@@ -39,6 +39,7 @@ use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use Throwable;
 use WpCarve\Extension\TorchlightExtension;
 use WpCarve\Includes\IncludeReport;
+use WpCarve\Includes\RecordingResolver;
 
 /**
  * WordPress-facing wrapper around the carve-php CarveConverter.
@@ -175,7 +176,7 @@ class Converter
         }
 
         try {
-            $resolver = new FilesystemIncludeResolver($report->root());
+            $resolver = new RecordingResolver(new FilesystemIncludeResolver($report->root()));
         } catch (Throwable) {
             $report->refuseRoot();
 
@@ -189,7 +190,7 @@ class Converter
             extensions: $converter->getExtensions(),
         );
         $html = $converter->render($converter->transform($converter->parse($source), $expander));
-        $report->record($expander->getDependencies(), $expander->getWarnings(), $expander->getSuppressedWarnings());
+        $report->record($expander->getDependencies(), $resolver->lookups(), $expander->getWarnings(), $expander->getSuppressedWarnings());
 
         return $html;
     }

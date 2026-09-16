@@ -91,13 +91,13 @@ class RenderCache
         update_post_meta($postId, self::SAFE_KEY, $safe ? '1' : '0');
         update_post_meta($postId, self::INCLUDES_KEY, $includes !== null ? '1' : '0');
 
-        $targets = $includes?->targets() ?? [];
-        if ($targets === []) {
+        if ($includes === null || $includes->dependencies() === []) {
             delete_post_meta($postId, self::INCLUDE_DEPS_KEY);
         } else {
             update_post_meta($postId, self::INCLUDE_DEPS_KEY, wp_slash((string)wp_json_encode([
-                'targets' => $targets,
-                'fingerprint' => IncludePolicy::fingerprint($includes->root(), $targets),
+                'dependencies' => $includes->dependencies(),
+                'lookups' => $includes->lookups(),
+                'fingerprint' => IncludePolicy::fingerprint($includes->root(), $includes->lookups()),
             ])));
         }
         $warnings = $includes?->warnings() ?? [];
@@ -155,7 +155,7 @@ class RenderCache
     }
 
     /**
-     * Keyed on every target the render touched, resolved or not: creating a
+     * Keyed on every lookup the render made, resolved or not: creating a
      * missing file is what makes an include start working.
      */
     private static function includeTargetsUnchanged(int $postId): bool
@@ -165,11 +165,17 @@ class RenderCache
             return true;
         }
         $deps = is_string($stored) ? json_decode($stored, true) : null;
-        if (!is_array($deps) || !is_array($deps['targets'] ?? null)) {
+        if (!is_array($deps) || !is_array($deps['lookups'] ?? null)) {
             return false;
         }
-        $targets = array_map('strval', $deps['targets']);
+        $lookups = [];
+        foreach ($deps['lookups'] as $lookup) {
+            if (!is_array($lookup) || !is_string($lookup[0] ?? null)) {
+                return false;
+            }
+            $lookups[] = [$lookup[0], is_string($lookup[1] ?? null) ? $lookup[1] : null];
+        }
 
-        return ($deps['fingerprint'] ?? null) === IncludePolicy::fingerprint(IncludePolicy::root(), $targets);
+        return ($deps['fingerprint'] ?? null) === IncludePolicy::fingerprint(IncludePolicy::root(), $lookups);
     }
 }

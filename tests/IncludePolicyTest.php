@@ -266,6 +266,17 @@ class IncludePolicyTest extends TestCase
         $this->assertNull(RenderCache::read($postId, true));
     }
 
+    public function testCacheInvalidatesWhenANestedMissingTargetAppears(): void
+    {
+        file_put_contents($this->root . '/sub/parent.crv', "{{ child.crv }}\n");
+        $postId = $this->cachedTrustedPost("{{ sub/parent.crv }}\n");
+        $this->assertNotNull(RenderCache::read($postId, true));
+
+        file_put_contents($this->root . '/sub/child.crv', "Nested child.\n");
+
+        $this->assertNull(RenderCache::read($postId, true));
+    }
+
     public function testCacheInvalidatesWhenTrustIsLost(): void
     {
         $postId = $this->cachedTrustedPost("{{ chapter.crv }}\n");

@@ -26,6 +26,11 @@ class IncludeReport
     private array $dependencies = [];
 
     /**
+     * @var array<int, array{0: string, 1: string|null}>
+     */
+    private array $lookups = [];
+
+    /**
      * @var array<int, array{rule: string, message: string}>
      */
     private array $warnings = [];
@@ -41,11 +46,13 @@ class IncludeReport
 
     /**
      * @param array<\MarkupCarve\Carve\Transform\IncludeDependency> $dependencies
+     * @param array<int, array{0: string, 1: string|null}> $lookups
      * @param array<\MarkupCarve\Carve\Exception\ParseWarning> $warnings
      * @param int $suppressed
      */
-    public function record(array $dependencies, array $warnings, int $suppressed): void
+    public function record(array $dependencies, array $lookups, array $warnings, int $suppressed): void
     {
+        $this->lookups = $lookups;
         foreach ($dependencies as $dependency) {
             $this->dependencies[] = ['target' => $dependency->getTarget(), 'resolved' => $dependency->isResolved()];
         }
@@ -74,11 +81,11 @@ class IncludeReport
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, array{0: string, 1: string|null}>
      */
-    public function targets(): array
+    public function lookups(): array
     {
-        return array_column($this->dependencies, 'target');
+        return $this->lookups;
     }
 
     /**

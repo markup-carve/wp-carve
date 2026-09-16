@@ -167,28 +167,30 @@ class IncludePolicy
     }
 
     /**
-     * Current state of every dependency a render touched, resolved or not, so
-     * a cached render goes stale when a target changes, appears or vanishes.
-     * Reads go through the engine's resolver, so containment still applies.
+     * Current state of every lookup a render made, resolved or not, so a cached
+     * render goes stale when a target changes, appears or vanishes. Each lookup
+     * is repeated from the file it was made in, with the render's resolver
+     * configuration.
      *
      * @param string $root
-     * @param array<int, string> $targets
+     * @param array<int, array{0: string, 1: string|null}> $lookups
      */
-    public static function fingerprint(string $root, array $targets): string
+    public static function fingerprint(string $root, array $lookups): string
     {
         try {
-            $resolver = new FilesystemIncludeResolver($root, allowAbsolutePaths: true);
+            $resolver = new FilesystemIncludeResolver($root);
         } catch (Throwable) {
             return 'root-refused';
         }
 
         $states = [];
-        foreach ($targets as $target) {
+        foreach ($lookups as [$path, $including]) {
+            $key = $path . "\0" . $including;
             try {
-                $resolved = $resolver->resolve($target, new IncludeContext());
-                $states[] = $target . "\0" . md5($resolved->getSource());
+                $resolved = $resolver->resolve($path, new IncludeContext($including, $including));
+                $states[] = $key . "\0" . md5($resolved->getSource());
             } catch (Throwable) {
-                $states[] = $target . "\0-";
+                $states[] = $key . "\0-";
             }
         }
 
