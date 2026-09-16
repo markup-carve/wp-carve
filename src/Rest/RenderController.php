@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 use WP_REST_Request;
 use WP_REST_Response;
 use WpCarve\Converter;
+use WpCarve\Includes\IncludePolicy;
 use WpCarve\Settings;
 
 /**
@@ -178,18 +179,23 @@ class RenderController
             $bibliography = [];
         }
         $citationMode = (string)$request->get_param('citation_mode');
+        $includes = $context === 'post' ? IncludePolicy::reportForCurrentUser() : null;
 
         // Rendering is always sanitized (wp_kses on every path), so the preview
         // returned here matches the published output and cannot emit raw
         // script/style regardless of who requests it.
+        $html = $this->converter->toHtml(
+            $carve,
+            $context,
+            $profile !== '' ? $profile : null,
+            bibliography: $bibliography,
+            citationMode: $citationMode,
+            includes: $includes,
+        );
+
         return new WP_REST_Response([
-            'html' => $this->converter->toHtml(
-                $carve,
-                $context,
-                $profile !== '' ? $profile : null,
-                bibliography: $bibliography,
-                citationMode: $citationMode,
-            ),
+            'html' => $html,
+            'include_warnings' => $includes?->warnings() ?? [],
         ], 200);
     }
 }

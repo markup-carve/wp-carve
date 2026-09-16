@@ -22,6 +22,10 @@ $GLOBALS['_wpcarve_test_posts'] = [];
 $GLOBALS['_wpcarve_test_meta'] = [];
 
 /**
+ * * @param int $id
+ *
+ * @param int $id
+
  * @param array<string, mixed> $fields
  */
 function wpcarve_test_set_post(int $id, array $fields): void
@@ -229,11 +233,33 @@ if (!function_exists('wp_update_post')) {
 }
 
 if (!function_exists('update_post_meta')) {
+    /**
+     * Mirrors core: the short-circuit filter runs first, and the stored value
+     * is unslashed.
+     */
     function update_post_meta(int $id, string $key, mixed $value): bool
     {
-        $GLOBALS['_wpcarve_test_meta'][$id][$key] = $value;
+        $check = apply_filters('update_post_metadata', null, $id, $key, $value, '');
+        if ($check !== null) {
+            return (bool)$check;
+        }
+        $GLOBALS['_wpcarve_test_meta'][$id][$key] = is_string($value) ? stripslashes($value) : $value;
 
         return true;
+    }
+}
+
+if (!function_exists('get_current_user_id')) {
+    function get_current_user_id(): int
+    {
+        return (int)($GLOBALS['_wpcarve_test_current_user'] ?? 0);
+    }
+}
+
+if (!function_exists('current_user_can')) {
+    function current_user_can(string $capability): bool
+    {
+        return user_can(get_current_user_id(), $capability);
     }
 }
 
@@ -469,5 +495,58 @@ if (!function_exists('wp_trim_words')) {
         }
 
         return implode(' ', array_slice($words, 0, $numWords)) . ($more ?? '&hellip;');
+    }
+}
+
+if (!function_exists('remove_filter')) {
+    function remove_filter(string $tag, mixed $callback, int $priority = 10): bool
+    {
+        return true;
+    }
+}
+
+if (!class_exists('WP_REST_Request')) {
+    class WP_REST_Request
+    {
+        /**
+         * @var array<string, mixed>
+         */
+        private array $params = [];
+
+        public function set_param(string $key, mixed $value): void
+        {
+            $this->params[$key] = $value;
+        }
+
+        public function get_param(string $key): mixed
+        {
+            return $this->params[$key] ?? null;
+        }
+    }
+}
+
+if (!class_exists('WP_REST_Response')) {
+    class WP_REST_Response
+    {
+        public function __construct(public mixed $data = null, public int $status = 200)
+        {
+        }
+
+        public function get_data(): mixed
+        {
+            return $this->data;
+        }
+
+        public function get_status(): int
+        {
+            return $this->status;
+        }
+    }
+}
+
+if (!function_exists('sanitize_textarea_field')) {
+    function sanitize_textarea_field(string $str): string
+    {
+        return trim(strip_tags($str));
     }
 }

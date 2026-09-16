@@ -78,6 +78,27 @@ With `diagram_export` enabled (off by default), hovering a rendered diagram on t
 | `paste_ingest` | `true` | Paste Markdown / Djot / BBCode / HTML and convert to Carve. |
 | `frontmatter_meta` | `true` | Map `---` frontmatter to excerpt / SEO / meta. |
 | `render_cache` | `true` | Cache rendered HTML in post meta on save. |
+| `include_root` | `''` | Absolute directory that `{{ file.crv }}` include directives read from. Empty disables includes. |
+
+## Include directives
+
+With `include_root` set, a post expands `{{ chapter.crv }}` only if the user
+who last saved it holds `unfiltered_html`. Every save re-checks that, so a post
+stops expanding once someone without the capability saves it. The flag lives in
+the `_wpcarve_include_trusted` post meta and is written by the save alone; REST,
+`meta_input` and custom-field writes to it are refused.
+
+The root is used exactly as stored. A relative or missing root expands nothing
+and reports `include-root-refused`. Targets outside the root, through `..` or a
+symlink, are refused by carve-php.
+
+Expansion applies to Carve posts, Carve blocks the post itself saved, and the
+editor preview, which follows the capability of the user previewing it.
+Comments, shortcodes, slides and excerpts leave directives literal. Refused
+directives stay literal and are reported by rule and message, never with a
+server path: in the `include_warnings` field of `POST /carve/v1/render`, and in
+`_wpcarve_include_warnings` after a save. The render cache is invalidated when
+any include target changes, appears or disappears.
 
 ## Attribution and original source
 

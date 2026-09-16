@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
 
 use WP_Post;
 use WpCarve\Converter;
+use WpCarve\Includes\IncludePolicy;
 use WpCarve\Plugin;
 use WpCarve\Settings;
 
@@ -238,7 +239,13 @@ class PostEditor
             return;
         }
 
-        $initial = $this->converter->toHtml((string)$post->post_content, 'post', null, Plugin::safeForAuthor((int)$post->post_author));
+        $initial = $this->converter->toHtml(
+            (string)$post->post_content,
+            'post',
+            null,
+            Plugin::safeForAuthor((int)$post->post_author),
+            includes: IncludePolicy::reportForPost($post),
+        );
         printf(
             '<div class="wpcarve-live-preview-wrap" data-wpcarve-panel="preview">'
             . '<p class="description"><strong>%s</strong></p>'

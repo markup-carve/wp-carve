@@ -20,6 +20,7 @@ use WpCarve\Blocks\CarveBlock;
 use WpCarve\Blocks\SlidesBlock;
 use WpCarve\CLI\LintCommand;
 use WpCarve\CLI\MigrateCommand;
+use WpCarve\Includes\IncludePolicy;
 use WpCarve\Ingest\PasteController;
 use WpCarve\Meta\FrontmatterMeta;
 use WpCarve\Meta\RenderCache;
@@ -75,6 +76,8 @@ class Plugin
         (new SlidesBlock($this->converter))->register();
 
         // --- Innovations ---
+        // Runs on every save, before the render cache reads the bit.
+        (new IncludePolicy())->register();
         // E: render-on-save caching + REST.
         (new RenderCache($this->converter))->register();
         (new RenderController($this->converter))->register();
@@ -327,6 +330,7 @@ class Plugin
         }
 
         $safe = self::safeForAuthor((int)$post->post_author);
+        $includes = IncludePolicy::reportForPost($post);
 
         // A feed reader runs none of this plugin's JavaScript, so the
         // interactive render hands it empty hydration containers where the
@@ -338,10 +342,10 @@ class Plugin
         // serve exactly the markup this avoids, and writing to it would put
         // feed markup on the page.
         if (function_exists('is_feed') && is_feed()) {
-            $rendered = $this->converter->toHtml($post->post_content, 'feed', null, $safe);
+            $rendered = $this->converter->toHtml($post->post_content, 'feed', null, $safe, includes: $includes);
         } else {
             $cached = RenderCache::read($post->ID, $safe);
-            $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe);
+            $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe, includes: $includes);
         }
 
         // Carve already produced block HTML; keep wpautop away from it.
@@ -444,6 +448,9 @@ class Plugin
             // Default mode when a Carve block is opened.
             'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
             'savedCarveBlocks' => $this->savedCarveBlocks(),
+            // The in-browser engine cannot expand includes, so a preview that
+            // may expand them has to come from the server.
+            'includes' => IncludePolicy::reportForCurrentUser() !== null,
             'toDocumentUrl' => get_the_ID() > 0 ? wp_nonce_url(
                 admin_url('admin-post.php?action=wpcarve_to_document&post=' . (int)get_the_ID()),
                 'wpcarve_to_document_' . (int)get_the_ID(),
