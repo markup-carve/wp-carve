@@ -179,7 +179,7 @@ class RenderController
             $bibliography = [];
         }
         $citationMode = (string)$request->get_param('citation_mode');
-        $includes = $context === 'post' ? IncludePolicy::reportForCurrentUser() : null;
+        $includes = $context === 'post' ? IncludePolicy::reportForPreview((int)$request->get_param('post_id'), $carve) : null;
 
         // Rendering is always sanitized (wp_kses on every path), so the preview
         // returned here matches the published output and cannot emit raw

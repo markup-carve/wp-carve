@@ -123,15 +123,36 @@ class IncludePolicy
     }
 
     /**
-     * The preview gate: the bit the current user's save would write.
+     * The preview gate. A saved post the current user may edit follows its
+     * stored bit, so the preview never expands more than the front end: a user
+     * without the capability expands only a source the post already saved. A
+     * new post, an auto-draft, or a post the user may not edit gets the bit the
+     * user's own save would write, which reveals nothing about that post.
      */
-    public static function reportForCurrentUser(): ?IncludeReport
+    public static function reportForPreview(int $postId, string $carve): ?IncludeReport
     {
-        if (!self::enabled() || !self::userTrusted(get_current_user_id())) {
+        if (!self::enabled()) {
             return null;
         }
 
-        return new IncludeReport(self::root());
+        $post = $postId > 0 ? get_post($postId) : null;
+        $saved = $post !== null
+            && $post->post_status !== 'auto-draft'
+            && current_user_can('edit_post', $postId);
+        $userTrusted = self::userTrusted(get_current_user_id());
+        $trusted = $saved
+            ? self::postTrusted($postId) && ($userTrusted || self::postSavedSource($post, $carve))
+            : $userTrusted;
+
+        return $trusted ? new IncludeReport(self::root()) : null;
+    }
+
+    private static function postSavedSource(WP_Post $post, string $source): bool
+    {
+        $normalize = static fn (string $text): string => str_replace("\r\n", "\n", $text);
+
+        return $normalize($source) === $normalize((string)$post->post_content)
+            || self::postSavedBlockSource($post, $source);
     }
 
     private static function postSavedBlockSource(WP_Post $post, string $source): bool

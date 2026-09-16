@@ -93,7 +93,12 @@ and reports `include-root-refused`. Targets outside the root, through `..` or a
 symlink, are refused by carve-php.
 
 Expansion applies to Carve posts, Carve blocks the post itself saved, and the
-editor preview, which follows the capability of the user previewing it.
+editor preview. The preview of a saved post follows that post's stored flag, so
+an administrator previewing a post last saved by an author sees the directives
+literal until the administrator saves it. A user without `unfiltered_html`
+previewing a trusted post sees expansion only for source the post already
+saved. A new post or auto-draft previews with the capability of the user
+editing it.
 Comments, shortcodes, slides and excerpts leave directives literal. Refused
 directives stay literal and are reported by rule and message, never with a
 server path: in the `include_warnings` field of `POST /carve/v1/render`, and in

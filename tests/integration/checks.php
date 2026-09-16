@@ -460,6 +460,20 @@ $carve_check(
     'the preview expands for a user with unfiltered_html',
     str_contains((string)($carve_inc_preview_data['html'] ?? ''), 'Included chapter text.'),
 );
+$carve_inc_preview->set_param('post_id', $carve_inc_admin_post);
+$carve_check(
+    'an admin preview of a post last saved without unfiltered_html stays literal',
+    !str_contains((string)(rest_get_server()->dispatch($carve_inc_preview)->get_data()['html'] ?? ''), 'Included chapter text.'),
+);
+wp_set_current_user((int)$carve_inc_author);
+$carve_inc_auto_draft = wp_insert_post(['post_title' => 'Auto draft', 'post_status' => 'auto-draft', 'post_author' => (int)$carve_inc_author]);
+wp_set_current_user(1);
+$carve_inc_preview->set_param('post_id', $carve_inc_auto_draft);
+$carve_check(
+    'an auto-draft preview follows the previewing user',
+    str_contains((string)(rest_get_server()->dispatch($carve_inc_preview)->get_data()['html'] ?? ''), 'Included chapter text.'),
+);
+wp_delete_post($carve_inc_auto_draft, true);
 
 wp_delete_post($carve_inc_admin_post, true);
 wp_delete_post($carve_inc_input, true);
