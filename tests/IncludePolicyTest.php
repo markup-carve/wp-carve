@@ -277,6 +277,17 @@ class IncludePolicyTest extends TestCase
         $this->assertNull(RenderCache::read($postId, true));
     }
 
+    public function testCacheInvalidatesWhenARefusedRootAppears(): void
+    {
+        $this->configure($this->base . '/later-root');
+        $postId = $this->cachedTrustedPost("{{ chapter.crv }}\n");
+        $this->assertNotNull(RenderCache::read($postId, true));
+
+        mkdir($this->base . '/later-root');
+
+        $this->assertNull(RenderCache::read($postId, true));
+    }
+
     public function testCacheInvalidatesWhenTrustIsLost(): void
     {
         $postId = $this->cachedTrustedPost("{{ chapter.crv }}\n");

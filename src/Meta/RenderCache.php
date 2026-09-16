@@ -91,7 +91,9 @@ class RenderCache
         update_post_meta($postId, self::SAFE_KEY, $safe ? '1' : '0');
         update_post_meta($postId, self::INCLUDES_KEY, $includes !== null ? '1' : '0');
 
-        if ($includes === null || $includes->dependencies() === []) {
+        // A refused root is stored too, with no lookups: the root appearing on
+        // disk changes the fingerprint even though the setting did not move.
+        if ($includes === null || ($includes->dependencies() === [] && !$includes->rootRefused())) {
             delete_post_meta($postId, self::INCLUDE_DEPS_KEY);
         } else {
             update_post_meta($postId, self::INCLUDE_DEPS_KEY, wp_slash((string)wp_json_encode([

@@ -64,6 +64,11 @@ class IncludeReport
         }
     }
 
+    public function rootRefused(): bool
+    {
+        return array_column($this->warnings, 'rule') === [self::RULE_ROOT_REFUSED];
+    }
+
     public function refuseRoot(): void
     {
         $this->warnings[] = [
