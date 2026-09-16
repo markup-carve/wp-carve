@@ -257,8 +257,13 @@ if (!function_exists('get_current_user_id')) {
 }
 
 if (!function_exists('current_user_can')) {
-    function current_user_can(string $capability): bool
+    function current_user_can(string $capability, mixed ...$args): bool
     {
+        // A meta capability on an object, such as edit_post, is granted as "edit_post:<id>".
+        if ($args !== []) {
+            $capability .= ':' . $args[0];
+        }
+
         return user_can(get_current_user_id(), $capability);
     }
 }

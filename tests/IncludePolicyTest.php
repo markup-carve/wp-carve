@@ -330,22 +330,121 @@ class IncludePolicyTest extends TestCase
         $this->assertStringNotContainsString('Included chapter text.', $foreign);
     }
 
-    public function testRestPreviewFollowsTheCurrentUsersCapability(): void
-    {
-        $controller = new RenderController(new Converter(Settings::all()));
-        $request = new WP_REST_Request();
-        $request->set_param('carve', "{{ chapter.crv }}\n\n{{ ../secret.crv }}\n");
+    /**
+     * @var string
+     */
+    private const PREVIEW = "{{ chapter.crv }}\n\n{{ ../secret.crv }}\n";
 
-        $GLOBALS['_wpcarve_test_current_user'] = self::ADMIN;
-        $trusted = $controller->render($request)->get_data();
-        $GLOBALS['_wpcarve_test_current_user'] = self::AUTHOR;
-        $untrusted = $controller->render($request)->get_data();
+    /**
+     * @return array{html: string, include_warnings: array<int, array<string, string>>}
+     */
+    private function previewAs(int $userId, int $postId, string $carve = self::PREVIEW): array
+    {
+        $request = new WP_REST_Request();
+        $request->set_param('carve', $carve);
+        $request->set_param('post_id', $postId);
+        $GLOBALS['_wpcarve_test_current_user'] = $userId;
+
+        return (new RenderController(new Converter(Settings::all())))->render($request)->get_data();
+    }
+
+    private function grantEdit(int $userId, int $postId): void
+    {
+        $GLOBALS['_wpcarve_test_caps'][$userId]['edit_post:' . $postId] = true;
+    }
+
+    public function testRestPreviewOfASavedTrustedPostFollowsItsBit(): void
+    {
+        $this->saveAs(self::ADMIN, 40, self::PREVIEW);
+        $this->grantEdit(self::ADMIN, 40);
+        $this->grantEdit(self::AUTHOR, 40);
+
+        $admin = $this->previewAs(self::ADMIN, 40, "Edited.\n\n{{ chapter.crv }}\n");
+        $author = $this->previewAs(self::AUTHOR, 40);
+
+        $this->assertStringContainsString('Included chapter text.', $admin['html']);
+        $this->assertStringContainsString('Included chapter text.', $author['html']);
+        $this->assertSame(['include-unresolved'], array_column($author['include_warnings'], 'rule'));
+    }
+
+    public function testRestPreviewOfATrustedPostExpandsASavedBlockSourceForAnAuthor(): void
+    {
+        $this->saveAs(self::ADMIN, 47, '<!-- wp:carve/markup ' . wp_json_encode(['carve' => self::PREVIEW]) . ' /-->');
+        $this->grantEdit(self::AUTHOR, 47);
+
+        $data = $this->previewAs(self::AUTHOR, 47);
+
+        $this->assertStringContainsString('Included chapter text.', $data['html']);
+    }
+
+    public function testRestPreviewMatchesASavedDocumentAcrossLineEndings(): void
+    {
+        $this->saveAs(self::ADMIN, 48, str_replace("\n", "\r\n", self::PREVIEW));
+        $this->grantEdit(self::AUTHOR, 48);
+
+        $data = $this->previewAs(self::AUTHOR, 48);
+
+        $this->assertStringContainsString('Included chapter text.', $data['html']);
+    }
+
+    public function testRestPreviewOfATrustedPostExpandsNoUnsavedSourceForAnAuthor(): void
+    {
+        $this->saveAs(self::ADMIN, 46, self::PREVIEW);
+        $this->grantEdit(self::AUTHOR, 46);
+
+        $data = $this->previewAs(self::AUTHOR, 46, "Edited.\n\n{{ chapter.crv }}\n");
+
+        $this->assertStringNotContainsString('Included chapter text.', $data['html']);
+    }
+
+    public function testRestPreviewOfASavedUntrustedPostStaysLiteralForAnAdmin(): void
+    {
+        $this->saveAs(self::AUTHOR, 41, self::PREVIEW);
+        $this->grantEdit(self::ADMIN, 41);
+
+        $data = $this->previewAs(self::ADMIN, 41);
+
+        $this->assertStringNotContainsString('Included chapter text.', $data['html']);
+        $this->assertSame([], $data['include_warnings']);
+    }
+
+    public function testRestPreviewOfAnUnsavedDocumentFollowsTheCurrentUsersCapability(): void
+    {
+        $trusted = $this->previewAs(self::ADMIN, 0);
+        $untrusted = $this->previewAs(self::AUTHOR, 0);
+        $missing = $this->previewAs(self::ADMIN, 999);
 
         $this->assertStringContainsString('Included chapter text.', $trusted['html']);
         $this->assertSame(['include-unresolved'], array_column($trusted['include_warnings'], 'rule'));
         $this->assertStringNotContainsString($this->base, (string)wp_json_encode($trusted, JSON_UNESCAPED_SLASHES));
         $this->assertStringNotContainsString('Included chapter text.', $untrusted['html']);
         $this->assertSame([], $untrusted['include_warnings']);
+        $this->assertStringContainsString('Included chapter text.', $missing['html']);
+    }
+
+    public function testRestPreviewOfAnAutoDraftFollowsTheCurrentUsersCapability(): void
+    {
+        $this->saveAs(self::AUTHOR, 42, '');
+        $GLOBALS['_wpcarve_test_posts'][42]->post_status = 'auto-draft';
+        $this->grantEdit(self::ADMIN, 42);
+        $this->saveAs(self::ADMIN, 43, '');
+        $GLOBALS['_wpcarve_test_posts'][43]->post_status = 'auto-draft';
+        $this->grantEdit(self::AUTHOR, 43);
+
+        $admin = $this->previewAs(self::ADMIN, 42);
+        $author = $this->previewAs(self::AUTHOR, 43);
+
+        $this->assertStringContainsString('Included chapter text.', $admin['html']);
+        $this->assertStringNotContainsString('Included chapter text.', $author['html']);
+    }
+
+    public function testRestPreviewOfAPostTheUserMayNotEditRevealsNothing(): void
+    {
+        $this->saveAs(self::ADMIN, 44, self::PREVIEW);
+        $this->saveAs(self::AUTHOR, 45, self::PREVIEW);
+
+        $this->assertSame($this->previewAs(self::AUTHOR, 0), $this->previewAs(self::AUTHOR, 44));
+        $this->assertSame($this->previewAs(self::ADMIN, 0), $this->previewAs(self::ADMIN, 45));
     }
 
     private function cachedTrustedPost(string $content): int

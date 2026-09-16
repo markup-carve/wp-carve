@@ -449,8 +449,10 @@ class Plugin
             'startMode' => Settings::get('visual_editor_mode') === 'enabled_default' ? 'visual' : 'write',
             'savedCarveBlocks' => $this->savedCarveBlocks(),
             // The in-browser engine cannot expand includes, so a preview that
-            // may expand them has to come from the server.
-            'includes' => IncludePolicy::reportForCurrentUser() !== null,
+            // may expand them has to come from the server. The server decides;
+            // this also covers the post's bit changing on a save in this session.
+            'includes' => IncludePolicy::enabled()
+                && (IncludePolicy::userTrusted(get_current_user_id()) || IncludePolicy::postTrusted((int)get_the_ID())),
             'toDocumentUrl' => get_the_ID() > 0 ? wp_nonce_url(
                 admin_url('admin-post.php?action=wpcarve_to_document&post=' . (int)get_the_ID()),
                 'wpcarve_to_document_' . (int)get_the_ID(),
