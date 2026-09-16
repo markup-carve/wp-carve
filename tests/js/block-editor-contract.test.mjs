@@ -18,3 +18,8 @@ test('a newer source revision stops the stale visual editor', () => {
   assert.match(source, /! sessionActiveRef\.current/);
   assert.match(source, /gated \|\| revisionConflict/);
 });
+
+test('a preview that may expand includes renders on the server', () => {
+  assert.match(source, /const serverIncludes = cfg\.includes && source\.indexOf\( '\{\{' \) !== -1;/);
+  assert.match(source, /! forceServer && ! serverIncludes && /);
+});

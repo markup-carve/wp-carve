@@ -10,6 +10,7 @@ if (!defined('ABSPATH')) {
 
 use WP_Post;
 use WpCarve\Converter;
+use WpCarve\Includes\IncludePolicy;
 use WpCarve\Plugin;
 use WpCarve\Settings;
 
@@ -33,6 +34,21 @@ class RenderCache
      * @var string
      */
     private const SAFE_KEY = '_wpcarve_html_safe';
+
+    /**
+     * @var string
+     */
+    private const INCLUDES_KEY = '_wpcarve_html_includes';
+
+    /**
+     * @var string
+     */
+    public const INCLUDE_DEPS_KEY = '_wpcarve_include_deps';
+
+    /**
+     * @var string
+     */
+    public const INCLUDE_WARNINGS_KEY = '_wpcarve_include_warnings';
 
     public function __construct(private Converter $converter)
     {
@@ -65,13 +81,33 @@ class RenderCache
         // cache would serve raw HTML for a low-privilege author (bypassing the
         // safeForAuthor gate on the cache-hit path).
         $safe = Plugin::safeForAuthor((int)$post->post_author);
-        $html = $this->converter->toHtml($post->post_content, 'post', null, $safe);
+        $includes = IncludePolicy::reportForPost($post);
+        $html = $this->converter->toHtml($post->post_content, 'post', null, $safe, includes: $includes);
         // update_post_meta() expects slashed input and unslashes once when
         // storing; without wp_slash a single backslash (e.g. the `\(` math
         // delimiters carve-php emits) would be eaten. wp_slash protects them.
         update_post_meta($postId, self::META_KEY, wp_slash($html));
         update_post_meta($postId, self::VERSION_KEY, self::signature());
         update_post_meta($postId, self::SAFE_KEY, $safe ? '1' : '0');
+        update_post_meta($postId, self::INCLUDES_KEY, $includes !== null ? '1' : '0');
+
+        // A refused root is stored too, with no lookups: the root appearing on
+        // disk changes the fingerprint even though the setting did not move.
+        if ($includes === null || ($includes->dependencies() === [] && !$includes->rootRefused())) {
+            delete_post_meta($postId, self::INCLUDE_DEPS_KEY);
+        } else {
+            update_post_meta($postId, self::INCLUDE_DEPS_KEY, wp_slash((string)wp_json_encode([
+                'dependencies' => $includes->dependencies(),
+                'lookups' => $includes->lookups(),
+                'fingerprint' => IncludePolicy::fingerprint($includes->root(), $includes->lookups()),
+            ])));
+        }
+        $warnings = $includes?->warnings() ?? [];
+        if ($warnings === []) {
+            delete_post_meta($postId, self::INCLUDE_WARNINGS_KEY);
+        } else {
+            update_post_meta($postId, self::INCLUDE_WARNINGS_KEY, wp_slash((string)wp_json_encode($warnings)));
+        }
     }
 
     /**
@@ -108,8 +144,40 @@ class RenderCache
         if ($expectedSafe !== null && (get_post_meta($postId, self::SAFE_KEY, true) === '1') !== $expectedSafe) {
             return null;
         }
+        $includesExpected = IncludePolicy::enabled() && IncludePolicy::postTrusted($postId);
+        if ((get_post_meta($postId, self::INCLUDES_KEY, true) === '1') !== $includesExpected) {
+            return null;
+        }
+        if (!self::includeTargetsUnchanged($postId)) {
+            return null;
+        }
         $html = get_post_meta($postId, self::META_KEY, true);
 
         return is_string($html) && $html !== '' ? $html : null;
+    }
+
+    /**
+     * Keyed on every lookup the render made, resolved or not: creating a
+     * missing file is what makes an include start working.
+     */
+    private static function includeTargetsUnchanged(int $postId): bool
+    {
+        $stored = get_post_meta($postId, self::INCLUDE_DEPS_KEY, true);
+        if ($stored === '' || $stored === null) {
+            return true;
+        }
+        $deps = is_string($stored) ? json_decode($stored, true) : null;
+        if (!is_array($deps) || !is_array($deps['lookups'] ?? null)) {
+            return false;
+        }
+        $lookups = [];
+        foreach ($deps['lookups'] as $lookup) {
+            if (!is_array($lookup) || !is_string($lookup[0] ?? null)) {
+                return false;
+            }
+            $lookups[] = [$lookup[0], is_string($lookup[1] ?? null) ? $lookup[1] : null];
+        }
+
+        return ($deps['fingerprint'] ?? null) === IncludePolicy::fingerprint(IncludePolicy::root(), $lookups);
     }
 }

@@ -15,7 +15,7 @@ delete_option('wpcarve_settings');
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time uninstall cleanup.
 $wpdb->query(
-    "DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_wpcarve_enabled', '_wpcarve_html', '_wpcarve_html_version', '_wpcarve_frontmatter', '_wpcarve_excerpt', '_wpcarve_seo_description', '_wpcarve_canonical', '_wpcarve_import_report')",
+    "DELETE FROM {$wpdb->postmeta} WHERE meta_key IN ('_wpcarve_enabled', '_wpcarve_html', '_wpcarve_html_version', '_wpcarve_frontmatter', '_wpcarve_excerpt', '_wpcarve_seo_description', '_wpcarve_canonical', '_wpcarve_import_report', '_wpcarve_html_includes', '_wpcarve_include_trusted', '_wpcarve_include_deps', '_wpcarve_include_warnings')",
 );
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- one-time uninstall cleanup.
 $wpdb->query("DELETE FROM {$wpdb->commentmeta} WHERE meta_key = '_wpcarve_raw'");

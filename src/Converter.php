@@ -33,8 +33,13 @@ use MarkupCarve\Carve\Renderer\PlainTextRenderer;
 use MarkupCarve\Carve\Renderer\RenderMode;
 use MarkupCarve\Carve\Renderer\SoftBreakMode;
 use MarkupCarve\Carve\SafeMode;
+use MarkupCarve\Carve\Transform\FilesystemIncludeResolver;
+use MarkupCarve\Carve\Transform\IncludeExpander;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
+use Throwable;
 use WpCarve\Extension\TorchlightExtension;
+use WpCarve\Includes\IncludeReport;
+use WpCarve\Includes\RecordingResolver;
 
 /**
  * WordPress-facing wrapper around the carve-php CarveConverter.
@@ -45,6 +50,11 @@ use WpCarve\Extension\TorchlightExtension;
  */
 class Converter
 {
+    /**
+     * @var int
+     */
+    private const INCLUDE_BYTE_BUDGET = 4194304;
+
     /**
      * @var array<string, \MarkupCarve\Carve\CarveConverter>
      */
@@ -78,6 +88,9 @@ class Converter
      * @param bool|null $safe
      * @param array<int, mixed>|null $bibliography
      * @param string $citationMode
+     * @param \WpCarve\Includes\IncludeReport|null $includes Expands include directives
+     *   against the configured root and records the outcome. Pass one only once
+     *   IncludePolicy has allowed it.
      */
     public function toHtml(
         string $carve,
@@ -86,6 +99,7 @@ class Converter
         ?bool $safe = null,
         ?array $bibliography = null,
         string $citationMode = 'numbered',
+        ?IncludeReport $includes = null,
     ): string {
         if (trim($carve) === '') {
             return '';
@@ -104,7 +118,10 @@ class Converter
         // back into per-post source (freezing a global setting into the post). So
         // the editor context renders the source alone.
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
-        $html = $this->converterFor($context, $profileOverride, $safe, $bibliography, $citationMode)->convert($abbrevDefs . $carve);
+        $converter = $this->converterFor($context, $profileOverride, $safe, $bibliography, $citationMode);
+        $html = $includes !== null && $context !== 'editor' && $context !== 'comment'
+            ? $this->convertWithIncludes($converter, $abbrevDefs . $carve, $includes)
+            : $converter->convert($abbrevDefs . $carve);
 
         // JSON diagram configs (chart, vega-lite) ship in a script tag the
         // engine emits - but wp_kses strips every script tag, and wptexturize
@@ -150,6 +167,32 @@ class Converter
          * @param string $context 'post', 'comment', or 'editor'.
          */
         return (string)apply_filters('wpcarve_rendered_html', $html, $carve, $context);
+    }
+
+    private function convertWithIncludes(CarveConverter $converter, string $source, IncludeReport $report): string
+    {
+        if (!str_contains($source, '{{')) {
+            return $converter->convert($source);
+        }
+
+        try {
+            $resolver = new RecordingResolver(new FilesystemIncludeResolver($report->root()));
+        } catch (Throwable) {
+            $report->refuseRoot();
+
+            return $converter->convert($source);
+        }
+
+        $expander = new IncludeExpander(
+            resolver: $resolver,
+            byteBudget: self::INCLUDE_BYTE_BUDGET,
+            source: $source,
+            extensions: $converter->getExtensions(),
+        );
+        $html = $converter->render($converter->transform($converter->parse($source), $expander));
+        $report->record($expander->getDependencies(), $resolver->lookups(), $expander->getWarnings(), $expander->getSuppressedWarnings());
+
+        return $html;
     }
 
     /**

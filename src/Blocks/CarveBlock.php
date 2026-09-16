@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use WpCarve\Converter;
+use WpCarve\Includes\IncludePolicy;
 use WpCarve\Plugin;
 
 /**
@@ -76,6 +77,7 @@ class CarveBlock
             $safe,
             $bibliography,
             $citationMode,
+            IncludePolicy::reportForPost(get_post(get_the_ID()), $carve),
         );
 
         // Escape the rendered markup at the block render callback's return, so

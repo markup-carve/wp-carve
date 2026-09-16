@@ -49,7 +49,7 @@ Activate "Carve Markup", then configure under **Settings → Carve Markup**.
 
 | Route | Body | Returns |
 | --- | --- | --- |
-| `POST /wp-json/carve/v1/render` | `{ carve, context }` | `{ html }` |
+| `POST /wp-json/carve/v1/render` | `{ carve, context }` | `{ html, include_warnings }` |
 | `POST /wp-json/carve/v1/ingest` | `{ source, from }` | `{ carve, from }` |
 
 Both require the `edit_posts` capability.

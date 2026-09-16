@@ -49,7 +49,8 @@
 		// permalinks) from the visual-editor seed - both fall through to the
 		// server render. forceServer is available for callers that need
 		// server-faithful HTML.
-		if ( ctx === 'post' && ! forceServer && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
+		const serverIncludes = cfg.includes && source.indexOf( '{{' ) !== -1;
+		if ( ctx === 'post' && ! forceServer && ! serverIncludes && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
 			try {
 				done( engine.carveToHtml( source ) );
 				return;

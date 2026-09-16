@@ -80,6 +80,10 @@ class SettingsPage
                 $out[$key] = !empty($input[$key]);
             } elseif (is_int($default)) {
                 $out[$key] = (int)($input[$key] ?? $default);
+            } elseif ($key === 'include_root') {
+                // Stored verbatim: trimming or normalizing could turn a refused
+                // relative root into an accepted absolute one.
+                $out[$key] = (string)($input[$key] ?? $default);
             } elseif (in_array($key, self::MULTILINE_KEYS, true)) {
                 // Preserve newlines for multi-line textareas (e.g. one
                 // abbreviation per line); sanitize_text_field would flatten them.
@@ -219,6 +223,7 @@ class SettingsPage
         $this->toggle($s, 'paste_ingest', __('Paste ingest', 'carve-markup'), __('Convert pasted Markdown/Djot/BBCode/HTML to Carve.', 'carve-markup'));
         $this->toggle($s, 'frontmatter_meta', __('Frontmatter to meta', 'carve-markup'), __('Map frontmatter to post meta and SEO fields.', 'carve-markup'));
         $this->toggle($s, 'render_cache', __('Render cache', 'carve-markup'), __('Cache rendered HTML on save.', 'carve-markup'));
+        $this->text($s, 'include_root', __('Include root', 'carve-markup'), __('Absolute server directory that {{ file.crv }} include directives may read from. Only posts last saved by a user who can post unfiltered HTML expand them. Empty disables includes.', 'carve-markup'));
         $this->gridEnd();
         $this->group(__('Attribution & source', 'carve-markup'), __('Shown only on public, singular Carve posts and pages. Publishing source can reveal comments or metadata that rendered HTML omits.', 'carve-markup'));
         $this->grid();

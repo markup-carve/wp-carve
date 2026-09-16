@@ -64,6 +64,9 @@ class Settings
             'paste_ingest' => true,
             'frontmatter_meta' => true,
             'render_cache' => true,
+            // Absolute directory include directives may read from. Empty
+            // leaves them literal.
+            'include_root' => '',
             // Public attribution/source footer. Source publication is a
             // separate, explicit opt-in from crediting Carve.
             'attribution_enabled' => false,

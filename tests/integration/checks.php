@@ -379,6 +379,98 @@ $carve_check('ingest rejects an oversize paste with 413', $ingest_big_res->get_s
 
 wp_set_current_user($carve_prev_ingest_user);
 
+// --- Include directives: the unfiltered_html gate ------------------------------
+$carve_inc_base = trailingslashit(get_temp_dir()) . 'wpcarve-includes-' . wp_generate_password(8, false);
+$carve_inc_root = $carve_inc_base . '/root';
+wp_mkdir_p($carve_inc_root);
+file_put_contents($carve_inc_root . '/chapter.crv', "Included chapter text.\n");
+file_put_contents($carve_inc_base . '/secret.crv', "Secret outside the root.\n");
+$carve_inc_settings = get_option(\WpCarve\Settings::OPTION, []);
+update_option(\WpCarve\Settings::OPTION, ['include_root' => $carve_inc_root] + (is_array($carve_inc_settings) ? $carve_inc_settings : []));
+$carve_inc_prev_user = get_current_user_id();
+$carve_inc_author = wp_insert_user([
+    'user_login' => 'carve-inc-author-' . wp_generate_password(6, false),
+    'user_pass' => wp_generate_password(),
+    'role' => 'author',
+]);
+$carve_inc_render = static function (int $id): string {
+    update_post_meta($id, '_wpcarve_enabled', '1');
+    $GLOBALS['post'] = get_post($id);
+    setup_postdata($GLOBALS['post']);
+
+    return (string)apply_filters('the_content', get_post($id)->post_content);
+};
+
+wp_set_current_user(1);
+$carve_inc_admin_post = wp_insert_post(['post_title' => 'Trusted include', 'post_status' => 'publish', 'post_content' => "{{ chapter.crv }}\n\n{{ ../secret.crv }}\n"]);
+$carve_check('an unfiltered_html save stores the trust bit', get_post_meta($carve_inc_admin_post, '_wpcarve_include_trusted', true) === '1');
+$carve_inc_html = $carve_inc_render($carve_inc_admin_post);
+$carve_check('a trusted post expands its include', str_contains($carve_inc_html, 'Included chapter text.'), $carve_snippet($carve_inc_html));
+$carve_check('traversal out of the root stays unread', !str_contains($carve_inc_html, 'Secret outside the root.'), $carve_snippet($carve_inc_html));
+$carve_check('no server path reaches the rendered post', !str_contains($carve_inc_html, $carve_inc_base));
+
+$carve_check(
+    'a direct meta write of the trust bit is refused',
+    update_post_meta($carve_inc_admin_post, '_wpcarve_include_trusted', 'x') === false
+        && get_post_meta($carve_inc_admin_post, '_wpcarve_include_trusted', true) === '1',
+);
+
+wp_set_current_user((int)$carve_inc_author);
+wp_update_post(['ID' => $carve_inc_admin_post, 'post_content' => "{{ chapter.crv }}\n"]);
+$carve_check('a save without unfiltered_html drops the trust bit', get_post_meta($carve_inc_admin_post, '_wpcarve_include_trusted', true) === '');
+$carve_inc_html = $carve_inc_render($carve_inc_admin_post);
+$carve_check('the post stops expanding after that save', !str_contains($carve_inc_html, 'Included chapter text.'), $carve_snippet($carve_inc_html));
+
+$carve_inc_rest = new WP_REST_Request('POST', '/wp/v2/posts');
+$carve_inc_rest->set_param('title', 'REST include');
+$carve_inc_rest->set_param('status', 'draft');
+$carve_inc_rest->set_param('content', "{{ chapter.crv }}\n");
+$carve_inc_rest->set_param('meta', ['_wpcarve_include_trusted' => '1']);
+$carve_inc_rest_res = rest_get_server()->dispatch($carve_inc_rest);
+$carve_inc_rest_id = (int)($carve_inc_rest_res->get_data()['id'] ?? 0);
+// Either outcome keeps the bit off: the post is created without it, or the
+// request is refused outright.
+$carve_check(
+    'a REST write carrying the trust bit is ignored',
+    $carve_inc_rest_id > 0
+        ? get_post_meta($carve_inc_rest_id, '_wpcarve_include_trusted', true) === ''
+        : $carve_inc_rest_res->get_status() >= 400,
+    'status ' . $carve_inc_rest_res->get_status(),
+);
+
+$carve_inc_input = wp_insert_post([
+    'post_title' => 'meta_input include',
+    'post_status' => 'draft',
+    'post_content' => "{{ chapter.crv }}\n",
+    'meta_input' => ['_wpcarve_include_trusted' => '1'],
+]);
+$carve_check('meta_input carrying the trust bit is ignored', get_post_meta($carve_inc_input, '_wpcarve_include_trusted', true) === '');
+$carve_inc_html = $carve_inc_render($carve_inc_input);
+$carve_check('the author post renders the directive literally', !str_contains($carve_inc_html, 'Included chapter text.'), $carve_snippet($carve_inc_html));
+
+$carve_inc_preview = new WP_REST_Request('POST', '/carve/v1/render');
+$carve_inc_preview->set_param('carve', "{{ chapter.crv }}\n");
+$carve_check(
+    'the preview does not expand for a user without unfiltered_html',
+    !str_contains((string)(rest_get_server()->dispatch($carve_inc_preview)->get_data()['html'] ?? ''), 'Included chapter text.'),
+);
+wp_set_current_user(1);
+$carve_inc_preview_data = rest_get_server()->dispatch($carve_inc_preview)->get_data();
+$carve_check(
+    'the preview expands for a user with unfiltered_html',
+    str_contains((string)($carve_inc_preview_data['html'] ?? ''), 'Included chapter text.'),
+);
+
+wp_delete_post($carve_inc_admin_post, true);
+wp_delete_post($carve_inc_input, true);
+if ($carve_inc_rest_id > 0) {
+    wp_delete_post($carve_inc_rest_id, true);
+}
+require_once ABSPATH . 'wp-admin/includes/user.php';
+wp_delete_user((int)$carve_inc_author);
+update_option(\WpCarve\Settings::OPTION, $carve_inc_settings);
+wp_set_current_user($carve_inc_prev_user);
+
 // --- Summary ------------------------------------------------------------------
 fwrite(STDOUT, "\n");
 if ($carve_failures !== []) {
