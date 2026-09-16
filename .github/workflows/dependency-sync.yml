@@ -58,6 +58,13 @@ jobs:
           git push --force-with-lease="refs/heads/${branch}:${expected}" origin "${branch}"
           if [ -z "$(gh pr list --head "${branch}" --state open --json number --jq '.[0].number')" ]; then
             printf '%s\n' '## Summary' '' '- synchronize the PHP, JavaScript, and grammar engines' '- rebuild the browser bundles from the resolved lockfiles' '' 'CI provides the compatibility and corpus review before this automated update is merged.' > "${RUNNER_TEMP}/body.md"
-            gh pr create --base main --head "${branch}" --title 'chore: synchronize Carve engines' --body-file "${RUNNER_TEMP}/body.md"
+            # The branch is already pushed at this point, so a refused PR is
+            # recoverable by hand. Name the setting: the bare GraphQL text
+            # ("GitHub Actions is not permitted to create or approve pull
+            # requests") reads like a token scope and is neither.
+            if ! gh pr create --base main --head "${branch}" --title 'chore: synchronize Carve engines' --body-file "${RUNNER_TEMP}/body.md"; then
+              echo "::error::could not open the synchronization pull request. The branch ${branch} is pushed; opening the pull request needs Settings > Actions > General > Allow GitHub Actions to create and approve pull requests, which is off for this repository and for every markup-carve repository checked on 2026-09-16."
+              exit 1
+            fi
           fi
           gh workflow run ci.yml --ref "${branch}"
