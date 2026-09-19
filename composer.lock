@@ -398,12 +398,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "969f0c23a5434c4d7aaece1d0b25fba912826ef4"
+                "reference": "aa5fe46212dc5dfda71a69976419fa969181477e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/969f0c23a5434c4d7aaece1d0b25fba912826ef4",
-                "reference": "969f0c23a5434c4d7aaece1d0b25fba912826ef4",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/aa5fe46212dc5dfda71a69976419fa969181477e",
+                "reference": "aa5fe46212dc5dfda71a69976419fa969181477e",
                 "shasum": ""
             },
             "require": {
@@ -461,7 +461,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-16T06:57:53+00:00"
+            "time": "2026-09-19T09:28:19+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
