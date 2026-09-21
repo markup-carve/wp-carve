@@ -13,7 +13,7 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "^0.1.6",
+    "@markup-carve/carve": "^0.1.7",
     "@markup-carve/carve-grammars": "^0.1.8"
   },
   "devDependencies": {
