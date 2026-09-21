@@ -48,8 +48,8 @@ jobs:
   # comment content on the front end, so this is what a WordPress site
   # publishes.
   #
-  # BOTH SIDES ARE PINNED. Composer resolves the engine's dev-main requirement
-  # to the exact commit recorded in composer.lock, which is what the plugin
+  # BOTH SIDES ARE PINNED. Composer resolves the engine's release constraint
+  # to the exact tag recorded in composer.lock, which is what the plugin
   # bundles; the corpus is pinned to the spec freeze for the same reason. An
   # unpinned corpus made this job measure UPSTREAM MOVEMENT: two spec pull
   # requests landing on carve main took the corpus from 1239 documents to 1241,
