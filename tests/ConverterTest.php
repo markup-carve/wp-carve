@@ -317,6 +317,16 @@ CARVE;
         $this->assertStringNotContainsString('line-numbers', $html);
     }
 
+    public function testPlainCodeBlockPreservesQuotedFenceTitleAndLanguage(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("```python \"greet.py\"\nprint('Hello')\n```\n");
+
+        $this->assertStringContainsString('<pre title="greet.py">', $html);
+        $this->assertStringContainsString('<code class="language-python">', $html);
+    }
+
     public function testTorchlightSpecialLineAttributesAreKsesSafe(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {

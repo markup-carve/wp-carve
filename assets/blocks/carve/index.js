@@ -559,12 +559,30 @@
 			}
 			previewRef.current.querySelectorAll( 'pre > code' ).forEach( ( code ) => {
 				const pre = code.parentElement;
-				if ( ! pre || pre.dataset.lang ) {
+				if ( ! pre ) {
 					return;
 				}
-				const m = ( code.className || '' ).match( /language-([\w+#-]+)/ );
-				if ( m && m[ 1 ] !== 'text' ) {
-					pre.dataset.lang = m[ 1 ];
+				if ( ! pre.dataset.lang ) {
+					const m = ( code.className || '' ).match( /language-([\w+#-]+)/ );
+					if ( m && m[ 1 ] !== 'text' ) {
+						pre.dataset.lang = m[ 1 ];
+					}
+				}
+
+				// Match the front-end enhancement: the pre scrolls horizontally,
+				// while its title and language stay pinned to this wrapper.
+				let wrap = pre.parentElement;
+				if ( ! wrap.classList.contains( 'wpcarve-codewrap' ) ) {
+					wrap = pre.ownerDocument.createElement( 'div' );
+					wrap.className = 'wpcarve-codewrap';
+					pre.parentNode.insertBefore( wrap, pre );
+					wrap.appendChild( pre );
+				}
+				if ( pre.dataset.title || pre.title ) {
+					wrap.dataset.title = pre.dataset.title || pre.title;
+				}
+				if ( pre.dataset.lang ) {
+					wrap.dataset.lang = pre.dataset.lang;
 				}
 			} );
 		}, [ html, mode, showPreview ] );
