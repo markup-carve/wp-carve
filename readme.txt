@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.5
+Stable tag: 0.1.6
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,14 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.6 =
+* New: include directives expand behind the `unfiltered_html` capability - a post expands them only if the user who last saved it held it, a preview of a saved post follows the post's stored trust bit, and a new `include_root` setting names the containment root.
+* New: import and paste conversions retain version 2 fidelity reports; the block editor shows findings, imported posts keep an audit report, and bulk migration requires review for non-lossless results.
+* New: a `{.diff}` code fence renders as a diff overlay instead of ordinary highlighted code.
+* New: the visual editor supports the structured inline editors from carve-grammars, so comment, literal, and raw-inline payloads are editable in place.
+* Changed: bulk and CLI migration require `--force` for unverified Markdown as well as degraded or dropped results, and show the findings first.
+* Changed: bundled the carve-php 0.1.9 and carve-grammars 0.1.9 engines (from 0.1.7 and v0.1.6), which add include expansion and the version 2 fidelity reports, change how the Markdown target spells emphasis and strike, and change several shapes the Carve writer emits; documents using those constructs can render differently and more correctly.
 
 = 0.1.5 =
 * New: native block-editor blocks for admonitions, code groups, and tables with spans, each retaining copyable Carve source and a server-rendered preview.
