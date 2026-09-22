@@ -7,16 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-09-22
+
 ### Added
 
+- Include directives expand behind the `unfiltered_html` capability. A post
+  expands them only when the user who last saved it held that capability,
+  re-evaluated on every save, and a preview of a saved post follows the post's
+  stored trust bit rather than the requester's own. A new `include_root` setting
+  names the containment root; a relative or missing root expands nothing.
+  Refusals surface as render warnings and after a save, and the render cache
+  tracks every dependency so a changed, new, or removed target invalidates it.
 - Import and paste conversions now retain version 2 fidelity reports. The block
   editor shows findings after conversion, imported posts keep an audit report,
   and bulk migration requires review for non-lossless results.
+- A `{.diff}` code fence renders as a diff overlay instead of ordinary
+  highlighted code, which is what Carve core's `<pre class="diff">` output asks
+  the host to do.
+- The visual editor supports the structured inline editors from
+  `carve-grammars`, so comment, literal, and raw-inline payloads are editable in
+  place, with styling for anchored inline and embed controls.
 
 ### Changed
 
 - Bulk and CLI migration now require `--force` for unverified Markdown as well
   as degraded/dropped results, and show the findings before that decision.
+- Updated the bundled engines to the `markup-carve/carve-php` 0.1.9 and
+  `markup-carve/carve-grammars` 0.1.9 releases, from 0.1.7 and v0.1.6. Those two
+  engine releases add the include expansion and the version 2 fidelity reports
+  this release surfaces, change how the Markdown target spells emphasis and
+  strike in several shapes, change several shapes the Carve writer emits, and
+  fix mention and tag reporting. Documents using those constructs can render
+  differently, and more correctly, than under the previous pin.
 
 ## [0.1.5] - 2026-09-09
 
@@ -337,7 +359,8 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.5...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.6...HEAD
+[0.1.6]: https://github.com/markup-carve/wp-carve/compare/0.1.5...0.1.6
 [0.1.5]: https://github.com/markup-carve/wp-carve/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/markup-carve/wp-carve/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/markup-carve/wp-carve/compare/0.1.2...0.1.3
