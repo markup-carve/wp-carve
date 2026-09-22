@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          # The synchronization branch must trigger its PR's CI. Push with the
+          # dedicated PAT rather than GITHUB_TOKEN, whose events do not start
+          # downstream workflows.
+          token: ${{ secrets.BUMP_TOKEN }}
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -41,7 +46,7 @@ jobs:
 
       - name: Open or refresh the synchronization pull request
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.BUMP_TOKEN }}
         run: |
           set -euo pipefail
           if [ -z "$(git status --porcelain -- composer.json composer.lock package.json package-lock.json assets/js/vendor)" ]; then
@@ -58,12 +63,11 @@ jobs:
           git push --force-with-lease="refs/heads/${branch}:${expected}" origin "${branch}"
           if [ -z "$(gh pr list --head "${branch}" --state open --json number --jq '.[0].number')" ]; then
             printf '%s\n' '## Summary' '' '- synchronize the PHP, JavaScript, and grammar engines' '- rebuild the browser bundles from the resolved lockfiles' '' 'CI provides the compatibility and corpus review before this automated update is merged.' > "${RUNNER_TEMP}/body.md"
-            # The branch is already pushed at this point, so a refused PR is
-            # recoverable by hand. Name the setting: the bare GraphQL text
-            # ("GitHub Actions is not permitted to create or approve pull
-            # requests") reads like a token scope and is neither.
+            # The dedicated PAT creates the pull request and makes the push
+            # visible to CI. GITHUB_TOKEN cannot do both: GitHub suppresses
+            # workflow events made with it.
             if ! gh pr create --base main --head "${branch}" --title 'chore: synchronize Carve engines' --body-file "${RUNNER_TEMP}/body.md"; then
-              echo "::error::could not open the synchronization pull request. The branch ${branch} is pushed; opening the pull request needs Settings > Actions > General > Allow GitHub Actions to create and approve pull requests, which is off for this repository and for every markup-carve repository checked on 2026-09-16."
+              echo "::error::could not open the synchronization pull request with BUMP_TOKEN. Check that the secret has Contents and Pull requests write permissions for this repository."
               exit 1
             fi
           fi
