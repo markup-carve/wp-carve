@@ -39,8 +39,8 @@
 			// wrapper instead; the data attributes move along for the CSS hooks.
 			const wrap = document.createElement( 'div' );
 			wrap.className = 'wpcarve-codewrap';
-			if ( pre.dataset.title ) {
-				wrap.dataset.title = pre.dataset.title;
+			if ( pre.dataset.title || pre.title ) {
+				wrap.dataset.title = pre.dataset.title || pre.title;
 			}
 			if ( pre.dataset.lang ) {
 				wrap.dataset.lang = pre.dataset.lang;
