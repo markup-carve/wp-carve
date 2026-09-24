@@ -231,21 +231,43 @@
 				}
 			};
 		}
-		function insertNode( node ) {
-			return () => {
-				const ed = ctlRef.current && ctlRef.current.editor;
-				if ( ed ) {
-					ed.chain().focus().insertContent( node ).run();
-				}
-			};
+		function selectedVisualText( ed ) {
+			const { from, to } = ed.state.selection;
+			return ed.state.doc.textBetween( from, to, '\n' );
+		}
+		function insertInlineNote() {
+			const ed = ctlRef.current && ctlRef.current.editor;
+			if ( ed ) {
+				ed.chain().focus().setTextSelection( ed.state.selection.to ).insertContent( {
+					type: 'carveInlineNote',
+					content: [ { type: 'text', text: 'note' } ],
+				} ).run();
+			}
+		}
+		function insertMath( display ) {
+			const ed = ctlRef.current && ctlRef.current.editor;
+			if ( ed ) {
+				ed.chain().focus().insertContent( {
+					type: 'carveMath', attrs: { src: selectedVisualText( ed ) || 'x', display },
+				} ).run();
+			}
 		}
 		function promptLink() {
 			const ed = ctlRef.current && ctlRef.current.editor;
 			if ( ! ed ) {
 				return;
 			}
+			const selected = selectedVisualText( ed );
 			const url = window.prompt( __( 'Link URL', 'carve-markup' ) );
 			if ( url === null ) {
+				return;
+			}
+			if ( url && ! selected ) {
+				const label = window.prompt( __( 'Link text', 'carve-markup' ), '' );
+				if ( ! label ) {
+					return;
+				}
+				ed.chain().focus().insertContent( { type: 'text', text: label, marks: [ { type: 'link', attrs: { href: url } } ] } ).unsetMark( 'link' ).run();
 				return;
 			}
 			const chain = ed.chain().focus();
@@ -256,11 +278,16 @@
 			if ( ! ed ) {
 				return;
 			}
+			const selected = selectedVisualText( ed );
 			const src = window.prompt( __( 'Image URL', 'carve-markup' ) );
 			if ( ! src ) {
 				return;
 			}
-			ed.chain().focus().setImage( { src, alt: window.prompt( __( 'Alt text', 'carve-markup' ), '' ) || '' } ).run();
+			const alt = window.prompt( __( 'Alt text', 'carve-markup' ), selected );
+			if ( alt === null ) {
+				return;
+			}
+			ed.chain().focus().setImage( { src, alt } ).run();
 		}
 
 		function promptEmbed() {
@@ -348,13 +375,13 @@
 				el(
 					ToolbarGroup,
 					null,
-					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: insertNode( { type: 'carveFootnote', attrs: { label: 'note' } } ) } ),
+					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: insertInlineNote } ),
 					el( ToolbarDropdownMenu, {
 						icon: 'calculator',
 						label: __( 'Math', 'carve-markup' ),
 						controls: [
-							{ title: __( 'Inline math', 'carve-markup' ), onClick: insertNode( { type: 'carveMath', attrs: { tex: 'x', display: false } } ) },
-							{ title: __( 'Display math', 'carve-markup' ), onClick: insertNode( { type: 'carveMath', attrs: { tex: 'x', display: true } } ) },
+							{ title: __( 'Inline math', 'carve-markup' ), onClick: () => insertMath( false ) },
+							{ title: __( 'Display math', 'carve-markup' ), onClick: () => insertMath( true ) },
 						],
 					} ),
 					el( ToolbarButton, { icon: 'editor-removeformatting', title: __( 'Clear formatting', 'carve-markup' ), onClick: cmd( ( c ) => c.clearNodes().unsetAllMarks() ) } )
@@ -446,6 +473,10 @@
 		const [ ingest, setIngest ] = useState( null );
 		const [ ingestReport, setIngestReport ] = useState( null );
 		const [ tableOpen, setTableOpen ] = useState( false );
+		const [ insertDialog, setInsertDialog ] = useState( '' );
+		const [ insertUrl, setInsertUrl ] = useState( '' );
+		const [ insertLabel, setInsertLabel ] = useState( '' );
+		const [ insertError, setInsertError ] = useState( '' );
 		const [ cols, setCols ] = useState( 3 );
 		const [ rows, setRows ] = useState( 2 );
 		const [ importOpen, setImportOpen ] = useState( false );
@@ -460,6 +491,7 @@
 		const [ movingToDocument, setMovingToDocument ] = useState( false );
 		const [ moveError, setMoveError ] = useState( '' );
 		const taRef = useRef( null );
+		const insertSelectionRef = useRef( null );
 		const previewRef = useRef( null );
 		const timer = useRef( null );
 
@@ -615,29 +647,114 @@
 			setVal( next, start + before.length, start + before.length + chosen.length );
 		}
 
-		function inlineInsert( text, selFrom, selLen ) {
+		function insertSelected( before, after, placeholder, selectedText ) {
 			const { value, start, end } = sel();
-			const next = value.slice( 0, start ) + text + value.slice( end );
-			const s = start + ( selFrom || 0 );
-			setVal( next, s, s + ( selLen || 0 ) );
+			const chosen = selectedText === undefined ? value.slice( start, end ) : selectedText;
+			const content = chosen || placeholder;
+			const next = value.slice( 0, start ) + before + content + after + value.slice( end );
+			setVal( next, start + before.length, start + before.length + content.length );
+		}
+
+		function insertMathSelected() {
+			const { value, start, end } = sel();
+			const chosen = value.slice( start, end ) || 'x';
+			const runs = chosen.match( /`+/g ) || [];
+			const width = Math.max( 1, ...runs.map( ( run ) => run.length + 1 ) );
+			const fence = '`'.repeat( width );
+			const padding = chosen.startsWith( '`' ) || chosen.endsWith( '`' ) ? ' ' : '';
+			const markup = '$' + fence + padding + chosen + padding + fence;
+			setVal( value.slice( 0, start ) + markup + value.slice( end ), start + markup.length );
+		}
+
+		function insertFootnote() {
+			const { value, end } = sel();
+			setVal( value.slice( 0, end ) + '^[note]' + value.slice( end ), end + 2, end + 6 );
+		}
+
+		function insertCitation() {
+			const { value, start, end } = sel();
+			insertSelected( '[@', ']', 'key', value.slice( start, end ).replace( /^@/, '' ) );
+		}
+
+		function openInsertDialog( kind ) {
+			const selection = sel();
+			insertSelectionRef.current = selection;
+			setInsertError( '' );
+			const chosen = selection.value.slice( selection.start, selection.end );
+			setInsertLabel( kind === 'link' || kind === 'image' ? chosen : '' );
+			setInsertUrl( kind === 'link' || kind === 'image' ? '' : chosen );
+			setInsertDialog( kind );
+		}
+
+		function submitInsertDialog() {
+			const saved = insertSelectionRef.current;
+			if ( ! saved || saved.value !== source ) {
+				setInsertError( __( 'The source changed while this dialog was open. Close and try again.', 'carve-markup' ) );
+				return;
+			}
+			const url = insertUrl.trim();
+			if ( ! url ) {
+				return;
+			}
+			const escapeText = ( text ) => text.replace( /\\/g, '\\\\' ).replace( /([\[\]])/g, '\\$1' );
+			const escapeTarget = ( text ) => encodeURI( text ).replace( /%25([0-9a-fA-F]{2})/g, '%$1' ).replace( /\(/g, '%28' ).replace( /\)/g, '%29' );
+			let markup;
+			if ( insertDialog === 'link' ) {
+				if ( ! insertLabel.trim() ) {
+					return;
+				}
+				markup = '[' + escapeText( insertLabel ) + '](' + escapeTarget( url ) + ')';
+			} else if ( insertDialog === 'image' ) {
+				markup = '![' + escapeText( insertLabel ) + '](' + escapeTarget( url ) + ')';
+			} else {
+				markup = ':' + insertDialog + '[' + escapeText( url ) + ']';
+			}
+			setInsertDialog( '' );
+			setVal( saved.value.slice( 0, saved.start ) + markup + saved.value.slice( saved.end ), saved.start + markup.length );
 		}
 
 		function linePrefix( prefix ) {
 			const { value, start, end } = sel();
 			const lineStart = value.lastIndexOf( '\n', start - 1 ) + 1;
-			const seg = value.slice( lineStart, end );
+			const lineEnd = end > start && value[ end - 1 ] === '\n' ? end - 1 : end;
+			const seg = value.slice( lineStart, lineEnd );
 			const replaced = seg
 				.split( '\n' )
 				.map( ( l ) => prefix + l )
 				.join( '\n' );
-			const next = value.slice( 0, lineStart ) + replaced + value.slice( end );
+			const next = value.slice( 0, lineStart ) + replaced + value.slice( lineEnd );
 			setVal( next, lineStart, lineStart + replaced.length );
 		}
 
-		function blockInsert( text ) {
-			const { value, start } = sel();
+		function blockWrap( open, close ) {
+			const { value, start, end } = sel();
+			if ( start === end ) {
+				blockInsert( open + '\n\n' + close );
+				return;
+			}
 			const before = value.slice( 0, start );
-			const after = value.slice( start );
+			const after = value.slice( end );
+			const pre = before && ! before.endsWith( '\n\n' ) ? ( before.endsWith( '\n' ) ? '\n' : '\n\n' ) : '';
+			const post = after && ! after.startsWith( '\n' ) ? '\n\n' : '';
+			const chosen = value.slice( start, end ).replace( /\n$/, '' );
+			const marker = /^(`{3,}|:{3,})/.exec( open );
+			if ( marker ) {
+				const character = marker[ 0 ][ 0 ];
+				const longest = chosen.split( '\n' ).reduce( ( width, line ) => {
+					const run = line.match( new RegExp( '^' + character + '{3,}' ) );
+					return Math.max( width, run ? run[ 0 ].length + 1 : 0 );
+				}, marker[ 0 ].length );
+				open = character.repeat( longest ) + open.slice( marker[ 0 ].length );
+				close = character.repeat( longest );
+			}
+			const wrapped = open + '\n' + chosen + '\n' + close;
+			setVal( before + pre + wrapped + post + after, before.length + pre.length + open.length + 1, before.length + pre.length + open.length + 1 + chosen.length );
+		}
+
+		function blockInsert( text ) {
+			const { value, end } = sel();
+			const before = value.slice( 0, end );
+			const after = value.slice( end );
 			const pre = before && ! before.endsWith( '\n\n' ) ? ( before.endsWith( '\n' ) ? '\n' : '\n\n' ) : '';
 			const post = after && ! after.startsWith( '\n' ) ? '\n\n' : '';
 			const next = before + pre + text + post + after;
@@ -650,7 +767,8 @@
 		function setHeadingLine( level ) {
 			const { value, start, end } = sel();
 			const lineStart = value.lastIndexOf( '\n', start - 1 ) + 1;
-			const seg = value.slice( lineStart, end );
+			const lineEnd = end > start && value[ end - 1 ] === '\n' ? end - 1 : end;
+			const seg = value.slice( lineStart, lineEnd );
 			const lines = seg.split( '\n' );
 			const marker = '#'.repeat( level ) + ' ';
 			const exact = new RegExp( '^#{' + level + '} ' );
@@ -661,7 +779,7 @@
 					return allSame ? stripped : marker + stripped;
 				} )
 				.join( '\n' );
-			const next = value.slice( 0, lineStart ) + replaced + value.slice( end );
+			const next = value.slice( 0, lineStart ) + replaced + value.slice( lineEnd );
 			setVal( next, lineStart, lineStart + replaced.length );
 		}
 
@@ -679,7 +797,8 @@
 				.replace( /(^|[^:/])\/([^/\n]+?)\//g, '$1$2' )
 				.replace( /_(.+?)_/g, '$1' )
 				.replace( /~(.+?)~/g, '$1' )
-				.replace( /==(.+?)==/g, '$1' )
+				.replace( /\{=([^=\n]+)=\}/g, '$1' )
+				.replace( /(^|[\s([{])=([^\s=\n](?:[^=\n]*?[^\s=\n])?)=(?=$|[\s)\]},.!?])/g, '$1$2' )
 				.replace( /`(.+?)`/g, '$1' )
 				.replace( /\{\^(.+?)\^\}/g, '$1' )
 				.replace( /\{,(.+?),\}/g, '$1' );
@@ -698,12 +817,11 @@
 		}
 
 		function buildTable( c, r ) {
-			const head = '| ' + Array.from( { length: c }, ( _, i ) => 'Col ' + ( i + 1 ) ).join( ' | ' ) + ' |';
-			const rule = '| ' + Array.from( { length: c }, () => '---' ).join( ' | ' ) + ' |';
+			const head = '|= ' + Array.from( { length: c }, ( _, i ) => 'Col ' + ( i + 1 ) ).join( ' |= ' ) + ' |';
 			const body = Array.from( { length: r }, () =>
 				'| ' + Array.from( { length: c }, () => '   ' ).join( ' | ' ) + ' |'
 			).join( '\n' );
-			return head + '\n' + rule + '\n' + body;
+			return head + '\n' + body;
 		}
 
 		function outdentLines() {
@@ -744,9 +862,9 @@
 				if ( k === 'x' ) {
 					wrap( '~', '~', 'strike' );
 				} else if ( k === 'h' ) {
-					wrap( '==', '==', 'highlight' );
+					wrap( '=', '=', 'highlight' );
 				} else if ( k === 'e' ) {
-					blockInsert( '```\n\n```' );
+					blockWrap( '```', '```' );
 				} else if ( k === '.' ) {
 					linePrefix( '> ' );
 				} else if ( code === 'Digit8' ) {
@@ -754,7 +872,7 @@
 				} else if ( code === 'Digit7' ) {
 					linePrefix( '1. ' );
 				} else if ( k === 'i' ) {
-					inlineInsert( '![alt](https://)', 2, 3 );
+					openInsertDialog( 'image' );
 				} else {
 					handled = false;
 				}
@@ -767,7 +885,7 @@
 			} else if ( k === 'e' ) {
 				wrap( '`', '`', 'code' );
 			} else if ( k === 'k' ) {
-				inlineInsert( '[text](https://)', 1, 4 );
+				openInsertDialog( 'link' );
 			} else if ( k === '.' ) {
 				// Superscript/subscript are the braced forms only - a bare `^`
 				// or `,` is literal text in Carve.
@@ -801,11 +919,11 @@
 		}
 
 		const commands = [
-			{ label: __( 'Heading 2', 'carve-markup' ), keywords: 'section heading', run: () => blockInsert( '## Section' ) },
-			{ label: __( 'Admonition', 'carve-markup' ), keywords: 'note warning callout', run: () => blockInsert( '::: note\n\n:::' ) },
-			{ label: __( 'Code block', 'carve-markup' ), keywords: 'fence snippet', run: () => blockInsert( '```text\n\n```' ) },
+			{ label: __( 'Heading 2', 'carve-markup' ), keywords: 'section heading', run: () => setHeadingLine( 2 ) },
+			{ label: __( 'Admonition', 'carve-markup' ), keywords: 'note warning callout', run: () => blockWrap( '::: note', ':::' ) },
+			{ label: __( 'Code block', 'carve-markup' ), keywords: 'fence snippet', run: () => blockWrap( '```text', '```' ) },
 			{ label: __( 'Table', 'carve-markup' ), keywords: 'grid', run: () => blockInsert( buildTable( 3, 2 ) ) },
-			{ label: __( 'Citation', 'carve-markup' ), keywords: 'reference bibliography', run: () => inlineInsert( '[@key]', 2, 3 ) },
+			{ label: __( 'Citation', 'carve-markup' ), keywords: 'reference bibliography', run: insertCitation },
 			{ label: __( 'References list', 'carve-markup' ), keywords: 'bibliography works cited', run: () => blockInsert( '::: references\n:::' ) },
 		].filter( ( command ) => ( command.label + ' ' + command.keywords ).toLowerCase().includes( commandQuery.toLowerCase() ) );
 
@@ -903,8 +1021,8 @@
 					el( ToolbarButton, { icon: 'editor-italic', title: __( 'Emphasis (italic)', 'carve-markup' ), onClick: () => wrap( '/', '/', 'italic' ) } ),
 					el( ToolbarButton, { icon: 'editor-underline', title: __( 'Underline', 'carve-markup' ), onClick: () => wrap( '_', '_', 'underline' ) } ),
 					el( ToolbarButton, { icon: 'editor-code', title: __( 'Inline code', 'carve-markup' ), onClick: () => wrap( '`', '`', 'code' ) } ),
-					el( ToolbarButton, { icon: 'admin-links', title: __( 'Link', 'carve-markup' ), onClick: () => inlineInsert( '[text](https://)', 1, 4 ) } ),
-					el( ToolbarButton, { icon: 'format-image', title: __( 'Image', 'carve-markup' ), onClick: () => inlineInsert( '![alt](https://)', 2, 3 ) } )
+					el( ToolbarButton, { icon: 'admin-links', title: __( 'Link', 'carve-markup' ), onClick: () => openInsertDialog( 'link' ) } ),
+					el( ToolbarButton, { icon: 'format-image', title: __( 'Image', 'carve-markup' ), onClick: () => openInsertDialog( 'image' ) } )
 				),
 				el(
 					ToolbarGroup,
@@ -920,22 +1038,22 @@
 					} ),
 					el( ToolbarButton, { icon: 'editor-quote', title: __( 'Blockquote', 'carve-markup' ), onClick: () => linePrefix( '> ' ) } ),
 					el( ToolbarButton, { icon: 'editor-table', title: __( 'Table', 'carve-markup' ), onClick: () => setTableOpen( true ) } ),
-					el( ToolbarButton, { icon: 'editor-code', title: __( 'Code block', 'carve-markup' ), onClick: () => blockInsert( '```\n\n```' ) } ),
+					el( ToolbarButton, { icon: 'editor-code', title: __( 'Code block', 'carve-markup' ), onClick: () => blockWrap( '```', '```' ) } ),
 					el( ToolbarDropdownMenu, {
 						icon: 'info',
 						label: __( 'Admonition', 'carve-markup' ),
 						controls: ADMONITIONS.map( ( t ) => ( {
 							title: cap( t ),
-							onClick: () => blockInsert( '::: ' + t + '\n\n:::' ),
+							onClick: () => blockWrap( '::: ' + t, ':::' ),
 						} ) ),
 					} ),
 					el( ToolbarDropdownMenu, {
 						icon: 'format-video',
 						label: __( 'Media embed', 'carve-markup' ),
 						controls: [
-							{ title: 'YouTube', onClick: () => inlineInsert( ':youtube[VIDEO_ID]', 9, 8 ) },
-							{ title: 'Vimeo', onClick: () => inlineInsert( ':vimeo[VIDEO_ID]', 7, 8 ) },
-							{ title: __( 'Auto (URL)', 'carve-markup' ), onClick: () => inlineInsert( ':media[https://]', 7, 8 ) },
+							{ title: 'YouTube', onClick: () => openInsertDialog( 'youtube' ) },
+							{ title: 'Vimeo', onClick: () => openInsertDialog( 'vimeo' ) },
+							{ title: __( 'Auto (URL)', 'carve-markup' ), onClick: () => openInsertDialog( 'media' ) },
 						],
 					} ),
 					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: () => blockInsert( '---' ) } )
@@ -943,16 +1061,16 @@
 				el(
 					ToolbarGroup,
 					null,
-					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: () => inlineInsert( '^[note]', 2, 4 ) } ),
+					el( ToolbarButton, { icon: 'format-aside', title: __( 'Footnote', 'carve-markup' ), onClick: insertFootnote } ),
 					el( ToolbarDropdownMenu, {
 						icon: 'calculator',
 						label: __( 'Math', 'carve-markup' ),
 						controls: [
-							{ title: __( 'Inline math', 'carve-markup' ), onClick: () => inlineInsert( '$`x`', 2, 1 ) },
+							{ title: __( 'Inline math', 'carve-markup' ), onClick: insertMathSelected },
 							{ title: __( 'Display math', 'carve-markup' ), onClick: () => blockInsert( '$$`x`' ) },
 						],
 					} ),
-					el( ToolbarButton, { icon: 'book', title: __( 'Citation', 'carve-markup' ), onClick: () => inlineInsert( '[@key]', 2, 3 ) } ),
+					el( ToolbarButton, { icon: 'book', title: __( 'Citation', 'carve-markup' ), onClick: insertCitation } ),
 					el( ToolbarButton, { icon: 'editor-justify', title: __( 'Definition list', 'carve-markup' ), onClick: () => blockInsert( ':: Term\n:  Definition' ) } ),
 					el( ToolbarButton, { icon: 'editor-removeformatting', title: __( 'Clear formatting', 'carve-markup' ), onClick: stripFormatting } )
 				)
@@ -1265,6 +1383,36 @@
 					el( Button, { variant: 'primary', size: 'small', onClick: doPasteIngest }, __( 'Convert to Carve', 'carve-markup' ) )
 				),
 			body,
+			insertDialog && el(
+				Modal,
+				{
+					title: insertDialog === 'link' ? __( 'Add link', 'carve-markup' )
+						: insertDialog === 'image' ? __( 'Add image', 'carve-markup' )
+						: __( 'Add media embed', 'carve-markup' ),
+					onRequestClose: () => setInsertDialog( '' ),
+				},
+				el( 'form', { onSubmit: ( event ) => { event.preventDefault(); submitInsertDialog(); } },
+					insertError && el( Notice, { status: 'error', isDismissible: false }, insertError ),
+					( insertDialog === 'link' || insertDialog === 'image' ) && el( TextControl, {
+						label: insertDialog === 'link' ? __( 'Link text', 'carve-markup' ) : __( 'Alt text', 'carve-markup' ),
+						value: insertLabel,
+						onChange: setInsertLabel,
+					} ),
+					el( TextControl, {
+						label: insertDialog === 'youtube' ? __( 'YouTube video ID', 'carve-markup' )
+							: insertDialog === 'vimeo' ? __( 'Vimeo video ID', 'carve-markup' )
+							: __( 'URL', 'carve-markup' ),
+						value: insertUrl,
+						onChange: setInsertUrl,
+						autoFocus: true,
+					} ),
+					el( Button, {
+						type: 'submit',
+						variant: 'primary',
+						disabled: ! insertUrl.trim() || ( insertDialog === 'link' && ! insertLabel.trim() ),
+					}, __( 'Insert', 'carve-markup' ) )
+				)
+			),
 			commandOpen && el(
 				Modal,
 				{ title: __( 'Insert Carve construct', 'carve-markup' ), onRequestClose: () => setCommandOpen( false ) },

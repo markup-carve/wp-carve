@@ -152,6 +152,11 @@ class PostEditor
         wp_localize_script('wpcarve-code-editor', 'wpCarve', [
             'restRender' => esc_url_raw(rest_url('carve/v1/render')),
             'previewError' => __('Preview failed. Check the document size and try again.', 'carve-markup'),
+            'linkUrlLabel' => __('Link URL', 'carve-markup'),
+            'linkTextLabel' => __('Link text', 'carve-markup'),
+            'imageUrlLabel' => __('Image URL', 'carve-markup'),
+            'imageAltLabel' => __('Alt text', 'carve-markup'),
+            'mediaUrlLabel' => __('Media URL', 'carve-markup'),
             'livePreview' => (bool)Settings::get('live_preview'),
             'codeEditor' => $codeEditor === false ? null : $codeEditor,
         ]);
@@ -188,8 +193,8 @@ class PostEditor
             ['/', '/', __('Emphasis', 'carve-markup'), '<em>I</em>'],
             ['_', '_', __('Underline', 'carve-markup'), '<span class="wpcarve-tool-underline">U</span>'],
             ['`', '`', __('Inline code', 'carve-markup'), '&lt;/&gt;'],
-            ['[', '](https://)', __('Link', 'carve-markup'), __('Link', 'carve-markup')],
-            ['![', '](https://)', __('Image', 'carve-markup'), __('Image', 'carve-markup')],
+            ['', '', __('Link', 'carve-markup'), __('Link', 'carve-markup'), '', 'link'],
+            ['', '', __('Image', 'carve-markup'), __('Image', 'carve-markup'), '', 'image'],
             ['', '', __('Blockquote', 'carve-markup'), __('Quote', 'carve-markup'), '> ', 'prefix'],
             ['', '', __('Bullet list', 'carve-markup'), __('Bullets', 'carve-markup'), '- ', 'prefix'],
             ['', '', __('Ordered list', 'carve-markup'), __('Numbered', 'carve-markup'), '1. ', 'prefix'],
@@ -219,11 +224,11 @@ class PostEditor
         $more = [
             __('Admonition', 'carve-markup') => "::: note\n\n:::",
             __('Disclosure', 'carve-markup') => "::: details \"Summary\"\n\n:::",
-            __('Media embed', 'carve-markup') => ':media[https://]',
+            __('Media embed', 'carve-markup') => 'media',
             __('Divider', 'carve-markup') => '---',
-            __('Footnote', 'carve-markup') => '^[note]',
-            __('Inline math', 'carve-markup') => '$`x`',
-            __('Citation', 'carve-markup') => '[@key]',
+            __('Footnote', 'carve-markup') => 'footnote',
+            __('Inline math', 'carve-markup') => 'math',
+            __('Citation', 'carve-markup') => 'citation',
             __('Definition list', 'carve-markup') => ":: Term\n:  Definition",
         ];
         foreach ($more as $label => $insert) {

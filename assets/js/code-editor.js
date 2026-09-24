@@ -169,6 +169,32 @@
 		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 	}
 
+	function insertLinked( kind ) {
+		const selection = cm
+			? { from: cm.getCursor( 'from' ), to: cm.getCursor( 'to' ), text: cm.getSelection() }
+			: { from: textarea.selectionStart, to: textarea.selectionEnd,
+				text: textarea.value.slice( textarea.selectionStart, textarea.selectionEnd ) };
+		const url = window.prompt( kind === 'link' ? cfg.linkUrlLabel : cfg.imageUrlLabel, '' );
+		if ( ! url || ! url.trim() ) {
+			return;
+		}
+		const label = selection.text || window.prompt( kind === 'link' ? cfg.linkTextLabel : cfg.imageAltLabel, '' );
+		if ( label === null || ( kind === 'link' && ! label.trim() ) ) {
+			return;
+		}
+		const escapedLabel = label.replace( /\\/g, '\\\\' ).replace( /([\[\]])/g, '\\$1' );
+		const target = encodeURI( url.trim() ).replace( /%25([0-9a-fA-F]{2})/g, '%$1' ).replace( /\(/g, '%28' ).replace( /\)/g, '%29' );
+		const markup = ( kind === 'image' ? '![' : '[' ) + escapedLabel + '](' + target + ')';
+		if ( cm ) {
+			cm.replaceRange( markup, selection.from, selection.to );
+			cm.focus();
+		} else {
+			textarea.setRangeText( markup, selection.from, selection.to, 'end' );
+			textarea.focus();
+			textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		}
+	}
+
 	function prefixLines( prefix, heading ) {
 		if ( cm ) {
 			const from = cm.getCursor( 'from' );
@@ -192,7 +218,8 @@
 		const start = textarea.selectionStart || 0;
 		const end = textarea.selectionEnd || start;
 		const lineStart = textarea.value.lastIndexOf( '\n', Math.max( 0, start - 1 ) ) + 1;
-		let lineEnd = textarea.value.indexOf( '\n', end );
+		const last = end > start && textarea.value[ end - 1 ] === '\n' ? end - 1 : end;
+		let lineEnd = textarea.value.indexOf( '\n', last );
 		if ( lineEnd < 0 ) {
 			lineEnd = textarea.value.length;
 		}
@@ -209,6 +236,27 @@
 		const current = sourceValue();
 		let before = '';
 		let after = '';
+		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
+		const fence = /^(?:(`{3,}[^\n]*)|(:{3,}[^\n]*))\n\n(`{3,}|:{3,})$/.exec( insert );
+		if ( selected && fence ) {
+			const opener = fence[ 1 ] || fence[ 2 ];
+			const marker = /^(`{3,}|:{3,})/.exec( opener )[ 0 ];
+			const character = marker[ 0 ];
+			const width = selected.split( '\n' ).reduce( ( longest, line ) => {
+				const run = line.match( new RegExp( '^' + character + '{3,}' ) );
+				return Math.max( longest, run ? run[ 0 ].length + 1 : 0 );
+			}, marker.length );
+			const boundary = character.repeat( width );
+			insert = boundary + opener.slice( marker.length ) + '\n' + selected.replace( /\n$/, '' ) + '\n' + boundary;
+		} else if ( selected ) {
+			// Tables, dividers and other templates follow selected text.
+			// Keep that text when the template has no content slot.
+			if ( cm ) {
+				cm.setCursor( cm.getCursor( 'to' ) );
+			} else {
+				textarea.setSelectionRange( textarea.selectionEnd, textarea.selectionEnd );
+			}
+		}
 		if ( cm ) {
 			const from = cm.indexFromPos( cm.getCursor( 'from' ) );
 			const to = cm.indexFromPos( cm.getCursor( 'to' ) );
@@ -223,6 +271,38 @@
 		replaceSelection( '', '', before + insert + after );
 	}
 
+	function insertInline( open, close, placeholder ) {
+		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
+		if ( selected ) {
+			replaceSelection( open, close );
+		} else {
+			replaceSelection( open, close, open + placeholder + close );
+		}
+	}
+
+	function insertFootnote() {
+		if ( cm ) {
+			cm.setCursor( cm.getCursor( 'to' ) );
+		} else {
+			textarea.setSelectionRange( textarea.selectionEnd, textarea.selectionEnd );
+		}
+		replaceSelection( '^[', ']', '^[note]' );
+	}
+
+	function insertMath() {
+		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
+		const content = selected || 'x';
+		const runs = content.match( /`+/g ) || [];
+		const fence = '`'.repeat( Math.max( 1, ...runs.map( ( run ) => run.length + 1 ) ) );
+		const padding = content.startsWith( '`' ) || content.endsWith( '`' ) ? ' ' : '';
+		replaceSelection( '', '', '$' + fence + padding + content + padding + fence );
+	}
+
+	function insertCitation() {
+		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
+		replaceSelection( '', '', '[@' + ( selected.replace( /^@/, '' ) || 'key' ) + ']' );
+	}
+
 	if ( toolbar ) {
 		toolbar.addEventListener( 'click', ( event ) => {
 			const button = event.target.closest( '[data-wpcarve-open]' );
@@ -231,7 +311,9 @@
 			}
 			const action = button.dataset.wpcarveAction || 'wrap';
 			const insert = button.dataset.wpcarveInsert || '';
-			if ( action === 'prefix' || action === 'heading' ) {
+			if ( action === 'link' || action === 'image' ) {
+				insertLinked( action );
+			} else if ( action === 'prefix' || action === 'heading' ) {
 				prefixLines( insert, action === 'heading' );
 			} else if ( action === 'block' ) {
 				insertBlock( insert );
@@ -246,10 +328,23 @@
 	}
 	if ( moreInsert ) {
 		moreInsert.addEventListener( 'change', () => {
-			if ( moreInsert.value ) {
-				insertBlock( moreInsert.value );
-				moreInsert.value = '';
+			const kind = moreInsert.value;
+			if ( kind === 'media' ) {
+				const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
+				const url = window.prompt( cfg.mediaUrlLabel || 'Media URL', selected );
+				if ( url && url.trim() ) {
+					replaceSelection( '', '', ':media[' + url.trim().replace( /([\\\[\]])/g, '\\$1' ) + ']' );
+				}
+			} else if ( kind === 'footnote' ) {
+				insertFootnote();
+			} else if ( kind === 'math' ) {
+				insertMath();
+			} else if ( kind === 'citation' ) {
+				insertCitation();
+			} else if ( kind ) {
+				insertBlock( kind );
 			}
+			moreInsert.value = '';
 		} );
 	}
 

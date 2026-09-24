@@ -10,7 +10,7 @@
 		{ label: 'I', title: 'Italic', wrap: [ '/', '/' ] },
 		{ label: 'S', title: 'Strike', wrap: [ '~', '~' ] },
 		{ label: '<>', title: 'Code', wrap: [ '`', '`' ] },
-		{ label: 'Link', title: 'Link', wrap: [ '[', '](https://)' ] },
+		{ label: 'Link', title: 'Link', action: 'link' },
 		{ label: 'Quote', title: 'Quote', line: '> ' },
 		{ label: 'List', title: 'List item', line: '- ' },
 	];
@@ -32,6 +32,25 @@
 		ta.value = ta.value.slice( 0, lineStart ) + prefix + ta.value.slice( lineStart );
 		ta.focus();
 		ta.selectionStart = ta.selectionEnd = s + prefix.length;
+		ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+	}
+
+	function insertLink( ta, cfg ) {
+		const start = ta.selectionStart;
+		const end = ta.selectionEnd;
+		const selected = ta.value.slice( start, end );
+		const url = window.prompt( cfg.linkUrlLabel || 'Link URL', '' );
+		if ( ! url || ! url.trim() ) {
+			return;
+		}
+		const label = selected || window.prompt( cfg.linkTextLabel || 'Link text', '' );
+		if ( ! label || ! label.trim() ) {
+			return;
+		}
+		const escapedLabel = label.replace( /\\/g, '\\\\' ).replace( /([\[\]])/g, '\\$1' );
+		const target = encodeURI( url.trim() ).replace( /%25([0-9a-fA-F]{2})/g, '%$1' ).replace( /\(/g, '%28' ).replace( /\)/g, '%29' );
+		ta.setRangeText( '[' + escapedLabel + '](' + target + ')', start, end, 'end' );
+		ta.focus();
 		ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 	}
 
@@ -57,7 +76,9 @@
 				if ( hasPreview && current !== 'write' ) {
 					switchTab( 'write' );
 				}
-				if ( b.wrap ) {
+				if ( b.action === 'link' ) {
+					insertLink( ta, cfg );
+				} else if ( b.wrap ) {
 					surround( ta, b.wrap[ 0 ], b.wrap[ 1 ] );
 				} else if ( b.line ) {
 					prefixLine( ta, b.line );
