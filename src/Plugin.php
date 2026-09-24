@@ -692,6 +692,8 @@ class Plugin
                 'emptyText' => __('Nothing to preview yet.', 'carve-markup'),
                 'loadingText' => __('Rendering preview…', 'carve-markup'),
                 'errorText' => __('Preview failed - please try again.', 'carve-markup'),
+                'linkUrlLabel' => __('Link URL', 'carve-markup'),
+                'linkTextLabel' => __('Link text', 'carve-markup'),
             ]);
         }
 
