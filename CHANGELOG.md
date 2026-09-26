@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A quoted fence title renders as a filename bar from the standard `title`
+  attribute, and the plain renderer carries the title into the front-end code
+  wrapper (#126).
+
+### Changed
+
+- The editor toolbar keeps the selection. Link, image and media controls open a
+  URL input with the selected text intact, a fence or inline construct wraps
+  what was selected, and a footnote lands after its anchor text. Table, math and
+  highlight output is corrected, and an existing escape in a URL is handled
+  (#128).
+
+### Fixed
+
+- Code-fence title and language chrome stays inside Split and Preview blocks
+  instead of escaping the block it belongs to. A rendered diagram block is left
+  alone (#126).
+- Fence language badges and title bars are muted in dark mode, and the editor's
+  language picker matches. Both the OS setting and the site theme toggle apply
+  it; an explicit light theme keeps the light colors (#127).
+
 ## [0.1.6] - 2026-09-22
 
 ### Added
