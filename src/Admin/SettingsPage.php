@@ -110,7 +110,7 @@ class SettingsPage
 
         echo '<div class="wrap wpcarve-settings">';
         echo '<h1>' . esc_html__('Carve Markup', 'carve-markup') . '</h1>';
-        echo '<p class="wpcarve-intro">' . esc_html__('A lightweight markup language for documents, in WordPress. Each feature below is independent; diagram libraries load only on pages that use them.', 'carve-markup') . '</p>';
+        echo '<p class="wpcarve-intro">' . esc_html__('A lightweight markup language for documents and the web, in WordPress. Each feature below is independent; diagram libraries load only on pages that use them.', 'carve-markup') . '</p>';
 
         echo '<h2 class="nav-tab-wrapper wpcarve-tabs">';
         $first = true;

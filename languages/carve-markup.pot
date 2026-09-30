@@ -79,7 +79,7 @@ msgid "Advanced"
 msgstr ""
 
 #: src/Admin/SettingsPage.php:113
-msgid "A lightweight markup language for documents, in WordPress. Each feature below is independent; diagram libraries load only on pages that use them."
+msgid "A lightweight markup language for documents and the web, in WordPress. Each feature below is independent; diagram libraries load only on pages that use them."
 msgstr ""
 
 #: src/Admin/SettingsPage.php:120
