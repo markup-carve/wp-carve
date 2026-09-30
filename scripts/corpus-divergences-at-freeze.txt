@@ -1,20 +1,28 @@
 # Documents the engine this plugin SHIPS renders differently from the spec
 # corpus, measured at the pinned freeze.
 #
-#   corpus  markup-carve/carve 0ea5936b0c1c, the 0.1.5 release, 1685 documents
-#   engine  markup-carve/carve-php 9fd773b, the dev-main revision composer.lock installs
-#           (upstream main is exactly the 0.1.7 release commit)
+#   corpus  markup-carve/carve 1fe313ce314b, the 0.1.7 release, 2134 documents
+#   engine  markup-carve/carve-php 0.1.10, the release composer.lock installs
 #
 # Both sides are fixed revisions, so this list is the whole result and not a
 # snapshot of one. A NAME APPEARING HERE is a divergence introduced by a change
 # in this repository, because there are none to inherit: the list is EMPTY, and
-# 0 of 1685 documents render differently.
+# 0 of 2134 documents render differently.
 #
-# BOTH ENDS MOVED TOGETHER AGAIN for carve-php 0.1.7 and carve 0.1.5. Left at
-# the 0.1.4 corpus, the newer engine reported `06-task-lists-2.crv` as a
-# divergence introduced by this repository, when it was the spec's own
-# task-state ruling (carve#1866) reaching the engine before the corpus that
-# pins it. Moving one end alone measures the distance between the pins.
+# BOTH ENDS MOVED TOGETHER AGAIN for carve-php 0.1.10 and carve 0.1.7. Left at
+# the 0.1.5 corpus, the newer engine reported 12 documents as divergences
+# introduced by this repository: one table header rowspan case, six fence
+# openers on a list marker line, two below-column markers after a comment, a
+# flush-left line after a container, an opaque span in a container, and a
+# blockquote lazy continuation. All 12 match the 0.1.7 expectation and none
+# match the 0.1.5 one, so every name was a ruling reaching the engine before the
+# corpus that pinned it. Moving one end alone measures the distance between the
+# pins.
+#
+# The pair before it was carve-php 0.1.7 and carve 0.1.5, for the same reason:
+# left at the 0.1.4 corpus, that engine reported `06-task-lists-2.crv` as a
+# divergence introduced here when it was the spec's own task-state ruling
+# (carve#1866).
 #
 # It was 195 names against the previous freeze (carve 0f6b9903 of 18 August,
 # 1245 documents, engine 0.1.4). Nothing here fixed them. Both ends moved to a
