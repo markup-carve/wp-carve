@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "89950a4119a2e46b2b69520595430d22",
+    "content-hash": "a1ea0350bc229488611e8f9cd41d0d35",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -350,16 +350,16 @@
         },
         {
             "name": "markup-carve/carve-grammars",
-            "version": "v0.1.9",
+            "version": "v0.1.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "98e5985f5b279a3a17cc669d95a2cdf438b60a0c"
+                "reference": "a2cfdfa32cb535c79ad7230ef1794d7d3adf0a28"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/98e5985f5b279a3a17cc669d95a2cdf438b60a0c",
-                "reference": "98e5985f5b279a3a17cc669d95a2cdf438b60a0c",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/a2cfdfa32cb535c79ad7230ef1794d7d3adf0a28",
+                "reference": "a2cfdfa32cb535c79ad7230ef1794d7d3adf0a28",
                 "shasum": ""
             },
             "require": {
@@ -390,20 +390,20 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-09-21T20:38:36+00:00"
+            "time": "2026-09-30T08:28:56+00:00"
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "0.1.9",
+            "version": "0.1.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "d4b53388df891158c9c868177a4213a5e8b2f608"
+                "reference": "6d94607eaa9d51c9ed782342161beca77b05aaf9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/d4b53388df891158c9c868177a4213a5e8b2f608",
-                "reference": "d4b53388df891158c9c868177a4213a5e8b2f608",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/6d94607eaa9d51c9ed782342161beca77b05aaf9",
+                "reference": "6d94607eaa9d51c9ed782342161beca77b05aaf9",
                 "shasum": ""
             },
             "require": {
@@ -417,6 +417,7 @@
                 "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0"
             },
             "suggest": {
+                "ext-dom": "Required for HTML import and HTML heading-ID conversion.",
                 "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/punctuation identically and other scripts fall back to the generated `section` id."
             },
             "bin": [
@@ -452,7 +453,7 @@
             ],
             "support": {
                 "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/0.1.9"
+                "source": "https://github.com/markup-carve/carve-php/tree/0.1.10"
             },
             "funding": [
                 {
@@ -460,7 +461,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-19T09:41:32+00:00"
+            "time": "2026-09-29T22:40:16+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
