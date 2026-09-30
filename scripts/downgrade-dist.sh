@@ -42,40 +42,14 @@ php -d auto_prepend_file="$REPO/rector-bootstrap.php" \
 	"$REPO/vendor/bin/rector" process --config "$DIST/rector.php" --no-diffs
 rm -f "$DIST/rector.php" "$DIST/rector-bootstrap.php"
 
-# Trait constants are a PHP 8.2 feature rector does not rewrite: move them to a
-# plain class and repoint the `self::` references.
-TRAIT_FILE="$DIST/vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php"
-if [ -f "$TRAIT_FILE" ]; then
-	DIST="$DIST" php << 'PHPSCRIPT'
-<?php
-$dist = getenv('DIST');
-$file = $dist . '/vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguage.php';
-$content = file_get_contents($file);
-
-if (preg_match_all('/^\s*const\s+(\w+)\s*=\s*([^;]+);/m', $content, $matches, PREG_SET_ORDER)) {
-    $helperClass = "<?php\n\nnamespace Torchlight\\Engine\\Generators\\Concerns;\n\nclass ProcessesFileLanguageConstants\n{\n";
-    foreach ($matches as $match) {
-        $helperClass .= "    public const {$match[1]} = {$match[2]};\n";
-    }
-    $helperClass .= "}\n";
-    file_put_contents($dist . '/vendor/torchlight/engine/src/Generators/Concerns/ProcessesFileLanguageConstants.php', $helperClass);
-
-    $content = preg_replace('/^\s*const\s+\w+\s*=\s*[^;]+;\s*\/\/[^\n]*\n?/m', '', $content);
-    $content = preg_replace('/^\s*const\s+\w+\s*=\s*[^;]+;\s*\n?/m', '', $content);
-    foreach ($matches as $match) {
-        $content = str_replace("self::{$match[1]}", "ProcessesFileLanguageConstants::{$match[1]}", $content);
-    }
-    file_put_contents($file, $content);
-    printf("trait constants: moved %d out of ProcessesFileLanguage.php\n", count($matches));
-} else {
-    echo "trait constants: ProcessesFileLanguage.php holds none, nothing to move\n";
-}
-PHPSCRIPT
-else
-	# Not an error: torchlight/engine v1.0.0 no longer ships this trait. Said out
-	# loud so the patch cannot quietly become a no-op the way the rector call did.
-	echo "trait constants: no ProcessesFileLanguage.php in the staged tree, patch not applicable"
-fi
+# Trait constants used to be hand-patched here for one named torchlight file,
+# moving them into a companion class. torchlight/engine v1.0.0 stopped shipping
+# that file, so the patch reported "not applicable" on every run for months. It
+# is gone rather than generalized: rewriting every staged trait would have to
+# repoint `self::` references in the classes USING the trait, which live in
+# other files, and a silent runtime break is a worse trade than a construct the
+# WordPress.org lint tolerates. scripts/lint-dist-floor.sh accounts for trait
+# constants by name instead of counting them.
 
 # phiki reads enum cases in constant expressions, which the older interpreter
 # behind WordPress.org's SVN lint rejects. Substitute the literal strings.
@@ -104,7 +78,7 @@ else
 	echo "phiki AnnotationsTransformer: not in the staged tree, patch not applicable"
 fi
 
-# The trait patch can add a class file: regenerate the optimized classmap.
+# Regenerate the optimized classmap over the rewritten tree.
 composer dump-autoload --working-dir="$DIST" --no-dev --optimize
 
 echo "Done. Downgraded staged plugin at: $DIST"

@@ -261,6 +261,16 @@ jobs:
           RESULT: ${{ needs.integration.result }}
         run: test "${RESULT}" = success
 
+  php-floor:
+    name: One PHP floor, every copy agreeing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # No PHP and no dependencies: this reads the files that state the floor.
+      - name: Every copy of the PHP floor agrees with readme.txt
+        run: bash scripts/check-php-floor.sh
+
   dist-floor:
     name: The shipped tree parses on the PHP it promises
     runs-on: ubuntu-latest

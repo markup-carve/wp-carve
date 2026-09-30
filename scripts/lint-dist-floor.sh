@@ -22,13 +22,21 @@
 #      advertises under "Requires PHP". No tolerance. A file that does not parse
 #      here cannot run on a supported install, so there is nothing to ratchet.
 #
-#   2. DOWNGRADE TARGET - the version rector.php's DOWN_TO_PHP_8x set aims at,
-#      with a ratcheting ceiling rather than a hard zero. The bundled
-#      dependencies contain enums rector does not rewrite, so the honest number
-#      is not zero and pretending otherwise would put this permanently red for
-#      something no change here can fix, which is how a check gets ignored. What
-#      it refuses is the number getting WORSE, which is exactly what a skipped,
-#      broken or partially applied downgrade looks like.
+#   2. DOWNGRADE TARGET - the version rector.php's DOWN_TO_PHP_8x set aims at.
+#      Zero is not the honest number here: the DOWN_TO_PHP_80 set leaves native
+#      enum declarations and trait constants in place, so some staged files do
+#      not parse at the target no matter what this repository does. What the
+#      check asserts is not HOW MANY files fail but WHY each one fails: every
+#      failure must sit on a line spelling one of those two constructs. Anything
+#      else - a construct rector does rewrite, a file it never visited, a tree
+#      the downgrade skipped - is unaccounted and fails the job by name.
+#
+#      This used to be a count against a hand-edited ceiling, which meant every
+#      engine release that added an enum or a trait constant raised the number
+#      instead of the rule being written down: 33, 37, 25, 26 in six weeks. The
+#      construct rule does not move when upstream adds another enum, and it
+#      still catches the thing the count was watching for, because a skipped or
+#      partial downgrade leaves failures on lines that spell something else.
 #
 # Both versions are read out of the files that make the promise, so neither can
 # drift away from the claim it is checking.
@@ -37,27 +45,6 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST="${1:-$REPO/build/dist/carve-markup}"
-
-# Files still failing to parse at the downgrade target. Lower this whenever the
-# real number drops; it is a ceiling on known-remaining work, not a target.
-# 26 as of carve-php 0.1.10, which adds one file the DOWN_TO_PHP_80 set does not
-# rewrite: src/Converter/ReportsMigrationFidelity.php, a trait holding constants
-# ("Traits cannot have constants" on PHP 8.0). The declared floor stays clean at
-# 0 of 947, so the distribution is still shippable; only this ratchet moved.
-# downgrade-dist.sh already hand-patches that construct for one named torchlight
-# file, and torchlight no longer ships it, so generalizing that patch over every
-# staged trait would bring the number back down instead of raising the ceiling
-# again on the next engine release.
-#
-# 37 as of torchlight/engine v1.0.0 + phiki v2.2.0 + carve-php 0.1.5: rector's
-# downgrade sets leave native enums, readonly classes and readonly promoted
-# properties in place. It was 33 against carve-php 0.1.4; that release added
-# four files in constructs the DOWN_TO_PHP_80 set does not rewrite - two
-# `readonly class` (HtmlImportDiagnostic, HtmlImportResult), one enum
-# (BlockQuoteLazyMode) and one readonly promoted property
-# (SentinelSpaceExhaustedException). The downgrade itself still runs: the same
-# staged tree reports 71 before it and 37 after.
-DOWNGRADE_TARGET_CEILING="${DOWNGRADE_TARGET_CEILING:-26}"
 
 if [ ! -d "$DIST" ]; then
 	echo "::error::Staged distribution not found at $DIST. Run scripts/build-dist.sh first."
@@ -132,32 +119,74 @@ echo
 
 # Parse every staged file with a real interpreter of $1, print the failing paths,
 # and return the failure count on stdout's last line.
+# Parse every staged file with a real interpreter of $1 and print one TAB
+# separated "path<TAB>line<TAB>message" record per failing file.
 lint_at() {
 	local version="$1"
 	docker run --rm -v "$DIST:/app:ro" -w /app "php:${version}-cli" sh -c '
-		failed=0
 		for f in $(find . -name "*.php"); do
-			if ! php -l "$f" > /dev/null 2>&1; then
-				failed=$((failed + 1))
-				echo "  parse error: $f"
-			fi
+			out=$(php -l "$f" 2>&1) || printf "%s\t%s\t%s\n" \
+				"$f" \
+				"$(printf "%s" "$out" | sed -n "s/.* on line \([0-9]*\).*/\1/p" | head -1)" \
+				"$(printf "%s" "$out" | grep -m1 -iE "error" | sed "s/ in \/app[^ ]*//")"
 		done
-		echo "FAILED=$failed"
 	'
+}
+
+# Say why one failure happened, or nothing at all if no known construct explains
+# it. $1 is the staged path as lint_at reported it, $2 the line, $3 the message.
+#
+# Both constructs below are PHP 8.1/8.2 syntax that rector's DOWN_TO_PHP_80 set
+# has no rule for, which is why they survive a downgrade that worked. Neither is
+# reachable at the declared floor, which assertion 1 holds at zero.
+explain_failure() {
+	local path="$1" line="$2" message="$3" source_line
+	case "$message" in
+		*'Traits cannot have constants'*)
+			echo 'trait constants (PHP 8.2)'
+			return
+			;;
+	esac
+	source_line="$(sed -n "${line}p" "$DIST/${path#./}" 2>/dev/null || true)"
+	if printf '%s' "$source_line" | grep -qE '^[[:space:]]*enum[[:space:]]+[A-Za-z_]'; then
+		echo 'native enum declaration (PHP 8.1)'
+		return
+	fi
+	echo ''
 }
 
 echo "Parsing the staged tree on PHP $DECLARED_FLOOR (declared floor, no tolerance)..."
 FLOOR_OUT="$(lint_at "$DECLARED_FLOOR")"
-FLOOR_FAILED="${FLOOR_OUT##*FAILED=}"
-echo "$FLOOR_OUT" | grep -v '^FAILED=' || true
+FLOOR_FAILED="$(printf '%s' "$FLOOR_OUT" | grep -c . || true)"
+if [ "$FLOOR_FAILED" -ne 0 ]; then
+	printf '%s\n' "$FLOOR_OUT" | cut -f1,3 | sed 's/^/  /'
+fi
 echo "  $FLOOR_FAILED of $TOTAL files fail to parse on PHP $DECLARED_FLOOR"
 echo
 
-echo "Parsing the staged tree on PHP $DOWNGRADE_TARGET (downgrade target, ceiling $DOWNGRADE_TARGET_CEILING)..."
+echo "Parsing the staged tree on PHP $DOWNGRADE_TARGET (downgrade target, every failure must name a known construct)..."
 TARGET_OUT="$(lint_at "$DOWNGRADE_TARGET")"
-TARGET_FAILED="${TARGET_OUT##*FAILED=}"
-echo "$TARGET_OUT" | grep -v '^FAILED=' || true
-echo "  $TARGET_FAILED of $TOTAL files fail to parse on PHP $DOWNGRADE_TARGET"
+TARGET_FAILED="$(printf '%s' "$TARGET_OUT" | grep -c . || true)"
+
+UNACCOUNTED=0
+ACCOUNTED_REPORT=""
+while IFS=$'\t' read -r path line message; do
+	[ -z "$path" ] && continue
+	REASON="$(explain_failure "$path" "$line" "$message")"
+	if [ -z "$REASON" ]; then
+		UNACCOUNTED=$((UNACCOUNTED + 1))
+		echo "  UNACCOUNTED  $path:$line"
+		echo "               $message"
+		echo "               $(sed -n "${line}p" "$DIST/${path#./}" 2>/dev/null | sed 's/^[[:space:]]*//')"
+	else
+		ACCOUNTED_REPORT="${ACCOUNTED_REPORT}${REASON}"$'\n'
+	fi
+done < <(printf '%s\n' "$TARGET_OUT")
+
+echo "  $TARGET_FAILED of $TOTAL files fail to parse on PHP $DOWNGRADE_TARGET, $UNACCOUNTED of them unaccounted for"
+if [ -n "$ACCOUNTED_REPORT" ]; then
+	printf '%s' "$ACCOUNTED_REPORT" | sort | uniq -c | sed 's/^/  accounted for: /'
+fi
 echo
 
 STATUS=0
@@ -167,15 +196,13 @@ if [ "$FLOOR_FAILED" -ne 0 ]; then
 	STATUS=1
 fi
 
-if [ "$TARGET_FAILED" -gt "$DOWNGRADE_TARGET_CEILING" ]; then
-	echo "::error::$TARGET_FAILED staged files do not parse on PHP $DOWNGRADE_TARGET, over the ceiling of $DOWNGRADE_TARGET_CEILING. The downgrade did not run, or ran over less of the tree than it used to."
+if [ "$UNACCOUNTED" -ne 0 ]; then
+	echo "::error::$UNACCOUNTED staged files fail to parse on PHP $DOWNGRADE_TARGET for a reason no known construct explains, listed above. The downgrade did not run, ran over less of the tree than it used to, or upstream reached for syntax rector's DOWN_TO_PHP_80 set does not rewrite. If the construct is genuinely one that set leaves alone, add it to explain_failure() with the reason."
 	STATUS=1
-elif [ "$TARGET_FAILED" -lt "$DOWNGRADE_TARGET_CEILING" ]; then
-	echo "::notice::Only $TARGET_FAILED staged files fail to parse on PHP $DOWNGRADE_TARGET. Lower DOWNGRADE_TARGET_CEILING in scripts/lint-dist-floor.sh to $TARGET_FAILED so the gate keeps ratcheting."
 fi
 
 if [ "$STATUS" -eq 0 ]; then
-	echo "Staged distribution parses at the declared floor and is within the downgrade ceiling."
+	echo "Staged distribution parses at the declared floor, and every remaining failure at the downgrade target is a construct the downgrade set is known to leave."
 fi
 
 exit "$STATUS"

@@ -89,3 +89,4 @@ section above; what is left runs every time.
 - [ ] `readme.txt` `Tested up to:` checked against the current WordPress release.
 - [ ] `composer test`, `composer stan`, `composer cs-check`, `npm run test:js` all green.
 - [ ] `bash scripts/lint-dist-floor.sh` green against a freshly staged and downgraded tree.
+- [ ] `bash scripts/check-php-floor.sh` green (every copy of the PHP floor agrees with `readme.txt`).
