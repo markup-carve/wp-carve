@@ -10,17 +10,17 @@ return RectorConfig::configure()
         __DIR__ . '/rector-bootstrap.php',
     ])
     ->withPaths([
-        // Only downgrade bundled packages that use PHP 8.1/8.2-only syntax
-        // (readonly classes, trait constants, enum ->value in const exprs).
-        // WordPress.org's SVN pre-commit lint runs on an older PHP.
-        // carve-php 0.1.6 introduced readonly classes and enums in src/.
-        __DIR__ . '/vendor/markup-carve/carve-php',
-        __DIR__ . '/vendor/torchlight/engine',
-        __DIR__ . '/vendor/phiki/phiki',
-        __DIR__ . '/vendor/nette/schema',
-        __DIR__ . '/vendor/nette/utils',
+        // The whole staged vendor tree, not a hand-written list of packages.
+        // WordPress.org's SVN pre-commit lint parses every committed file on an
+        // older PHP, so every bundled package has to lose its 8.1/8.2-only
+        // syntax - and a list of package names silently stops covering the one
+        // that gets added next. dereuromark/media-embed was such a package: it
+        // shipped eight files of readonly promoted properties that nothing
+        // downgraded, because the list named five packages and not that one.
+        __DIR__ . '/vendor',
     ])
     ->withSets([
-        // DOWN_TO_PHP_80 to catch traits with constants and other 8.1/8.2 features
+        // Down to 8.0, below the plugin's own floor, because the lint behind
+        // WordPress.org's SVN commit runs older than the versions users get.
         DowngradeLevelSetList::DOWN_TO_PHP_80,
     ]);
