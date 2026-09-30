@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@markup-carve/carve": "^0.1.9",
-    "@markup-carve/carve-grammars": "^0.1.9"
+    "@markup-carve/carve-grammars": "^0.1.11"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",
