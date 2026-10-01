@@ -144,6 +144,42 @@ test('alt and URL cannot break out of the image brackets', () => {
   );
 });
 
+// A label sits inside an image construct, so it has to stay on one line. A
+// blank line, or a line opening a heading, a fence or a blockquote, ends the
+// paragraph and leaves the two halves of the construct as literal text. The
+// alt field is single-line in the library UI, so this guards a stored value
+// that arrived some other way rather than something an author can type.
+for (const [name, alt] of [
+  ['a blank line', 'Line one\n\nLine two'],
+  ['a heading', 'Line one\n# heading'],
+  ['a fence', 'Line one\n``` php'],
+  ['a blockquote', 'Line one\n> quoted'],
+]) {
+  test(`an alt text containing ${name} stays inside the image label`, () => {
+    const media = loadPicker();
+    const source = media.toSource(
+      media.pick({ id: 7, url: 'https://site.test/a.png', alt }, '')
+    );
+
+    assert.equal(source.split('\n').length, 1, source);
+    assert.match(source, /^!\[[^[\]]*\]\(https:\/\/site\.test\/a\.png\)\{\.wp-image-7\}$/);
+  });
+}
+
+// Runs of whitespace collapse to one space rather than reaching the label
+// verbatim. Asserted on the value, not on the line count: a tab does not split
+// the construct, so a line-count check would pass either way.
+test('runs of whitespace in an alt text collapse to single spaces', () => {
+  const media = loadPicker();
+
+  assert.equal(
+    media.toSource(
+      media.pick({ id: 7, url: 'https://site.test/a.png', alt: '  Line\tone   spaced \n' }, '')
+    ),
+    '![Line one spaced](https://site.test/a.png){.wp-image-7}'
+  );
+});
+
 test('the picker reports itself unavailable and runs the fallback without wp.media', () => {
   const media = loadPicker();
   let fellBack = 0;

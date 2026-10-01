@@ -10,6 +10,7 @@
     "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
     "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
     "watch": "npm run build:engine -- --watch",
+    "test": "npm run test:js",
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {

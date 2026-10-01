@@ -1,0 +1,5 @@
+{
+    "imgfence": "<img src=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%225%22%20r%3D%224%22%2F%3E%3C%2Fsvg%3E\" alt=\"\">\n",
+    "listtable": "<table>\n  <thead>\n    <tr><th scope=\"col\">A</th><th scope=\"col\">B</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>1</td><td>2</td></tr>\n  </tbody>\n</table>\n",
+    "semantic": "<p>A <samp>word</samp> here.</p>\n"
+}

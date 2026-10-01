@@ -16,9 +16,16 @@
 
 	const l10n = window.wpCarveMediaL10n || {};
 
-	/** A label inside `![...]` must not close the bracket pair. */
+	/**
+	 * A label inside `![...]` must not close the bracket pair, and has to stay
+	 * on one line: a blank line, or a line that opens a heading, a fence or a
+	 * blockquote, ends the paragraph and leaves the two halves of the image
+	 * construct as literal text. Collapsed the way a caption is.
+	 */
 	function escapeLabel( text ) {
 		return String( text == null ? '' : text )
+			.replace( /\s+/g, ' ' )
+			.trim()
 			.replace( /\\/g, '\\\\' )
 			.replace( /([\[\]])/g, '\\$1' );
 	}
