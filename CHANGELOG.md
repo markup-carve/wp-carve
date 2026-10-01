@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A cached post re-renders after the bundled engine moves. The render cache
   signature now carries the engine version, so an engine upgrade inside the
   Composer caret range no longer serves HTML an older engine produced (#136).
+- A highlight keeps its own ink, so `=highlight=` stays readable on a dark
+  theme. It inherited the theme's prose color over a fixed light wash, which
+  computed 1.01:1 under both the OS setting and the site theme toggle. A nested
+  link, insertion or deletion inside a highlight inherits that ink too (#149).
 
 ### Improvements
 
