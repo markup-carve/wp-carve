@@ -1240,10 +1240,12 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 		color: var(--phiki-dark-color) !important;
 	}
 
-	/* The diff marker and the gutter sit on top of a row wash, so repainting
-	   them with the editor background would punch a hole in it. */
+	/* A diff row's wash is the row's own background, so nothing inside the row
+	   may repaint over it: not the marker, not the gutter, and not the syntax
+	   token spans, which cover the code itself. Only non-diff lines take the
+	   editor background, matching the `.line:not(.diff)` rule below. */
 	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes,
-	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes span:not(.diff-marker):not(.line-number) {
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes .line:not(.diff) span:not(.diff-marker):not(.line-number) {
 		background-color: var(--phiki-dark-background-color) !important;
 	}
 
@@ -1264,7 +1266,7 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 }
 
 :root[data-theme="dark"] .wpcarve pre code.phiki-themes,
-:root[data-theme="dark"] .wpcarve pre code.phiki-themes span:not(.diff-marker):not(.line-number) {
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes .line:not(.diff) span:not(.diff-marker):not(.line-number) {
 	background-color: var(--phiki-dark-background-color) !important;
 }
 
