@@ -607,4 +607,30 @@ CARVE;
         $this->assertStringContainsString('<div class="toc">', $html);
         $this->assertStringNotContainsString('<nav class="toc"', $html);
     }
+
+    /**
+     * The mask in Converter::sanitizeHtml() matches the engine's own spelling of
+     * the URI, so it breaks silently if the engine changes how it encodes one.
+     * The pattern is written out here rather than read from the constant: a check
+     * that takes its expected value from the value under test cannot fail.
+     *
+     * Whether the URI then survives wp_kses is settled in
+     * tests/integration/checks.php - there is no wp_kses in this suite.
+     */
+    public function testImgFenceEmitsAPercentEncodedSvgDataUri(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml(
+            "```img\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\">"
+            . "<title>A dot</title><circle cx=\"5\" cy=\"5\" r=\"4\"/></svg>\n```\n",
+        );
+
+        $this->assertSame(1, preg_match('/<img src="([^"]*)" alt="A dot">/', $html, $m), $html);
+        $this->assertMatchesRegularExpression(
+            '/^data:image\/svg\+xml,[A-Za-z0-9%\-_.~!*\'()]*$/',
+            $m[1],
+        );
+        $this->assertStringContainsString('%3Csvg', $m[1]);
+    }
 }
