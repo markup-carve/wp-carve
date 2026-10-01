@@ -352,6 +352,72 @@ CARVE;
         $this->assertDoesNotMatchRegularExpression('/["\']class=/', $html);
     }
 
+    public function testADiffFenceKeepsBothHighlightingAndDiffRows(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+        ]);
+
+        $html = $converter->toHtml("{.diff}\n``` php\n- old();\n+ fresh();\n  keep();\n```\n");
+
+        // Diff presentation.
+        $this->assertStringContainsString('has-diff', $html);
+        $this->assertStringContainsString('line diff remove', $html);
+        $this->assertStringContainsString('line diff add', $html);
+        $this->assertStringContainsString('<span class="diff-marker">-</span>', $html);
+        $this->assertStringContainsString('<span class="diff-marker">+</span>', $html);
+        // Highlighting, in the same block.
+        $this->assertStringContainsString('phiki language-php', $html);
+        $this->assertMatchesRegularExpression('/<span class="token" style="color: #[0-9a-f]{6};">old<\/span>/', $html);
+        // The marker span must not re-trigger the glued attribute run kses drops.
+        $this->assertDoesNotMatchRegularExpression('/["\']class=/', $html);
+    }
+
+    public function testADiffFenceStripsTheMarkerBeforeHighlighting(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        // `-*/ end` lexes as a single `-*/` operator in C when the marker
+        // reaches the lexer, and `+/* start` never opens a comment. Stripping
+        // the marker first is what makes the body tokenize as written.
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+        ]);
+
+        $html = $converter->toHtml("{.diff}\n``` c\n-*/ end\n+/* start\n```\n");
+
+        $this->assertStringNotContainsString('>-*/<', $html);
+        $this->assertMatchesRegularExpression('/<span class="token" style="color: #[0-9a-f]{6};">\*\/<\/span>/', $html);
+    }
+
+    public function testADiffFenceWithLineNumbersPutsTheMarkerAfterTheNumber(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+            'torchlight_line_numbers' => true,
+        ]);
+
+        $html = $converter->toHtml("{.diff}\n``` php\n- old();\n```\n");
+
+        $this->assertStringContainsString(
+            'class="line-number">1</span><span class="diff-marker">-</span>',
+            $html,
+        );
+    }
+
     public function testTorchlightLineNumbersCanBeEnabledGlobally(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {
