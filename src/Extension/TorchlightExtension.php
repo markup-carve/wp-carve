@@ -68,6 +68,16 @@ class TorchlightExtension implements ExtensionInterface
             }
             $language = (string)($block->getLanguage() ?: 'text');
             $code = str_replace("\t", '    ', $block->getContent());
+            // A `{.diff}` fence keeps its markers out of the highlighter: they
+            // are stripped here and restored after, the same order
+            // carve-grammars/diff/index.js uses. Highlighting marker-bearing
+            // code mis-tokenizes the body (`-*/ end` lexes `-*/` as an
+            // operator in C), and Converter::presentLanguageDiff cannot run
+            // afterwards because the lines are spans by then.
+            $diffMarkers = [];
+            if ($block->hasClass('diff')) {
+                [$code, $diffMarkers] = self::stripDiffMarkers($code);
+            }
             $attrs = $block->getAttributes();
             $gutter = $block->hasClass('line-numbers') || $this->showLineNumbers;
             $start = isset($attrs['data-line-start']) ? (int)$attrs['data-line-start'] : 1;
@@ -122,7 +132,10 @@ class TorchlightExtension implements ExtensionInterface
                     },
                     $html,
                 ) ?? $html;
-                $event->setHtml($this->reapplyPreAttributes($html, $block));
+                if ($diffMarkers !== []) {
+                    $html = self::restoreDiffMarkers($html, $diffMarkers);
+                }
+                $event->setHtml($this->reapplyPreAttributes($html, $block, $diffMarkers !== [] ? ['has-diff'] : []));
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.
             }
@@ -264,11 +277,81 @@ class TorchlightExtension implements ExtensionInterface
         return (0.2126 * $r + 0.7152 * $g + 0.0722 * $b) / 255 < 0.5;
     }
 
-    private function reapplyPreAttributes(string $html, CodeBlock $block): string
+    /**
+     * Split a diff fence's code into marker-free lines and the markers.
+     *
+     * @return array{string, list<string>} The code the highlighter sees, and
+     *   one marker per line (`+`, `-`, ` `, or `` for an unmarked line).
+     */
+    private static function stripDiffMarkers(string $code): array
+    {
+        $code = substr($code, -1) === "\n" ? substr($code, 0, -1) : $code;
+        $bodies = [];
+        $markers = [];
+        foreach (explode("\n", $code) as $line) {
+            $marker = $line !== '' && in_array($line[0], ['+', '-', ' '], true) ? $line[0] : '';
+            $markers[] = $marker;
+            $bodies[] = $marker !== '' ? substr($line, 1) : $line;
+        }
+
+        return [implode("\n", $bodies), $markers];
+    }
+
+    /**
+     * Put each line's marker back into the highlighted markup.
+     *
+     * The engine wraps every line in `<div class='line'>`, in source order, so
+     * the markers map back positionally. The marker span goes after a line
+     * number when the gutter is on, and `+`/`-` lines gain the
+     * `line diff add` / `line diff remove` classes the stylesheet and
+     * carve-grammars/diff/carve-diff.css both key on.
+     *
+     * @param string $html
+     * @param list<string> $markers
+     */
+    private static function restoreDiffMarkers(string $html, array $markers): string
+    {
+        $index = 0;
+        $replaced = preg_replace_callback(
+            '/<div\b(?P<before>[^>]*?)class=(?P<quote>[\'"])(?P<classes>[^\'"]*)(?P=quote)(?P<after>[^>]*)>'
+                . '(?P<gutter>(?:<span\b[^>]*class=(?P<nq>[\'"])line-number(?P=nq)[^>]*>.*?<\/span>)?)/s',
+            static function (array $m) use ($markers, &$index): string {
+                $classes = preg_split('/\s+/', trim($m['classes'])) ?: [];
+                if (!in_array('line', $classes, true)) {
+                    return $m[0];
+                }
+                $marker = $markers[$index] ?? '';
+                $index++;
+                if ($marker === '+') {
+                    $classes[] = 'diff';
+                    $classes[] = 'add';
+                } elseif ($marker === '-') {
+                    $classes[] = 'diff';
+                    $classes[] = 'remove';
+                }
+                $span = $marker !== ''
+                    ? '<span class="diff-marker">' . esc_html($marker) . '</span>'
+                    : '';
+
+                return '<div' . $m['before'] . 'class=' . $m['quote'] . implode(' ', $classes)
+                    . $m['quote'] . $m['after'] . '>' . $m['gutter'] . $span;
+            },
+            $html,
+        );
+
+        return is_string($replaced) ? $replaced : $html;
+    }
+
+    /**
+     * @param string $html
+     * @param \MarkupCarve\Carve\Node\Block\CodeBlock $block
+     * @param list<string> $additionalClasses
+     */
+    private function reapplyPreAttributes(string $html, CodeBlock $block, array $additionalClasses = []): string
     {
         $attrs = $block->getAttributes();
         $extraClasses = array_values(array_filter(
-            $block->getClassList(),
+            array_merge($block->getClassList(), $additionalClasses),
             static fn (string $class): bool => $class !== 'line-numbers',
         ));
         $extraAttrs = [];

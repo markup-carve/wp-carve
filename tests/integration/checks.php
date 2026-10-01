@@ -342,6 +342,26 @@ $carve_check(
     str_contains(\WpCarve\Converter::sanitizeHtml('<div class="chart" data-carve-json="{&quot;a&quot;:1}"></div>'), 'data-carve-json'),
 );
 
+// End-to-end: a highlighted `{.diff}` fence must keep BOTH the token spans and
+// the diff row classes through wp_kses. toHtml() sanitizes on the way out, so
+// anything missing here was dropped by the real filter, not by the extension.
+if (class_exists(\Torchlight\Engine\Engine::class)) {
+    $carve_diff_converter = new \WpCarve\Converter([
+        'torchlight_enabled' => true,
+        'torchlight_theme' => 'github-light',
+    ]);
+    $carve_diff_html = $carve_diff_converter->toHtml("{.diff}\n``` php\n- old();\n+ fresh();\n```\n");
+    $carve_check(
+        'kses keeps the diff row classes on a highlighted fence',
+        str_contains($carve_diff_html, 'has-diff')
+            && str_contains($carve_diff_html, 'line diff add')
+            && str_contains($carve_diff_html, 'line diff remove')
+            && str_contains($carve_diff_html, 'class="diff-marker"')
+            && str_contains($carve_diff_html, 'phiki language-php'),
+        $carve_snippet($carve_diff_html),
+    );
+}
+
 // End-to-end: a ```chart fence must survive wp_kses as a data attribute (the
 // <script> carrier is stripped) and ship the accessible data-table fallback.
 $chartConverter = new \WpCarve\Converter(['chart_enabled' => true]);
