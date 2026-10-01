@@ -248,6 +248,7 @@ async function classicEditor({ withMedia, prompts = [] }) {
 
   // media-picker.js is enqueued as a dependency, so it runs first.
   runInNewContext(pickerSource, { window: win });
+  runInNewContext(readFileSync(new URL('../../assets/js/inline-toggle.js', import.meta.url), 'utf8'), { window: win });
   runInNewContext(documentSource, {
     window: win, document, Event: win.Event, setTimeout, clearTimeout,
   });

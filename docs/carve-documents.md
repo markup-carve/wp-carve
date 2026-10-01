@@ -7,7 +7,9 @@ normal Gutenberg post.
 Create one under **Posts → Add Carve Document**, or import an existing `.crv`,
 Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provides:
 
-- **Write** for the source editor and its formatting toolbar.
+- **Write** for the source editor and its formatting toolbar. Strong,
+  emphasis, underline and inline code toggle: a second click removes the
+  mark rather than doubling the delimiter.
 - **Split** for viewport-height source and preview panes with bidirectional
   proportional scroll sync (enabled by default and independently toggleable).
 - **Preview** for a full-width rendered preview.

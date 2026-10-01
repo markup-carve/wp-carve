@@ -675,11 +675,14 @@
 			return { value: source, start: ta.selectionStart, end: ta.selectionEnd };
 		}
 
+		// A second click removes the mark rather than doubling the delimiter:
+		// `**text**` is literal text in Carve, so wrapping twice would break
+		// the markup instead of merely over-applying it. The arithmetic lives
+		// in assets/js/inline-toggle.js, shared with the other toolbars.
 		function wrap( before, after, placeholder ) {
 			const { value, start, end } = sel();
-			const chosen = start !== end ? value.slice( start, end ) : placeholder || '';
-			const next = value.slice( 0, start ) + before + chosen + after + value.slice( end );
-			setVal( next, start + before.length, start + before.length + chosen.length );
+			const next = window.wpCarveInlineToggle.toggle( value, start, end, before, after, placeholder );
+			setVal( next.value, next.start, next.end );
 		}
 
 		function insertSelected( before, after, placeholder, selectedText ) {

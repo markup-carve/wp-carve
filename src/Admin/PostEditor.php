@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 use WP_Post;
 use WpCarve\Converter;
 use WpCarve\Includes\IncludePolicy;
+use WpCarve\InlineToggle;
 use WpCarve\Plugin;
 use WpCarve\Settings;
 
@@ -133,7 +134,7 @@ class PostEditor
 
         MediaPicker::enqueue();
 
-        $deps = ['jquery', 'wp-api-fetch', MediaPicker::HANDLE];
+        $deps = ['jquery', 'wp-api-fetch', MediaPicker::HANDLE, InlineToggle::register()];
         if ($codeEditor !== false) {
             $deps[] = 'code-editor';
         }

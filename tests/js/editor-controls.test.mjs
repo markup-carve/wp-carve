@@ -7,6 +7,7 @@ import { Window } from 'happy-dom';
 const blockSource = readFileSync(new URL('../../assets/blocks/carve/index.js', import.meta.url), 'utf8');
 const documentSource = readFileSync(new URL('../../assets/js/code-editor.js', import.meta.url), 'utf8');
 const commentSource = readFileSync(new URL('../../assets/js/comment-toolbar.js', import.meta.url), 'utf8');
+const toggleSource = readFileSync(new URL('../../assets/js/inline-toggle.js', import.meta.url), 'utf8');
 
 function nodes(tree, type) {
   if (Array.isArray(tree)) return tree.flatMap(node => nodes(node, type));
@@ -45,6 +46,7 @@ function blockEditor(source, start, end) {
     data: { select: () => null },
   };
   const window = { wp, wpCarve: {}, requestAnimationFrame: callback => callback() };
+  runInNewContext(toggleSource, { window });
   runInNewContext(blockSource, { window, document: {}, setTimeout, clearTimeout });
   const textarea = { selectionStart: start, selectionEnd: end, focus() {}, style: {} };
   return {
@@ -127,6 +129,7 @@ function documentEditor(source, start, end, replies) {
   window.wp = {};
   window.wpCarve = { codeEditor: null, linkUrlLabel: 'Link URL', linkTextLabel: 'Link text', imageUrlLabel: 'Image URL', imageAltLabel: 'Alt text' };
   window.prompt = () => replies.shift();
+  runInNewContext(toggleSource, { window });
   runInNewContext(documentSource, { window, document, Event: window.Event, setTimeout, clearTimeout });
   document.dispatchEvent(new window.Event('DOMContentLoaded'));
   return { document, textarea };
@@ -196,6 +199,7 @@ test('the comment Link button asks for a URL and keeps selected text', () => {
   document.body.innerHTML = '<textarea id="comment">Read the guide.</textarea>';
   window.wpCarveComment = {};
   window.prompt = () => 'https://example.com';
+  runInNewContext(toggleSource, { window });
   runInNewContext(commentSource, { window, document, Event: window.Event, fetch: () => {} });
   document.dispatchEvent(new window.Event('DOMContentLoaded'));
   const textarea = document.getElementById('comment');

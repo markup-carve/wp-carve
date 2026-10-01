@@ -15,14 +15,21 @@
 		{ label: 'List', title: 'List item', line: '- ' },
 	];
 
+	// A second click removes the mark: in Carve a doubled delimiter renders as
+	// literal text, so wrapping twice would break the markup.
 	function surround( ta, before, after ) {
-		const s = ta.selectionStart;
-		const e = ta.selectionEnd;
-		const sel = ta.value.slice( s, e );
-		ta.value = ta.value.slice( 0, s ) + before + sel + after + ta.value.slice( e );
+		const next = window.wpCarveInlineToggle.toggle(
+			ta.value,
+			ta.selectionStart,
+			ta.selectionEnd,
+			before,
+			after,
+			'',
+		);
+		ta.value = next.value;
 		ta.focus();
-		ta.selectionStart = s + before.length;
-		ta.selectionEnd = e + before.length;
+		ta.selectionStart = next.start;
+		ta.selectionEnd = next.end;
 		ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 	}
 
