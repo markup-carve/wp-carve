@@ -658,12 +658,27 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
    its neighbour exactly like an inline one and the structural distinction is
    invisible. `li` and `dd` are left out on purpose: a tight item puts inline
    content directly in them, so a direct `img` child there can be either kind
-   and CSS cannot tell which. */
-.wpcarve > img,
-.wpcarve-preview > img,
-.wpcarve :is(section, blockquote, aside, div, figure) > img,
-.wpcarve-preview :is(section, blockquote, aside, div, figure) > img {
+   and CSS cannot tell which. The margin is the separation: the paragraph it was
+   promoted out of carried one, a bare `img` carries none. Bottom-only, so a
+   first child adds nothing above itself and the `> :last-child` rules already
+   in this file clear the trailing gap; `1em` rather than a fixed pixel or rem
+   value because the paragraphs here have no margin rule of their own and take
+   the UA's `1em`. `video` is inline by default too and survives `wp_kses` in
+   post context, so it takes the same treatment. */
+.wpcarve > :is(img, video),
+.wpcarve-preview > :is(img, video),
+.wpcarve :is(section, blockquote, aside, div, figure) > :is(img, video),
+.wpcarve-preview :is(section, blockquote, aside, div, figure) > :is(img, video) {
 	display: block;
+	margin-block: 0 1em;
+}
+
+/* A figcaption follows its image directly and the figure carries the block
+   rhythm itself, so the trailing margin would only push a caption away from
+   what it captions. */
+.wpcarve figure > :is(img, video),
+.wpcarve-preview figure > :is(img, video) {
+	margin-block: 0;
 }
 
 /* Inline marks: highlight (=..=), insert ({+..+}), delete ({-..-}). Soft,
