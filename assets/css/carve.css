@@ -683,13 +683,42 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 
 /* Inline marks: highlight (=..=), insert ({+..+}), delete ({-..-}). Soft,
    GitHub/CriticMarkup-style chips rather than the loud browser defaults. */
+
+/* The highlight carries its own ink, not the theme's: `color: inherit` over a
+   fixed light wash computes 1.01:1 on a dark theme. Its own token pair rather
+   than --carve-accent, so a highlight does not read as an admonition chip. */
 .wpcarve mark,
 .wpcarve-preview mark {
-	background: #fff8c5;
-	color: inherit;
+	--carve-highlight-background: #fff8c5;
+	--carve-highlight-ink: #1f2328;
+	background: var(--carve-highlight-background);
+	color: var(--carve-highlight-ink);
 	padding: 0.05em 0.2em;
 	border-radius: 3px;
 }
+
+/* A nested inline mark sets its own color, which on the highlight's wash is
+   somebody else's palette: `=mark with {+ins+}=` and a link inside a highlight
+   are both core syntax. The highlight's ink wins inside the highlight. */
+.wpcarve mark :is(a, del, ins),
+.wpcarve-preview mark :is(a, del, ins) {
+	color: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+:root:not([data-theme="light"]) .wpcarve mark,
+:root:not([data-theme="light"]) .wpcarve-preview mark {
+		--carve-highlight-background: #4a3a0a;
+		--carve-highlight-ink: #ffe9a8;
+	}
+}
+
+/* Site toggle forces dark regardless of the OS preference. */
+:root[data-theme="dark"] .wpcarve mark,
+:root[data-theme="dark"] .wpcarve-preview mark {
+		--carve-highlight-background: #4a3a0a;
+		--carve-highlight-ink: #ffe9a8;
+	}
 
 .wpcarve ins,
 .wpcarve-preview ins {
