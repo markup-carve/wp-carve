@@ -653,6 +653,19 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	height: auto;
 }
 
+/* A block image - one the engine promotes out of its paragraph because blank
+   lines separate it - is still an inline element by default, so it sits beside
+   its neighbour exactly like an inline one and the structural distinction is
+   invisible. `li` and `dd` are left out on purpose: a tight item puts inline
+   content directly in them, so a direct `img` child there can be either kind
+   and CSS cannot tell which. */
+.wpcarve > img,
+.wpcarve-preview > img,
+.wpcarve :is(section, blockquote, aside, div, figure) > img,
+.wpcarve-preview :is(section, blockquote, aside, div, figure) > img {
+	display: block;
+}
+
 /* Inline marks: highlight (=..=), insert ({+..+}), delete ({-..-}). Soft,
    GitHub/CriticMarkup-style chips rather than the loud browser defaults. */
 .wpcarve mark,
