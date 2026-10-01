@@ -1208,26 +1208,39 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
    `<html data-theme="dark|light">` convention. */
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes,
-	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes span {
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes span:not(.diff-marker) {
 		color: var(--phiki-dark-color) !important;
+	}
+
+	/* The diff marker and the gutter sit on top of a row wash, so repainting
+	   them with the editor background would punch a hole in it. */
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes,
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes span:not(.diff-marker):not(.line-number) {
 		background-color: var(--phiki-dark-background-color) !important;
 	}
 
 	/* Annotated lines ([tl! highlight] / ++ / --) carry their dark line
 	   background as --phiki-dark-background on the .line div; lines without
-	   the variable fall back to transparent (invalid var() unsets). */
-	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes .line {
+	   the variable fall back to transparent (invalid var() unsets). A `{.diff}`
+	   row is excluded: its marker is stripped before the engine runs, so it
+	   never carries the variable and this rule would unset the wash that
+	   pre.has-diff gives it. */
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes .line:not(.diff) {
 		background-color: var(--phiki-dark-background) !important;
 	}
 }
 
 :root[data-theme="dark"] .wpcarve pre code.phiki-themes,
-:root[data-theme="dark"] .wpcarve pre code.phiki-themes span {
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes span:not(.diff-marker) {
 	color: var(--phiki-dark-color) !important;
+}
+
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes,
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes span:not(.diff-marker):not(.line-number) {
 	background-color: var(--phiki-dark-background-color) !important;
 }
 
-:root[data-theme="dark"] .wpcarve pre code.phiki-themes .line {
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes .line:not(.diff) {
 	background-color: var(--phiki-dark-background) !important;
 }
 

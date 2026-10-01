@@ -418,6 +418,60 @@ CARVE;
         );
     }
 
+    public function testADiffFenceWithLineNumbersOrdersGutterThenMarkerThenTokens(): void
+    {
+        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+            $this->markTestSkipped('Torchlight Engine is not installed.');
+        }
+
+        $converter = new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => 'github-light',
+            'torchlight_line_numbers' => true,
+        ]);
+
+        $html = $converter->toHtml("{.diff}\n``` php\n- old();\n+ fresh();\n  keep();\n```\n");
+
+        $this->assertStringContainsString('has-diff', $html);
+        // Per row: the opening div's classes, then the line-number span, then
+        // the marker span, then the first highlighted token - in that order.
+        // Order is the property, not presence: a marker emitted before the
+        // gutter would still satisfy every containment assertion while
+        // pushing the numbers out of their column.
+        $row = '/<div class=\'line diff %s\'>'
+            . '<span style="[^"]*" class="line-number">%d<\/span>'
+            . '<span class="diff-marker">\%s<\/span>'
+            . '<span class="token"/';
+        $this->assertMatchesRegularExpression(sprintf($row, 'remove', 1, '-'), $html);
+        $this->assertMatchesRegularExpression(sprintf($row, 'add', 2, '+'), $html);
+        // A context line keeps the same order, with no diff class on the row.
+        $this->assertMatchesRegularExpression(
+            '/<div class=\'line\'><span style="[^"]*" class="line-number">3<\/span>'
+                . '<span class="diff-marker"> <\/span><span class="token"/',
+            $html,
+        );
+        // Highlighting survives beside the gutter and the markers.
+        $this->assertStringContainsString('phiki language-php', $html);
+        $this->assertMatchesRegularExpression('/class="token" style="color: #[0-9a-f]{6};">old<\/span>/', $html);
+    }
+
+    public function testADiffFenceWithoutTorchlightKeepsTheGutterClassAndOneLinePerRow(): void
+    {
+        // The plain gutter is client-side (assets/js/code-blocks.js), keyed on
+        // `pre.line-numbers` and counting the newlines in the code element. So
+        // the diff presentation must keep that class and emit exactly one
+        // newline-separated row per source line, or the numbers drift.
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("{.diff .line-numbers}\n``` js\n  keep();\n- old();\n+ fresh();\n```\n");
+
+        $this->assertStringContainsString('<pre class="diff line-numbers has-diff">', $html);
+        $this->assertStringContainsString('<span class="line diff remove"><span class="diff-marker">-</span>', $html);
+        $this->assertStringContainsString('<span class="line diff add"><span class="diff-marker">+</span>', $html);
+        $code = (string)preg_replace('/^.*<code class="language-js">(.*)<\/code>.*$/s', '$1', $html);
+        $this->assertCount(3, explode("\n", $code), 'one row per source line, so the counted gutter stays aligned');
+    }
+
     public function testTorchlightLineNumbersCanBeEnabledGlobally(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {

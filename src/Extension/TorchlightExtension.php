@@ -306,6 +306,9 @@ class TorchlightExtension implements ExtensionInterface
      * `line diff add` / `line diff remove` classes the stylesheet and
      * carve-grammars/diff/carve-diff.css both key on.
      *
+     * A client-side diff pass would have to read the marker from the DOM, not
+     * from textContent: with the gutter on, the line number's digits come first.
+     *
      * @param string $html
      * @param list<string> $markers
      */
