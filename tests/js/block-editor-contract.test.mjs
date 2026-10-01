@@ -50,9 +50,14 @@ test('a dark dual-theme fence leaves the diff wash and its marker alone', () => 
   for (const rule of colorRules) {
     assert.match(rule, /span:not\(\.diff-marker\)/);
   }
-  const bgRules = styles.match(/\.phiki-themes span[^{]*\{\s*background-color: var\(--phiki-dark-background-color\)/g);
+  // The token spans belong in this exclusion too: they cover the code, so
+  // repainting them paints the editor background over the row's wash and
+  // leaves the tint showing only in the gaps between tokens. Scoping the
+  // repaint to non-diff lines is the same shape as the row rule above.
+  const bgRules = styles.match(/\.phiki-themes [^{]*span[^{]*\{\s*background-color: var\(--phiki-dark-background-color\)/g);
   assert.equal(bgRules.length, 2);
   for (const rule of bgRules) {
     assert.match(rule, /span:not\(\.diff-marker\):not\(\.line-number\)/);
+    assert.match(rule, /\.line:not\(\.diff\) span/);
   }
 });
