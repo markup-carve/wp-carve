@@ -601,3 +601,38 @@ if (!function_exists('wp_localize_script')) {
         return true;
     }
 }
+
+if (!defined('MINUTE_IN_SECONDS')) {
+    define('MINUTE_IN_SECONDS', 60);
+}
+
+if (!function_exists('wp_unslash')) {
+    function wp_unslash(mixed $value): mixed
+    {
+        return is_string($value) ? stripslashes($value) : $value;
+    }
+}
+
+if (!function_exists('get_transient')) {
+    function get_transient(string $key): mixed
+    {
+        $entry = $GLOBALS['_wpcarve_test_transients'][$key] ?? null;
+        if ($entry === null || $entry['expires'] <= time()) {
+            return false;
+        }
+
+        return $entry['value'];
+    }
+}
+
+if (!function_exists('set_transient')) {
+    function set_transient(string $key, mixed $value, int $ttl = 0): bool
+    {
+        $GLOBALS['_wpcarve_test_transients'][$key] = [
+            'value' => $value,
+            'expires' => time() + max(1, $ttl),
+        ];
+
+        return true;
+    }
+}

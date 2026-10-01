@@ -96,6 +96,45 @@ class LinkingSettingsTest extends TestCase
         $this->assertStringNotContainsString('<a', (new Converter([]))->toHtml('Ask @alice.'));
     }
 
+    /**
+     * The off case needs the mention SPAN asserted away, not only the link.
+     * Mentions are core engine syntax that the converter auto-registers on
+     * first parse, so declining to register the extension leaves the engine
+     * default rendering `<span class="mention">` - which the `<a` assertion
+     * above cannot see.
+     */
+    public function testMentionsOffLeavesTheSourceTextInAPost(): void
+    {
+        $html = (new Converter([]))->toHtml('Hello @alice and #topic here.', 'post');
+
+        $this->assertStringNotContainsString('class="mention"', $html);
+        $this->assertStringNotContainsString('class="tag"', $html);
+        $this->assertStringContainsString('@alice', $html);
+        $this->assertStringContainsString('#topic', $html);
+    }
+
+    public function testMentionsOffLeavesTheSourceTextInAComment(): void
+    {
+        $html = (new Converter([]))->toHtml('Hello @alice and #topic here.', 'comment');
+
+        $this->assertStringNotContainsString('class="mention"', $html);
+        $this->assertStringNotContainsString('class="tag"', $html);
+        $this->assertStringContainsString('@alice', $html);
+        $this->assertStringContainsString('#topic', $html);
+    }
+
+    public function testMentionsOnStillMarksUpBothContexts(): void
+    {
+        $converter = new Converter(['mentions_enabled' => true]);
+
+        foreach (['post', 'comment'] as $context) {
+            $html = $converter->toHtml('Hello @alice and #topic here.', $context);
+
+            $this->assertStringContainsString('class="mention"', $html, $context);
+            $this->assertStringContainsString('class="tag"', $html, $context);
+        }
+    }
+
     public function testMentionsAndTagsLinkToArchives(): void
     {
         $html = (new Converter(['mentions_enabled' => true]))->toHtml('Ask @alice about #carve.');

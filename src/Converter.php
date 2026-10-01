@@ -29,6 +29,7 @@ use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Extension\TocPlacementExtension;
 use MarkupCarve\Carve\Extension\WikilinksExtension;
+use MarkupCarve\Carve\NodeType;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\PlainTextRenderer;
 use MarkupCarve\Carve\Renderer\RenderMode;
@@ -894,12 +895,24 @@ class Converter
 
     private function profile(string $name): ?Profile
     {
-        return match ($name) {
+        $profile = match ($name) {
             'full' => Profile::full(),
             'comment' => Profile::comment(),
             'minimal' => Profile::minimal(),
             'none' => null,
             default => Profile::article(),
         };
+
+        if (!empty($this->settings['mentions_enabled'])) {
+            return $profile;
+        }
+
+        // @mention and #tag are core engine syntax that CarveConverter::parse()
+        // auto-registers on first parse, so NOT adding MentionsExtension hands
+        // the job to the engine default rather than turning it off. The deny
+        // list is the engine's own off switch: ACTION_TO_TEXT (the default)
+        // returns the node to its literal `@name` source text. A 'none' profile
+        // carries no other denials, so Profile::full() matches it.
+        return ($profile ?? Profile::full())->denyInline([NodeType::MENTION]);
     }
 }

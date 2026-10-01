@@ -42,7 +42,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `external_links` | `false` | Add `rel="noopener noreferrer"` to links pointing off this site. The site's own host comes from `home_url()`; add others with the `wpcarve_internal_hosts` filter. |
 | `external_links_new_tab` | `false` | Also add `target="_blank"`. Separate from the above because marking a link external and forcing a new tab are different decisions. |
 | `external_links_nofollow` | `false` | Also add `nofollow` to the `rel`. |
-| `mentions_enabled` | `false` | Turn `@name` into an author-archive link and `#tag` into a tag-archive link. Templates come from `home_url()`; override with `wpcarve_mention_url` / `wpcarve_tag_url` if your author base or permalinks differ. |
+| `mentions_enabled` | `false` | Turn `@name` into an author-archive link and `#tag` into a tag-archive link. Off, both stay literal source text. Templates come from `home_url()`; override with `wpcarve_mention_url` / `wpcarve_tag_url` if your author base or permalinks differ. |
 | `wikilinks_enabled` | `false` | Turn `[[Page Title]]` into a link to the matching post or page. Unresolved links become `href="#"` and keep their `wikilink` class, so a theme can style `a.wikilink[href="#"]` as a broken link. Override resolution with `wpcarve_wikilink_url`. |
 | `smart_quotes` | `false` | Curly quotes / dashes. |
 | `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`). |
