@@ -144,48 +144,65 @@
 		return cm ? cm.getValue() : textarea.value;
 	}
 
-	function replaceSelection( open, close, insert ) {
+	// The selection as offsets into sourceValue(). Every toolbar action positions
+	// the caret in this one coordinate system; CodeMirror's line/ch pairs only
+	// appear where CodeMirror's own API demands them.
+	function selectionRange() {
 		if ( cm ) {
-			const selected = cm.getSelection();
-			const value = insert || ( open + ( selected || '' ) + close );
-			cm.replaceSelection( value, 'around' );
+			return {
+				start: cm.indexFromPos( cm.getCursor( 'from' ) ),
+				end: cm.indexFromPos( cm.getCursor( 'to' ) ),
+			};
+		}
+		const start = textarea.selectionStart || 0;
+
+		return { start: start, end: textarea.selectionEnd || start };
+	}
+
+	// Write `next` over the document with the smallest edit that produces it and
+	// leave the selection at `from`..`to`, both offsets into `next`. Line-local
+	// arithmetic placed the caret wrong whenever an edit changed a line's length
+	// or spanned lines, so there is one index-based path for both editors.
+	function applyEdit( next, from, to ) {
+		const edit = splice( sourceValue(), next );
+		if ( cm ) {
+			cm.replaceRange( edit.text, cm.posFromIndex( edit.from ), cm.posFromIndex( edit.to ) );
+			cm.setSelection( cm.posFromIndex( from ), cm.posFromIndex( to ) );
 			cm.focus();
-			if ( ! insert && ! selected ) {
-				const cursor = cm.getCursor();
-				cm.setCursor( { line: cursor.line, ch: Math.max( 0, cursor.ch - close.length ) } );
-			}
+
 			return;
 		}
-
-		const start = textarea.selectionStart || 0;
-		const end = textarea.selectionEnd || start;
-		const selected = textarea.value.slice( start, end );
-		const value = insert || ( open + selected + close );
-		textarea.setRangeText( value, start, end, 'end' );
-		if ( ! insert && ! selected ) {
-			textarea.setSelectionRange( start + open.length, start + open.length );
-		}
+		textarea.setRangeText( edit.text, edit.from, edit.to );
+		textarea.setSelectionRange( from, to );
 		textarea.focus();
 		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+	}
+
+	// Replace the selection with `text` and select `selectFrom`..`selectTo`,
+	// counted from the start of the insert. With no range the caret lands at its
+	// end rather than selecting the whole template.
+	function insertText( text, selectFrom, selectTo ) {
+		const value = sourceValue();
+		const range = selectionRange();
+		const from = selectFrom === undefined ? text.length : selectFrom;
+		const to = selectTo === undefined ? from : selectTo;
+		applyEdit(
+			value.slice( 0, range.start ) + text + value.slice( range.end ),
+			range.start + from,
+			range.start + to,
+		);
 	}
 
 	function writeLinked( selection, markup ) {
-		if ( cm ) {
-			cm.replaceRange( markup, selection.from, selection.to );
-			cm.focus();
-
-			return;
-		}
-		textarea.setRangeText( markup, selection.from, selection.to, 'end' );
-		textarea.focus();
-		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		const value = sourceValue();
+		const at = selection.from + markup.length;
+		applyEdit( value.slice( 0, selection.from ) + markup + value.slice( selection.to ), at, at );
 	}
 
 	function currentLinkedSelection() {
-		return cm
-			? { from: cm.getCursor( 'from' ), to: cm.getCursor( 'to' ), text: cm.getSelection() }
-			: { from: textarea.selectionStart, to: textarea.selectionEnd,
-				text: textarea.value.slice( textarea.selectionStart, textarea.selectionEnd ) };
+		const range = selectionRange();
+
+		return { from: range.start, to: range.end, text: sourceValue().slice( range.start, range.end ) };
 	}
 
 	function insertImage() {
@@ -197,12 +214,8 @@
 		}
 		const selection = currentLinkedSelection();
 		const value = sourceValue();
-		const before = cm
-			? cm.getRange( { line: 0, ch: 0 }, selection.from )
-			: value.slice( 0, selection.from );
-		const after = cm
-			? cm.getRange( selection.to, { line: cm.lineCount(), ch: 0 } )
-			: value.slice( selection.to );
+		const before = value.slice( 0, selection.from );
+		const after = value.slice( selection.to );
 		media.open( {
 			fallback: () => insertLinked( 'image' ),
 			onSelect: ( chosen ) => writeLinked( selection, media.toSourceAt( chosen, before, after ) ),
@@ -226,47 +239,54 @@
 	}
 
 	function prefixLines( prefix, heading ) {
-		if ( cm ) {
-			const from = cm.getCursor( 'from' );
-			const to = cm.getCursor( 'to' );
-			const lastLine = to.ch === 0 && to.line > from.line ? to.line - 1 : to.line;
-			cm.operation( () => {
-				for ( let line = lastLine; line >= from.line; line-- ) {
-					if ( heading ) {
-						const current = cm.getLine( line );
-						const stripped = current.replace( /^#{1,6}\s+/, '' );
-						cm.replaceRange( prefix + stripped, { line, ch: 0 }, { line, ch: current.length } );
-					} else {
-						cm.replaceRange( prefix, { line, ch: 0 } );
-					}
+		const value = sourceValue();
+		const range = selectionRange();
+		const lineStart = value.lastIndexOf( '\n', Math.max( 0, range.start - 1 ) ) + 1;
+		const last = range.end > range.start && value[ range.end - 1 ] === '\n' ? range.end - 1 : range.end;
+		let lineEnd = value.indexOf( '\n', last );
+		if ( lineEnd < 0 ) {
+			lineEnd = value.length;
+		}
+		// Per line: where it started, how much of its head the prefix replaces, and
+		// how far the lines above it have already pushed the text along. Enough to
+		// carry an offset in the old document over to the new one.
+		const spans = [];
+		let from = lineStart;
+		let shift = 0;
+		const replaced = value.slice( lineStart, lineEnd ).split( '\n' ).map( ( line ) => {
+			const body = heading ? line.replace( /^#{1,6}\s+/, '' ) : line;
+			const stripped = line.length - body.length;
+			spans.push( { from: from, stripped: stripped, shift: shift } );
+			shift += prefix.length - stripped;
+			from += line.length + 1;
+
+			return prefix + body;
+		} ).join( '\n' );
+
+		// An offset inside a head the prefix replaced has nowhere of its own to go,
+		// so it clamps to the start of the body text.
+		function carried( index ) {
+			for ( let at = spans.length - 1; at >= 0; at-- ) {
+				if ( index >= spans[ at ].from ) {
+					const within = Math.max( 0, index - spans[ at ].from - spans[ at ].stripped );
+
+					return spans[ at ].from + spans[ at ].shift + prefix.length + within;
 				}
-			} );
-			cm.focus();
-			return;
+			}
+
+			return index;
 		}
 
-		const start = textarea.selectionStart || 0;
-		const end = textarea.selectionEnd || start;
-		const lineStart = textarea.value.lastIndexOf( '\n', Math.max( 0, start - 1 ) ) + 1;
-		const last = end > start && textarea.value[ end - 1 ] === '\n' ? end - 1 : end;
-		let lineEnd = textarea.value.indexOf( '\n', last );
-		if ( lineEnd < 0 ) {
-			lineEnd = textarea.value.length;
-		}
-		const selectedLines = textarea.value.slice( lineStart, lineEnd );
-		const replacement = selectedLines.split( '\n' ).map( ( line ) =>
-			heading ? prefix + line.replace( /^#{1,6}\s+/, '' ) : prefix + line
-		).join( '\n' );
-		textarea.setRangeText( replacement, lineStart, lineEnd, 'select' );
-		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
-		textarea.focus();
+		const next = value.slice( 0, lineStart ) + replaced + value.slice( lineEnd );
+		applyEdit( next, carried( range.start ), carried( range.end ) );
 	}
 
 	function insertBlock( insert ) {
-		const current = sourceValue();
-		let before = '';
-		let after = '';
-		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
+		const value = sourceValue();
+		const range = selectionRange();
+		let start = range.start;
+		const end = range.end;
+		const selected = value.slice( start, end );
 		const fence = /^(?:(`{3,}[^\n]*)|(:{3,}[^\n]*))\n\n(`{3,}|:{3,})$/.exec( insert );
 		if ( selected && fence ) {
 			const opener = fence[ 1 ] || fence[ 2 ];
@@ -274,6 +294,7 @@
 			const character = marker[ 0 ];
 			const width = selected.split( '\n' ).reduce( ( longest, line ) => {
 				const run = line.match( new RegExp( '^' + character + '{3,}' ) );
+
 				return Math.max( longest, run ? run[ 0 ].length + 1 : 0 );
 			}, marker.length );
 			const boundary = character.repeat( width );
@@ -281,24 +302,17 @@
 		} else if ( selected ) {
 			// Tables, dividers and other templates follow selected text.
 			// Keep that text when the template has no content slot.
-			if ( cm ) {
-				cm.setCursor( cm.getCursor( 'to' ) );
-			} else {
-				textarea.setSelectionRange( textarea.selectionEnd, textarea.selectionEnd );
-			}
+			start = end;
 		}
-		if ( cm ) {
-			const from = cm.indexFromPos( cm.getCursor( 'from' ) );
-			const to = cm.indexFromPos( cm.getCursor( 'to' ) );
-			before = from > 0 && current[ from - 1 ] !== '\n' ? '\n\n' : '';
-			after = to < current.length && current[ to ] !== '\n' ? '\n\n' : '';
-		} else {
-			const from = textarea.selectionStart || 0;
-			const to = textarea.selectionEnd || from;
-			before = from > 0 && current[ from - 1 ] !== '\n' ? '\n\n' : '';
-			after = to < current.length && current[ to ] !== '\n' ? '\n\n' : '';
-		}
-		replaceSelection( '', '', before + insert + after );
+		const before = start > 0 && value[ start - 1 ] !== '\n' ? '\n\n' : '';
+		const after = end < value.length && value[ end ] !== '\n' ? '\n\n' : '';
+		// The caret belongs on the template's empty body line where it has one, and
+		// never on a selection of the whole template: that is the jump the author
+		// sees, and typing over it would wipe the template out.
+		const body = insert.indexOf( '\n\n' );
+		const at = start + before.length + ( body < 0 ? insert.length : body + 1 );
+		const next = value.slice( 0, start ) + before + insert + after + value.slice( end );
+		applyEdit( next, at, at );
 	}
 
 	// Smallest edit that turns `previous` into `next`, so a toggle keeps the
@@ -321,66 +335,43 @@
 	}
 
 	// A second click removes the mark: in Carve a doubled delimiter renders as
-	// literal text, so wrapping twice would break the markup.
+	// literal text, so wrapping twice would break the markup. Selection, caret
+	// inside an existing mark and caret in plain text all go through the one
+	// shared toggle, which reports where the caret belongs afterwards.
 	function toggleInline( open, close ) {
-		if ( cm ) {
-			const value = cm.getValue();
-			const next = window.wpCarveInlineToggle.toggle(
-				value,
-				cm.indexFromPos( cm.getCursor( 'from' ) ),
-				cm.indexFromPos( cm.getCursor( 'to' ) ),
-				open,
-				close,
-				'',
-			);
-			const edit = splice( value, next.value );
-			cm.replaceRange( edit.text, cm.posFromIndex( edit.from ), cm.posFromIndex( edit.to ) );
-			cm.setSelection( cm.posFromIndex( next.start ), cm.posFromIndex( next.end ) );
-			cm.focus();
-
-			return;
-		}
-
-		const value = textarea.value;
-		const start = textarea.selectionStart || 0;
-		const next = window.wpCarveInlineToggle.toggle( value, start, textarea.selectionEnd || start, open, close, '' );
-		const edit = splice( value, next.value );
-		textarea.setRangeText( edit.text, edit.from, edit.to );
-		textarea.setSelectionRange( next.start, next.end );
-		textarea.focus();
-		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
-	}
-
-	function insertInline( open, close, placeholder ) {
-		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
-		if ( selected ) {
-			replaceSelection( open, close );
-		} else {
-			replaceSelection( open, close, open + placeholder + close );
-		}
+		const value = sourceValue();
+		const range = selectionRange();
+		const next = window.wpCarveInlineToggle.toggle( value, range.start, range.end, open, close, '' );
+		applyEdit( next.value, next.start, next.end );
 	}
 
 	function insertFootnote() {
-		if ( cm ) {
-			cm.setCursor( cm.getCursor( 'to' ) );
-		} else {
-			textarea.setSelectionRange( textarea.selectionEnd, textarea.selectionEnd );
-		}
-		replaceSelection( '^[', ']', '^[note]' );
+		const value = sourceValue();
+		const range = selectionRange();
+		const text = '^[note]';
+		// The anchor follows the selected text, with the placeholder selected so
+		// the next keystroke replaces the word and not the whole anchor.
+		applyEdit(
+			value.slice( 0, range.end ) + text + value.slice( range.end ),
+			range.end + 2,
+			range.end + text.length - 1,
+		);
 	}
 
 	function insertMath() {
-		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
-		const content = selected || 'x';
+		const range = selectionRange();
+		const content = sourceValue().slice( range.start, range.end ) || 'x';
 		const runs = content.match( /`+/g ) || [];
 		const fence = '`'.repeat( Math.max( 1, ...runs.map( ( run ) => run.length + 1 ) ) );
 		const padding = content.startsWith( '`' ) || content.endsWith( '`' ) ? ' ' : '';
-		replaceSelection( '', '', '$' + fence + padding + content + padding + fence );
+		const at = 1 + fence.length + padding.length;
+		insertText( '$' + fence + padding + content + padding + fence, at, at + content.length );
 	}
 
 	function insertCitation() {
-		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
-		replaceSelection( '', '', '[@' + ( selected.replace( /^@/, '' ) || 'key' ) + ']' );
+		const range = selectionRange();
+		const key = sourceValue().slice( range.start, range.end ).replace( /^@/, '' ) || 'key';
+		insertText( '[@' + key + ']', 2, 2 + key.length );
 	}
 
 	if ( toolbar ) {
@@ -401,12 +392,6 @@
 				insertBlock( insert );
 			} else if ( button.dataset.wpcarveOpen && button.dataset.wpcarveClose ) {
 				toggleInline( button.dataset.wpcarveOpen, button.dataset.wpcarveClose );
-			} else {
-				replaceSelection(
-					button.dataset.wpcarveOpen || '',
-					button.dataset.wpcarveClose || '',
-					insert
-				);
 			}
 		} );
 	}
@@ -414,10 +399,10 @@
 		moreInsert.addEventListener( 'change', () => {
 			const kind = moreInsert.value;
 			if ( kind === 'media' ) {
-				const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
-				const url = window.prompt( cfg.mediaUrlLabel || 'Media URL', selected );
+				const range = selectionRange();
+				const url = window.prompt( cfg.mediaUrlLabel || 'Media URL', sourceValue().slice( range.start, range.end ) );
 				if ( url && url.trim() ) {
-					replaceSelection( '', '', ':media[' + url.trim().replace( /([\\\[\]])/g, '\\$1' ) + ']' );
+					insertText( ':media[' + url.trim().replace( /([\\\[\]])/g, '\\$1' ) + ']' );
 				}
 			} else if ( kind === 'footnote' ) {
 				insertFootnote();

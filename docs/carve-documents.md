@@ -9,7 +9,11 @@ Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provid
 
 - **Write** for the source editor and its formatting toolbar. Strong,
   emphasis, underline and inline code toggle: a second click removes the
-  mark rather than doubling the delimiter.
+  mark rather than doubling the delimiter. Every button leaves the caret where
+  the next keystroke belongs, and never selects the markup it just inserted:
+  selected text stays selected under its new delimiters, a bare caret lands
+  between them, a list or heading prefix carries the selection along with the
+  text it shifts, and a block template puts the caret on its empty body line.
 - **Split** for viewport-height source and preview panes with bidirectional
   proportional scroll sync (enabled by default and independently toggleable).
 - **Preview** for a full-width rendered preview.
@@ -20,10 +24,11 @@ Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provid
   edits and reverses the operation. It is offered only when the post contains
   exactly one Carve block, so sibling blocks can never be discarded silently.
 
-The toolbar inserts Carve syntax for strong/emphasis/underline, inline and block
-code, links, images, quotes, lists, tasks, tables, and footnotes. The Image
-button opens the media library; see [Images](images.md). Direct source editing
-remains available for every Carve construct.
+The toolbar inserts Carve syntax for strong/emphasis/underline, inline and
+block code (labeled "Code" and "Code block"), links, images, quotes, lists,
+tasks, tables, and footnotes. The Image button opens the media library; see
+[Images](images.md). Direct source editing remains available for every Carve
+construct.
 
 Internally, Carve Documents use `_wpcarve_enabled = 1`. Content migration tools
 must preserve this post meta along with `post_content`; the built-in importer and
