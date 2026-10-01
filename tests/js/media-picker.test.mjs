@@ -105,15 +105,23 @@ test('a multi-line library caption is flattened, because a caption folds the nex
   assert.equal(media.toSource(chosen).split('\n').length, 2);
 });
 
-test('a captioned image inserted mid-paragraph gets its own line first', () => {
+test('a captioned image inserted mid-paragraph gets a line of its own', () => {
   const media = loadPicker();
   const chosen = media.pick({ ...timeline, caption: 'A caption' }, 'full');
 
-  assert.match(media.toSourceAt(chosen, 'Text before '), /^\n!\[/);
-  assert.match(media.toSourceAt(chosen, 'Text before\n'), /^!\[/);
-  assert.match(media.toSourceAt(chosen, ''), /^!\[/);
-  // An uncaptioned image is inline, so it never gets a break.
-  assert.match(media.toSourceAt(media.pick(timeline, 'full'), 'Text before '), /^!\[/);
+  assert.match(media.toSourceAt(chosen, 'Text before ', ''), /^\n!\[/);
+  assert.match(media.toSourceAt(chosen, 'Text before\n', ''), /^!\[/);
+  assert.match(media.toSourceAt(chosen, '', ''), /^!\[/);
+  // The caption folds the lines after it, so trailing text needs a break too
+  // or it becomes part of the caption.
+  assert.match(media.toSourceAt(chosen, '', ' and text after'), /\^ A caption\n$/);
+  assert.match(media.toSourceAt(chosen, '', '\nand text after'), /\^ A caption$/);
+  assert.match(media.toSourceAt(chosen, '', ''), /\^ A caption$/);
+  // An uncaptioned image is inline, so it never gets a break on either side.
+  assert.equal(
+    media.toSourceAt(media.pick(timeline, 'full'), 'Text before ', ' and after'),
+    media.toSource(media.pick(timeline, 'full'))
+  );
 });
 
 test('an attachment with no usable id writes no class rather than wp-image-NaN', () => {
@@ -186,9 +194,9 @@ test('all three call sites reach the one shared mapper rather than mapping their
   // Classic source editor and block source editor both build source through
   // toSourceAt; the visual editor maps the same pick onto nodes.
   assert.match(documentSource, /window\.wpCarveMedia/);
-  assert.match(documentSource, /media\.toSourceAt\( chosen, before \)/);
+  assert.match(documentSource, /media\.toSourceAt\( chosen, before, after \)/);
   assert.match(blockSource, /window\.wpCarveMedia/);
-  assert.match(blockSource, /media\.toSourceAt\( chosen, selection\.value\.slice\( 0, selection\.start \) \)/);
+  assert.match(blockSource, /media\.toSourceAt\(\s*\n\s*chosen,\s*\n\s*selection\.value\.slice\( 0, selection\.start \),/);
   assert.match(blockSource, /attrs\.class = chosen\.className/);
 
   // Each one keeps a prompt fallback for a screen without wp.media.
@@ -201,4 +209,72 @@ test('the visual editor builds a figure with a caption child, and a bare image w
   assert.match(blockSource, /type: 'carveFigure'/);
   assert.match(blockSource, /type: 'carveCaption', content: \[ \{ type: 'text', text: chosen\.caption \} \]/);
   assert.match(blockSource, /if \( ! chosen\.caption \) \{\s*\n\s*ed\.chain\(\)\.focus\(\)\.setImage\( attrs \)\.run\(\);/);
+});
+
+/**
+ * Drive the real classic-editor toolbar, in both arms: with the media modal
+ * available, and with it missing so the prompt has to take over.
+ */
+async function classicEditor({ withMedia, prompts = [] }) {
+  const { Window } = await import('happy-dom');
+  const win = new Window();
+  const { document } = win;
+  document.body.innerHTML = '<div class="wpcarve-document-toolbar">'
+    + '<button data-wpcarve-open="" data-wpcarve-action="image">Image</button></div>'
+    + '<textarea id="content"></textarea>';
+  const textarea = document.getElementById('content');
+  textarea.value = 'Before. After.';
+  textarea.setSelectionRange(8, 8);
+
+  win.window = win;
+  win.wpCarve = { codeEditor: null, imageUrlLabel: 'Image URL', imageAltLabel: 'Alt text' };
+  win.wpCarveMediaL10n = { frameTitle: 'Pick', frameButton: 'Insert' };
+  const asked = [];
+  win.prompt = label => { asked.push(label); return prompts.shift(); };
+
+  let selectHandler = null;
+  win.wp = withMedia
+    ? {
+      media: () => ({
+        on: (event, handler) => { if (event === 'select') selectHandler = handler; },
+        open: () => {},
+        state: () => ({
+          get: () => ({ first: () => ({ toJSON: () => ({ ...timeline, caption: 'From the library' }) }) }),
+          display: () => ({ get: name => (name === 'size' ? 'large' : null) }),
+        }),
+      }),
+    }
+    : {};
+
+  // media-picker.js is enqueued as a dependency, so it runs first.
+  runInNewContext(pickerSource, { window: win });
+  runInNewContext(documentSource, {
+    window: win, document, Event: win.Event, setTimeout, clearTimeout,
+  });
+  document.dispatchEvent(new win.Event('DOMContentLoaded'));
+  document.querySelector('[data-wpcarve-action="image"]').click();
+
+  return { textarea, asked, select: () => selectHandler && selectHandler() };
+}
+
+test('the classic Image button inserts library source without any prompt', async () => {
+  const editor = await classicEditor({ withMedia: true });
+
+  assert.deepEqual(editor.asked, [], 'the modal replaced the prompt');
+  editor.select();
+  assert.equal(
+    editor.textarea.value,
+    'Before. \n![A release timeline](https://site.test/wp-content/uploads/2025/10/timeline-1-1024x585.png)'
+    + '{.wp-image-3000}\n^ From the library\nAfter.'
+  );
+});
+
+test('the classic Image button falls back to the prompt when wp.media is absent', async () => {
+  const editor = await classicEditor({
+    withMedia: false,
+    prompts: ['https://example.com/a.png', 'Alt from prompt'],
+  });
+
+  assert.deepEqual(editor.asked, ['Image URL', 'Alt text']);
+  assert.equal(editor.textarea.value, 'Before. ![Alt from prompt](https://example.com/a.png)After.');
 });

@@ -19,8 +19,9 @@ Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provid
   exactly one Carve block, so sibling blocks can never be discarded silently.
 
 The toolbar inserts Carve syntax for strong/emphasis/underline, inline and block
-code, links, images, quotes, lists, tasks, tables, and footnotes. Direct source
-editing remains available for every Carve construct.
+code, links, images, quotes, lists, tasks, tables, and footnotes. The Image
+button opens the media library; see [Images](images.md). Direct source editing
+remains available for every Carve construct.
 
 Internally, Carve Documents use `_wpcarve_enabled = 1`. Content migration tools
 must preserve this post meta along with `post_content`; the built-in importer and

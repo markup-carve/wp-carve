@@ -82,16 +82,23 @@
 	}
 
 	/**
-	 * A caption attaches to an image that is its own block, so an insertion
-	 * mid-paragraph needs a break in front of it first.
+	 * A caption attaches to an image that is its own block, and it then FOLDS
+	 * the lines after it like a paragraph. So a captioned image inserted
+	 * mid-paragraph needs a break on both sides: without the leading one the
+	 * caption is not a caption, and without the trailing one the caption
+	 * swallows whatever followed the cursor.
 	 */
-	function toSourceAt( selection, before ) {
+	function toSourceAt( selection, before, after ) {
 		const source = toSource( selection );
-		const needsBreak = source.indexOf( '\n' ) !== -1
-			&& before !== ''
-			&& ! /\n$/.test( String( before == null ? '' : before ) );
+		if ( source.indexOf( '\n' ) === -1 ) {
+			return source;
+		}
+		const head = String( before == null ? '' : before );
+		const tail = String( after == null ? '' : after );
 
-		return needsBreak ? '\n' + source : source;
+		return ( head !== '' && ! /\n$/.test( head ) ? '\n' : '' )
+			+ source
+			+ ( tail !== '' && ! /^\n/.test( tail ) ? '\n' : '' );
 	}
 
 	/** Whether the media modal can be opened at all on this screen. */

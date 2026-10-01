@@ -196,12 +196,16 @@
 			return;
 		}
 		const selection = currentLinkedSelection();
+		const value = sourceValue();
 		const before = cm
 			? cm.getRange( { line: 0, ch: 0 }, selection.from )
-			: textarea.value.slice( 0, selection.from );
+			: value.slice( 0, selection.from );
+		const after = cm
+			? cm.getRange( selection.to, { line: cm.lineCount(), ch: 0 } )
+			: value.slice( selection.to );
 		media.open( {
 			fallback: () => insertLinked( 'image' ),
-			onSelect: ( chosen ) => writeLinked( selection, media.toSourceAt( chosen, before ) ),
+			onSelect: ( chosen ) => writeLinked( selection, media.toSourceAt( chosen, before, after ) ),
 		} );
 	}
 

@@ -725,7 +725,11 @@
 			media.open( {
 				fallback: () => openInsertDialog( 'image' ),
 				onSelect: ( chosen ) => {
-					const markup = media.toSourceAt( chosen, selection.value.slice( 0, selection.start ) );
+					const markup = media.toSourceAt(
+						chosen,
+						selection.value.slice( 0, selection.start ),
+						selection.value.slice( selection.end )
+					);
 					setVal(
 						selection.value.slice( 0, selection.start ) + markup + selection.value.slice( selection.end ),
 						selection.start + markup.length
