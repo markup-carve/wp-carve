@@ -13,6 +13,7 @@ use WP_Post;
 use WP_Query;
 use WpCarve\Admin\BulkMigrate;
 use WpCarve\Admin\ImportExport;
+use WpCarve\Admin\MediaPicker;
 use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
 use WpCarve\Admin\SettingsPage;
@@ -373,6 +374,7 @@ class Plugin
     {
         $asset = WPCARVE_DIR . 'assets/blocks/carve/index.asset.php';
         $deps = ['wp-blocks', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-i18n'];
+        MediaPicker::enqueue();
         $ver = WPCARVE_VERSION;
         if (is_readable($asset)) {
             $data = require $asset;
@@ -423,6 +425,7 @@ class Plugin
             $deps[] = 'wpcarve-engine';
         }
 
+        $deps[] = MediaPicker::HANDLE;
         wp_enqueue_script(
             'wpcarve-editor',
             WPCARVE_URL . 'assets/blocks/carve/index.js',

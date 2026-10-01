@@ -169,11 +169,44 @@
 		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 	}
 
-	function insertLinked( kind ) {
-		const selection = cm
+	function writeLinked( selection, markup ) {
+		if ( cm ) {
+			cm.replaceRange( markup, selection.from, selection.to );
+			cm.focus();
+
+			return;
+		}
+		textarea.setRangeText( markup, selection.from, selection.to, 'end' );
+		textarea.focus();
+		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+	}
+
+	function currentLinkedSelection() {
+		return cm
 			? { from: cm.getCursor( 'from' ), to: cm.getCursor( 'to' ), text: cm.getSelection() }
 			: { from: textarea.selectionStart, to: textarea.selectionEnd,
 				text: textarea.value.slice( textarea.selectionStart, textarea.selectionEnd ) };
+	}
+
+	function insertImage() {
+		const media = window.wpCarveMedia;
+		if ( ! media || ! media.available() ) {
+			insertLinked( 'image' );
+
+			return;
+		}
+		const selection = currentLinkedSelection();
+		const before = cm
+			? cm.getRange( { line: 0, ch: 0 }, selection.from )
+			: textarea.value.slice( 0, selection.from );
+		media.open( {
+			fallback: () => insertLinked( 'image' ),
+			onSelect: ( chosen ) => writeLinked( selection, media.toSourceAt( chosen, before ) ),
+		} );
+	}
+
+	function insertLinked( kind ) {
+		const selection = currentLinkedSelection();
 		const url = window.prompt( kind === 'link' ? cfg.linkUrlLabel : cfg.imageUrlLabel, '' );
 		if ( ! url || ! url.trim() ) {
 			return;
@@ -185,14 +218,7 @@
 		const escapedLabel = label.replace( /\\/g, '\\\\' ).replace( /([\[\]])/g, '\\$1' );
 		const target = encodeURI( url.trim() ).replace( /%25([0-9a-fA-F]{2})/g, '%$1' ).replace( /\(/g, '%28' ).replace( /\)/g, '%29' );
 		const markup = ( kind === 'image' ? '![' : '[' ) + escapedLabel + '](' + target + ')';
-		if ( cm ) {
-			cm.replaceRange( markup, selection.from, selection.to );
-			cm.focus();
-		} else {
-			textarea.setRangeText( markup, selection.from, selection.to, 'end' );
-			textarea.focus();
-			textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
-		}
+		writeLinked( selection, markup );
 	}
 
 	function prefixLines( prefix, heading ) {
@@ -311,7 +337,9 @@
 			}
 			const action = button.dataset.wpcarveAction || 'wrap';
 			const insert = button.dataset.wpcarveInsert || '';
-			if ( action === 'link' || action === 'image' ) {
+			if ( action === 'image' ) {
+				insertImage();
+			} else if ( action === 'link' ) {
 				insertLinked( action );
 			} else if ( action === 'prefix' || action === 'heading' ) {
 				prefixLines( insert, action === 'heading' );
