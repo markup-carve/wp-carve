@@ -554,4 +554,57 @@ CARVE;
         $this->assertStringContainsString('Literate Programming', $html);
         $this->assertStringContainsString('Knuth', $html);
     }
+
+    /**
+     * `::: toc` places a contents list where the author wrote it. Without
+     * TocPlacement registered the div is claimed by nothing and renders as an
+     * empty `<div class="toc">` - which assets/css/carve.css gives a border and
+     * a background, so the reader sees an empty box where the contents belong.
+     */
+    public function testTocDirectivePlacesAContentsList(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("# Intro\n\n::: toc\n:::\n\n## First\n\ntext\n\n## Second\n\ntext\n");
+
+        $this->assertStringContainsString('<nav class="toc"', $html);
+        $this->assertStringContainsString('href="#First"', $html);
+        $this->assertStringContainsString('href="#Second"', $html);
+        $this->assertStringNotContainsString('<div class="toc">', $html);
+    }
+
+    /**
+     * The directive does not depend on toc_enabled. That setting controls the
+     * contents list the plugin INJECTS at the top or bottom of a post; this one
+     * is authored content, and gating it would leave the empty box behind
+     * whenever the setting is off.
+     */
+    public function testTocDirectiveDoesNotNeedTheTocSetting(): void
+    {
+        $withSetting = (new Converter(['toc_enabled' => true]))
+            ->toHtml("# Intro\n\n::: toc\n:::\n\n## First\n\ntext\n");
+        $withoutSetting = (new Converter([]))
+            ->toHtml("# Intro\n\n::: toc\n:::\n\n## First\n\ntext\n");
+
+        $this->assertStringContainsString('<nav class="toc"', $withSetting);
+        $this->assertStringContainsString('<nav class="toc"', $withoutSetting);
+        // ...and only the setting adds the injected disclosure on top of it.
+        $this->assertStringContainsString('<details class="toc"', $withSetting);
+        $this->assertStringNotContainsString('<details class="toc"', $withoutSetting);
+    }
+
+    /**
+     * The editor seed keeps the generic div: carveDiv serializes that straight
+     * back to `::: toc`, so the directive survives the round trip. A generated
+     * nav would be frozen into the post source instead.
+     */
+    public function testTocDirectiveStaysUnexpandedInTheEditorSeed(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("# Intro\n\n::: toc\n:::\n\n## First\n\ntext\n", 'editor');
+
+        $this->assertStringContainsString('<div class="toc">', $html);
+        $this->assertStringNotContainsString('<nav class="toc"', $html);
+    }
 }

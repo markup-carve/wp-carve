@@ -27,6 +27,7 @@ use MarkupCarve\Carve\Extension\SpoilerExtension;
 use MarkupCarve\Carve\Extension\TableOfContentsExtension;
 use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
+use MarkupCarve\Carve\Extension\TocPlacementExtension;
 use MarkupCarve\Carve\Extension\WikilinksExtension;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\PlainTextRenderer;
@@ -690,6 +691,18 @@ class Converter
             // page DOM, unsafe for user-submitted content. The editor seed
             // keeps the raw ```img source so it round-trips.
             $converter->addExtension(new ImgFenceExtension());
+            // `::: toc` places a contents list where the author wrote it. Not
+            // gated on toc_enabled: that setting controls the TOC the plugin
+            // INJECTS at the top or bottom of every post, while this directive
+            // is authored content. Gating it would reproduce the bug it fixes -
+            // without the extension the div is claimed by nothing and renders as
+            // an empty, CSS-styled `<div class="toc">` box.
+            //
+            // Out of the editor seed with the rest of the generated markup: the
+            // unregistered path leaves the generic div, which carveDiv
+            // serializes straight back to `::: toc`, so the directive survives
+            // the round trip intact.
+            $converter->addExtension(new TocPlacementExtension());
         }
 
         $shift = (int)($s['heading_shift'] ?? 0);
