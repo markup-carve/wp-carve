@@ -94,8 +94,8 @@ $focusMe();              // [tl! focus]
 
 | Syntax | Result |
 | --- | --- |
-| `@alice` | mention span |
-| `#release-1.0` | tag span |
+| `@alice` | mention span (needs `mentions_enabled`; otherwise literal text) |
+| `#release-1.0` | tag span (needs `mentions_enabled`; otherwise literal text) |
 | `$` ` `…` ` ` / `$$` blocks | math (KaTeX on the front end) |
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
