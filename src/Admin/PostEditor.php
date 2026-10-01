@@ -195,14 +195,14 @@ class PostEditor
             ['*', '*', __('Strong', 'carve-markup'), '<strong>B</strong>'],
             ['/', '/', __('Emphasis', 'carve-markup'), '<em>I</em>'],
             ['_', '_', __('Underline', 'carve-markup'), '<span class="wpcarve-tool-underline">U</span>'],
-            ['`', '`', __('Inline code', 'carve-markup'), '&lt;/&gt;'],
+            ['`', '`', __('Inline code', 'carve-markup'), __('Code', 'carve-markup')],
             ['', '', __('Link', 'carve-markup'), __('Link', 'carve-markup'), '', 'link'],
             ['', '', __('Image', 'carve-markup'), __('Image', 'carve-markup'), '', 'image'],
             ['', '', __('Blockquote', 'carve-markup'), __('Quote', 'carve-markup'), '> ', 'prefix'],
             ['', '', __('Bullet list', 'carve-markup'), __('Bullets', 'carve-markup'), '- ', 'prefix'],
             ['', '', __('Ordered list', 'carve-markup'), __('Numbered', 'carve-markup'), '1. ', 'prefix'],
             ['', '', __('Task list', 'carve-markup'), __('Task', 'carve-markup'), '- [ ] ', 'prefix'],
-            ['', '', __('Code block', 'carve-markup'), __('Code', 'carve-markup'), "```\n\n```", 'block'],
+            ['', '', __('Code block', 'carve-markup'), __('Code block', 'carve-markup'), "```\n\n```", 'block'],
             ['', '', __('Table', 'carve-markup'), __('Table', 'carve-markup'), "|= Heading |= Value |\n| Cell | Cell |", 'block'],
         ];
         foreach ($buttons as $index => $button) {
