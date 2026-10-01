@@ -364,7 +364,84 @@ class Converter
             return $html;
         }
 
-        return wp_kses($html, self::allowedHtml());
+        [$html, $svgUris] = self::maskImgFenceSvgUris($html);
+        $html = wp_kses($html, self::allowedHtml());
+
+        return $svgUris === [] ? $html : strtr($html, $svgUris);
+    }
+
+    /**
+     * The sanitized `data:image/svg+xml` URI an `img` fence emits, as the engine
+     * spells it: `rawurlencode` output with `!*'()` restored, so the value can
+     * only hold unreserved characters and percent escapes.
+     *
+     * @var string
+     */
+    private const SVG_DATA_URI_PATTERN = '/src="(data:image\/svg\+xml,[A-Za-z0-9%\-_.~!*\'()]*)"/';
+
+    /**
+     * An `img` tag, bounded by the fact that the engine escapes `<` and `>`
+     * inside every attribute value it writes.
+     *
+     * @var string
+     */
+    private const IMG_TAG_PATTERN = '/<img\s[^<>]*>/i';
+
+    /**
+     * Hide the `img` fence's data URI from wp_kses behind an opaque token, so it
+     * survives sanitization, then restore it afterwards.
+     *
+     * `data:` is not in wp_allowed_protocols(), so kses rewrites the URI to the
+     * relative `image/svg+xml,%3Csvg...` and every img fence renders a 404. The
+     * alternative - adding `data:` to the protocol allowlist - would admit every
+     * data URI on every surface, comments included, which is a far larger change
+     * than the defect.
+     *
+     * What makes the restored URI safe is the `<img>` boundary, not the token: a
+     * browser renders an SVG referenced by `<img src>` in a restricted mode with
+     * no script execution, no external fetches and no access to the embedding
+     * document, whatever the SVG contains. The engine's SvgSanitizer is a second,
+     * independent layer on top (see the class note in carve-php: it is a
+     * tokenizer with a presentational allowlist, and it is explicitly NOT
+     * browser-grade, which is why the engine's inline-SVG mode stays off here).
+     *
+     * So the match is anchored to `<img>` tags and to the engine's own URI
+     * spelling. An `<iframe src="data:image/svg+xml,...">` - which WOULD run
+     * script, and which author raw HTML could spell on a profile that allows raw
+     * nodes - is deliberately not matched and keeps being stripped.
+     *
+     * @param string $html
+     *
+     * @return array{0: string, 1: array<string, string>}
+     */
+    private static function maskImgFenceSvgUris(string $html): array
+    {
+        if (!str_contains($html, 'data:image/svg+xml,')) {
+            return [$html, []];
+        }
+
+        $uris = [];
+        $masked = preg_replace_callback(
+            self::IMG_TAG_PATTERN,
+            static function (array $tag) use (&$uris): string {
+                return (string)preg_replace_callback(
+                    self::SVG_DATA_URI_PATTERN,
+                    static function (array $match) use (&$uris): string {
+                        // Minted per call from 128 random bits, so nothing in the
+                        // author's own text can spell a token and have a URI
+                        // substituted into it.
+                        $token = 'wpcarve-svg-' . bin2hex(random_bytes(16));
+                        $uris[$token] = $match[1];
+
+                        return 'src="' . $token . '"';
+                    },
+                    $tag[0],
+                );
+            },
+            $html,
+        );
+
+        return $masked === null ? [$html, []] : [$masked, $uris];
     }
 
     /**

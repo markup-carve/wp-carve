@@ -28,6 +28,31 @@ disables it**. Two layers run on every surface:
    This is the authoritative gate: `<script>`/`<style>` and event handlers can
    never reach output. Adjust the allowlist via the `wpcarve_allowed_html` filter.
 
+### The one `data:` URI that survives
+
+`data:` is not in `wp_allowed_protocols()`, so kses strips it everywhere with a
+single exception: the `src` of an `<img>`, holding a `data:image/svg+xml` URI
+spelled the way the `img` fence writes one (unreserved characters and percent
+escapes only). The fence renders an author's SVG as a sandboxed image, and that
+is the URI it points at; without the exception every `img` fence would render a
+broken image.
+
+Two things keep it safe, and the second is the one that matters:
+
+- carve-php sanitizes the SVG body before encoding it - a tokenizer with a
+  presentational allowlist that drops `<script>`, `<foreignObject>`, `on*`
+  handlers, the `<style>` element and every external reference.
+- A browser renders an SVG referenced by `<img src>` in a restricted mode: no
+  script execution, no external fetches, no access to the embedding document,
+  whatever the SVG contains.
+
+The exception is that narrow on purpose. `data:` on an `<a href>`, on an
+`<iframe src>`, or carrying any other media type is still stripped - an iframe
+would run script in the SVG document, which an `<img>` does not. The engine's
+opt-in inline-`<svg>` mode is also not enabled, because that would put the
+author's SVG in the live page DOM where only the string sanitizer stands between
+it and the reader, and a string sanitizer is not browser-grade.
+
 ## Raw HTML
 
 Carve is Djot-based, so a literal `<div>` typed in the source is **text**, not

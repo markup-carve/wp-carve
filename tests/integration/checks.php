@@ -505,6 +505,108 @@ wp_delete_user((int)$carve_inc_author);
 update_option(\WpCarve\Settings::OPTION, $carve_inc_settings);
 wp_set_current_user($carve_inc_prev_user);
 
+// --- img fence: the sanitized SVG data URI survives wp_kses ------------------
+// `data:` is not in wp_allowed_protocols(), so without the mask in
+// Converter::sanitizeHtml() kses rewrites the URI to the relative
+// `image/svg+xml,%3Csvg...` and every img fence renders a 404. Only a real
+// WordPress can show this - the unit suite has no wp_kses.
+$carve_svg_src = "```img\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\">"
+    . "<title>A dot</title><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"#333\"/></svg>\n```\n";
+// Through render_block, not do_shortcode: shortcode content is pre-filtered and
+// the raw <svg> never reaches the parser intact. The block carries its source as
+// an attribute, so this is the engine plus the real wp_kses and nothing else.
+$carve_svg_render = static fn (string $source): string => render_block([
+    'blockName' => 'carve/markup',
+    'attrs' => ['carve' => $source],
+    'innerBlocks' => [],
+    'innerHTML' => '',
+    'innerContent' => [],
+]);
+$carve_svg_html = $carve_svg_render($carve_svg_src);
+$carve_check(
+    'img fence keeps its data: URI through wp_kses',
+    str_contains($carve_svg_html, 'src="data:image/svg+xml,%3Csvg'),
+    $carve_snippet($carve_svg_html),
+);
+$carve_check(
+    'img fence emits no relative src',
+    !str_contains($carve_svg_html, 'src="image/svg+xml'),
+    $carve_snippet($carve_svg_html),
+);
+$carve_check(
+    'img fence alt comes from the svg title',
+    str_contains($carve_svg_html, 'alt="A dot"'),
+    $carve_snippet($carve_svg_html),
+);
+
+// The mask is anchored to <img>. An iframe pointed at the same URI WOULD run
+// script in the SVG document, so it must keep being stripped.
+$carve_svg_iframe = \WpCarve\Converter::sanitizeHtml(
+    '<iframe src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3C%2Fsvg%3E"></iframe>',
+);
+$carve_check(
+    'an iframe data: URI is still stripped',
+    !str_contains($carve_svg_iframe, 'data:image/svg+xml'),
+    $carve_snippet($carve_svg_iframe),
+);
+
+// Same for a link: nothing but an <img> src is unmasked.
+$carve_svg_link = \WpCarve\Converter::sanitizeHtml(
+    '<a href="data:image/svg+xml,%3Csvg%3E%3C%2Fsvg%3E">x</a>',
+);
+$carve_check(
+    'a link data: URI is still stripped',
+    !str_contains($carve_svg_link, 'data:image/svg+xml'),
+    $carve_snippet($carve_svg_link),
+);
+
+// Only image/svg+xml is unmasked. The claim this change makes is a narrow one,
+// so the narrowness gets pinned: any other media type on an img src stays
+// stripped.
+// A real svg img rides along in the same string on purpose: sanitizeHtml()
+// short-circuits when the input holds no svg data URI at all, so without it the
+// media-type pattern would never be the thing deciding and this check could not
+// see a loosened one.
+$carve_svg_other_type = \WpCarve\Converter::sanitizeHtml(
+    '<img src="data:image/svg+xml,%3Csvg%3E%3C%2Fsvg%3E" alt="ok">'
+    . '<img src="data:text/html,%3Cb%3Ex%3C%2Fb%3E" alt="x">',
+);
+$carve_check(
+    'another data: media type on an img is still stripped',
+    str_contains($carve_svg_other_type, 'data:image/svg+xml')
+        && !str_contains($carve_svg_other_type, 'data:text/html'),
+    $carve_snippet($carve_svg_other_type),
+);
+
+// Unencoded markup in the value stays stripped. Measured: what rejects this is
+// the <img> tag match, which cannot span the `<` of the payload - loosening the
+// value charset alone does not let it through. So the charset restriction is
+// redundant defense here rather than the thing doing the work, and this check
+// pins the outcome, not that one clause.
+$carve_svg_raw_value = \WpCarve\Converter::sanitizeHtml(
+    '<img src="data:image/svg+xml,%3Csvg%3E%3C%2Fsvg%3E" alt="ok">'
+    . '<img src="data:image/svg+xml,<svg onload=alert(1)></svg>" alt="x">',
+);
+$carve_check(
+    'a data: URI with unencoded markup is still stripped',
+    str_contains($carve_svg_raw_value, 'src="data:image/svg+xml,%3Csvg')
+        && !str_contains($carve_svg_raw_value, 'data:image/svg+xml,<svg'),
+    $carve_snippet($carve_svg_raw_value),
+);
+
+// A scripted SVG reaches the browser inert twice over: the engine's sanitizer
+// drops the <script> subtree, and an <img>-referenced SVG executes nothing.
+$carve_svg_script = $carve_svg_render(
+    "```img\n<svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(1)</script>"
+    . "<circle cx=\"5\" cy=\"5\" r=\"4\"/></svg>\n```\n",
+);
+$carve_check(
+    'a scripted img fence carries no script in its URI',
+    str_contains($carve_svg_script, 'src="data:image/svg+xml,')
+        && !str_contains(rawurldecode($carve_svg_script), '<script'),
+    $carve_snippet($carve_svg_script),
+);
+
 // --- Summary ------------------------------------------------------------------
 fwrite(STDOUT, "\n");
 if ($carve_failures !== []) {
