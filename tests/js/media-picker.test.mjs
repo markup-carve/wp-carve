@@ -33,17 +33,40 @@ const timeline = {
   },
 };
 
-test('a sized pick writes the picked URL and the full-size attachment class', () => {
+// The URL, the alt text and the attachment class are asserted in separate
+// tests on purpose. The class is the mechanism the whole feature rests on, so
+// a change that drops it has to fail a test that names it, and has to leave the
+// URL and alt tests passing - otherwise a broad failure tells you nothing about
+// which part broke.
+test('a sized pick writes the URL of the size that was picked', () => {
   const media = loadPicker();
-  const chosen = media.pick(timeline, 'large');
 
-  assert.equal(chosen.url, 'https://site.test/wp-content/uploads/2025/10/timeline-1-1024x585.png');
-  // The class is the whole point of this feature: core's wp_filter_content_tags
-  // reads the attachment id off it at the_content priority 12, after Carve has
-  // already rendered at 9, and injects width/height/srcset/sizes from it.
-  assert.equal(chosen.className, 'wp-image-3000');
   assert.equal(
-    media.toSource(chosen),
+    media.pick(timeline, 'large').url,
+    'https://site.test/wp-content/uploads/2025/10/timeline-1-1024x585.png'
+  );
+  assert.equal(
+    media.pick(timeline, 'medium').url,
+    'https://site.test/wp-content/uploads/2025/10/timeline-1-300x171.png'
+  );
+  assert.match(media.toSource(media.pick(timeline, 'large')), /^!\[[^\]]*\]\(\S+-1024x585\.png\)/);
+});
+
+test('a pick writes the alt text from the library', () => {
+  const media = loadPicker();
+
+  assert.equal(media.pick(timeline, 'large').alt, 'A release timeline');
+  assert.match(media.toSource(media.pick(timeline, 'large')), /^!\[A release timeline\]\(/);
+});
+
+test('a pick carries the full-size attachment class', () => {
+  const media = loadPicker();
+  // core's wp_filter_content_tags reads the attachment id off this class at
+  // the_content priority 12, after Carve has rendered at 9, and injects
+  // width/height/srcset/sizes from it.
+  assert.equal(media.pick(timeline, 'large').className, 'wp-image-3000');
+  assert.equal(
+    media.toSource(media.pick(timeline, 'large')),
     '![A release timeline](https://site.test/wp-content/uploads/2025/10/timeline-1-1024x585.png){.wp-image-3000}'
   );
 });
@@ -103,13 +126,13 @@ test('an attachment with no usable id writes no class rather than wp-image-NaN',
 test('alt and URL cannot break out of the image brackets', () => {
   const media = loadPicker();
   const chosen = media.pick(
-    { id: 7, url: 'https://site.test/a(b).png', alt: 'A [bracket] and a \\slash' },
+    { url: 'https://site.test/a(b).png', alt: 'A [bracket] and a \\slash' },
     ''
   );
 
   assert.equal(
     media.toSource(chosen),
-    '![A \\[bracket\\] and a \\\\slash](https://site.test/a%28b%29.png){.wp-image-7}'
+    '![A \\[bracket\\] and a \\\\slash](https://site.test/a%28b%29.png)'
   );
 });
 
@@ -149,7 +172,6 @@ test('the picker opens a single-image frame and maps the chosen size', () => {
 
   selectHandler();
   assert.equal(got.url, 'https://site.test/wp-content/uploads/2025/10/timeline-1-300x171.png');
-  assert.equal(got.className, 'wp-image-3000');
 });
 
 test('all three call sites reach the one shared mapper rather than mapping their own', () => {
