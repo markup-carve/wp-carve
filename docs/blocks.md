@@ -33,6 +33,16 @@ When the block is selected in Write/Split mode, the block toolbar offers:
 Keyboard shortcuts in the source editor: `Ctrl/Cmd+B` strong, `Ctrl/Cmd+I`
 emphasis, `Ctrl/Cmd+U` underline, `Ctrl/Cmd+K` link.
 
+The inline marks toggle. Clicking Strong on an already strong selection, or
+pressing its shortcut again, removes the delimiters instead of adding a second
+pair, and the selection stays on the text. This covers strong, emphasis,
+underline, inline code, strike, highlight, superscript and subscript, in the
+toolbar and through the keymap, and matches what the visual editor already did.
+A doubled delimiter is literal text in Carve (`**text**` renders as five
+characters, not as a mark), so the toggle leaves a longer run alone rather than
+stripping a pair from it. With no selection, the caret inside a mark removes it
+and the caret anywhere else inserts a wrapped placeholder.
+
 > [!NOTE]
 > Carve inline syntax differs from Markdown/Djot: `*strong*`, `/emphasis/`
 > (italic) and `_underline_`.

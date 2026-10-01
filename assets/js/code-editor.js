@@ -301,6 +301,56 @@
 		replaceSelection( '', '', before + insert + after );
 	}
 
+	// Smallest edit that turns `previous` into `next`, so a toggle keeps the
+	// native and CodeMirror undo stacks granular instead of replacing the document.
+	function splice( previous, next ) {
+		let head = 0;
+		while ( head < previous.length && head < next.length && previous[ head ] === next[ head ] ) {
+			head++;
+		}
+		let tail = 0;
+		while (
+			tail < previous.length - head
+			&& tail < next.length - head
+			&& previous[ previous.length - 1 - tail ] === next[ next.length - 1 - tail ]
+		) {
+			tail++;
+		}
+
+		return { from: head, to: previous.length - tail, text: next.slice( head, next.length - tail ) };
+	}
+
+	// A second click removes the mark: in Carve a doubled delimiter renders as
+	// literal text, so wrapping twice would break the markup.
+	function toggleInline( open, close ) {
+		if ( cm ) {
+			const value = cm.getValue();
+			const next = window.wpCarveInlineToggle.toggle(
+				value,
+				cm.indexFromPos( cm.getCursor( 'from' ) ),
+				cm.indexFromPos( cm.getCursor( 'to' ) ),
+				open,
+				close,
+				'',
+			);
+			const edit = splice( value, next.value );
+			cm.replaceRange( edit.text, cm.posFromIndex( edit.from ), cm.posFromIndex( edit.to ) );
+			cm.setSelection( cm.posFromIndex( next.start ), cm.posFromIndex( next.end ) );
+			cm.focus();
+
+			return;
+		}
+
+		const value = textarea.value;
+		const start = textarea.selectionStart || 0;
+		const next = window.wpCarveInlineToggle.toggle( value, start, textarea.selectionEnd || start, open, close, '' );
+		const edit = splice( value, next.value );
+		textarea.setRangeText( edit.text, edit.from, edit.to );
+		textarea.setSelectionRange( next.start, next.end );
+		textarea.focus();
+		textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+	}
+
 	function insertInline( open, close, placeholder ) {
 		const selected = cm ? cm.getSelection() : textarea.value.slice( textarea.selectionStart, textarea.selectionEnd );
 		if ( selected ) {
@@ -349,6 +399,8 @@
 				prefixLines( insert, action === 'heading' );
 			} else if ( action === 'block' ) {
 				insertBlock( insert );
+			} else if ( button.dataset.wpcarveOpen && button.dataset.wpcarveClose ) {
+				toggleInline( button.dataset.wpcarveOpen, button.dataset.wpcarveClose );
 			} else {
 				replaceSelection(
 					button.dataset.wpcarveOpen || '',
