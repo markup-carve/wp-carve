@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
+use MarkupCarve\Carve\CarveConverter;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use WpCarve\Meta\RenderCache;
 use WpCarve\Settings;
 
@@ -71,7 +73,7 @@ class RenderCacheTest extends TestCase
     {
         $postId = 42;
         update_post_meta($postId, '_wpcarve_html', '<p>cached</p>');
-        update_post_meta($postId, '_wpcarve_html_version', WPCARVE_VERSION . ':' . Settings::renderSignature());
+        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()));
         update_post_meta($postId, '_wpcarve_html_safe', '1');
 
         $this->assertSame('<p>cached</p>', RenderCache::read($postId, true));
@@ -82,7 +84,7 @@ class RenderCacheTest extends TestCase
         $postId = 42;
         update_post_meta($postId, '_wpcarve_html', '<p>cached</p>');
         // Cached under the current signature...
-        update_post_meta($postId, '_wpcarve_html_version', WPCARVE_VERSION . ':' . Settings::renderSignature());
+        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()));
         update_post_meta($postId, '_wpcarve_html_safe', '1');
 
         // ...then a render-affecting setting changes: the stored HTML is stale.
@@ -95,10 +97,39 @@ class RenderCacheTest extends TestCase
     {
         $postId = 42;
         update_post_meta($postId, '_wpcarve_html', '<p>cached</p>');
-        update_post_meta($postId, '_wpcarve_html_version', WPCARVE_VERSION . ':' . Settings::renderSignature());
+        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()));
         update_post_meta($postId, '_wpcarve_html_safe', '0');
 
         // Rendered unsafe, now an unsafe render is expected to differ from safe.
         $this->assertNull(RenderCache::read($postId, true));
+    }
+
+    /**
+     * The fingerprint must carry the engine version, not just the plugin's.
+     * composer.json requires carve-php on a caret range, so the engine can move
+     * from 0.1.9 to 0.1.10 under an unchanged plugin version; a rendering change
+     * in that move would otherwise keep serving HTML the old engine produced.
+     */
+    public function testSignatureCarriesTheEngineVersion(): void
+    {
+        $method = new ReflectionMethod(RenderCache::class, 'signature');
+
+        $this->assertSame(
+            RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()),
+            $method->invoke(null),
+        );
+    }
+
+    /**
+     * Pins the property rather than the spelling: the engine version is varied
+     * as an argument, so this cannot pass by reading the same constant the code
+     * under test reads.
+     */
+    public function testComposedSignatureChangesWithTheEngineVersion(): void
+    {
+        $this->assertNotSame(
+            RenderCache::composeSignature('0.1.0', '0.1.9', 'settings-hash'),
+            RenderCache::composeSignature('0.1.0', '0.1.10', 'settings-hash'),
+        );
     }
 }
