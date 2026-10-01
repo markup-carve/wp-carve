@@ -56,6 +56,7 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 * Fixed: toolbar buttons in the classic source editor leave the caret and selection where the author expects.
 * Fixed: the in-browser preview renders img fences, list tables and the colon spelling of a semantic span, which previously rendered only on the front end.
 * Fixed: a cached post re-renders after the bundled engine moves, because the render cache signature now carries the engine version.
+* Fixed: a highlight keeps its own ink, so `=highlight=` stays readable on a dark theme - it inherited the theme's prose color over a fixed light wash and computed 1.01:1; a nested link, insertion or deletion inherits that ink too.
 
 = 0.1.6 =
 * New: include directives expand behind the `unfiltered_html` capability - a post expands them only if the user who last saved it held it, a preview of a saved post follows the post's stored trust bit, and a new `include_root` setting names the containment root.
