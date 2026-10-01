@@ -5,23 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.7] - 2026-10-01
 
-### Added
-
-- A quoted fence title renders as a filename bar from the standard `title`
-  attribute, and the plain renderer carries the title into the front-end code
-  wrapper (#126).
-
-### Changed
-
-- The editor toolbar keeps the selection. Link, image and media controls open a
-  URL input with the selected text intact, a fence or inline construct wraps
-  what was selected, and a footnote lands after its anchor text. Table, math and
-  highlight output is corrected, and an existing escape in a URL is handled
-  (#128).
-
-### Fixed
+### Fixes
 
 - Code-fence title and language chrome stays inside Split and Preview blocks
   instead of escaping the block it belongs to. A rendered diagram block is left
@@ -29,6 +15,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fence language badges and title bars are muted in dark mode, and the editor's
   language picker matches. Both the OS setting and the site theme toggle apply
   it; an explicit light theme keeps the light colors (#127).
+- A `{.diff}` fence gets syntax highlighting and diff rows at once instead of
+  one or the other, keeps the line number ahead of the marker when the gutter is
+  on, and keeps its add and remove wash in dark mode under both the OS setting
+  and the site theme toggle (#134, #135, #145).
+- An img fence's sanitized SVG renders again. Its `data:` URI did not survive
+  `wp_kses`, so every img fence on every surface showed a broken image (#139).
+- A `::: toc` directive renders its contents list instead of an empty bordered
+  box (#138).
+- `@name` and `#tag` render as their literal source text when the mentions
+  setting is off, in posts, in comments and on the public comment-preview
+  endpoint (#143).
+- An image the engine promotes out of its paragraph renders as a block, with one
+  line of rhythm before whatever follows it, instead of sitting inline beside
+  the next image (#140, #141).
+- A second toolbar click removes an inline mark instead of doubling its
+  delimiters, in the block source editor, the classic source editor and the
+  comment toolbar (#142).
+- Toolbar buttons in the classic source editor leave the caret and selection
+  where the author expects: Heading 2 carries the selection along with the
+  prefix, and an inserted block template lands the caret on its empty body line
+  instead of selecting the whole template (#144).
+- The in-browser preview renders img fences, list tables and the colon spelling
+  of a semantic span, which previously rendered only on the front end (#146).
+- A cached post re-renders after the bundled engine moves. The render cache
+  signature now carries the engine version, so an engine upgrade inside the
+  Composer caret range no longer serves HTML an older engine produced (#136).
+
+### Improvements
+
+- The Image control in all three editors opens the WordPress media library
+  instead of prompting for a URL. The insert carries the attachment's
+  `wp-image-N` class, so core adds width, height, srcset and sizes after Carve
+  has rendered, and alt text and caption are read from the library once on
+  insert (#137).
+- A quoted fence title renders as a filename bar from the standard `title`
+  attribute, and the plain renderer carries the title into the front-end code
+  wrapper (#126).
+- The editor toolbar keeps the selection. Link, image and media controls open a
+  URL input with the selected text intact, a fence or inline construct wraps
+  what was selected, and a footnote lands after its anchor text. Table, math and
+  highlight output is corrected, and an existing escape in a URL is handled
+  (#128).
+- Bundled engines move to the `markup-carve/carve-php` 0.1.10 and
+  `markup-carve/carve-grammars` v0.1.11 releases, from 0.1.9 and v0.1.9, and the
+  in-browser engine to carve 0.1.9 and carve-grammars 0.1.11 from 0.1.7 and
+  0.1.9. An engine release can change rendered output, so documents can render
+  differently, and more correctly, than under the previous pin (#130).
 
 ## [0.1.6] - 2026-09-22
 

@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.6
+Stable tag: 0.1.7
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,23 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.7 =
+* New: the Image control in all three editors opens the WordPress media library instead of prompting for a URL; the insert carries the attachment's `wp-image-N` class so core adds width, height, srcset and sizes, and alt text and caption come from the library once on insert.
+* Changed: a quoted fence title renders as a filename bar from the standard `title` attribute, and the plain renderer carries the title into the front-end code wrapper.
+* Changed: the editor toolbar keeps the selection - link, image and media controls open a URL input with the selected text intact, a fence or inline construct wraps what was selected, and a footnote lands after its anchor text.
+* Changed: bundled the carve-php 0.1.10 and carve-grammars v0.1.11 engines (from 0.1.9 and v0.1.9), and the in-browser engine carve 0.1.9 and carve-grammars 0.1.11; an engine release can change rendered output, so documents can render differently and more correctly.
+* Fixed: code-fence title and language chrome stays inside Split and Preview blocks instead of escaping the block it belongs to.
+* Fixed: fence language badges and title bars are muted in dark mode, and the editor's language picker matches; an explicit light theme keeps the light colors.
+* Fixed: a `{.diff}` fence gets syntax highlighting and diff rows at once, keeps the line number ahead of the marker when the gutter is on, and keeps its add and remove wash in dark mode.
+* Fixed: an img fence's sanitized SVG renders again - its `data:` URI did not survive wp_kses, so every img fence showed a broken image.
+* Fixed: a `::: toc` directive renders its contents list instead of an empty bordered box.
+* Fixed: `@name` and `#tag` render as literal text when the mentions setting is off, in posts, in comments and on the public comment-preview endpoint.
+* Fixed: an image the engine promotes out of its paragraph renders as a block, with one line of rhythm before whatever follows it.
+* Fixed: a second toolbar click removes an inline mark instead of doubling its delimiters, on all three source toolbars.
+* Fixed: toolbar buttons in the classic source editor leave the caret and selection where the author expects.
+* Fixed: the in-browser preview renders img fences, list tables and the colon spelling of a semantic span, which previously rendered only on the front end.
+* Fixed: a cached post re-renders after the bundled engine moves, because the render cache signature now carries the engine version.
 
 = 0.1.6 =
 * New: include directives expand behind the `unfiltered_html` capability - a post expands them only if the user who last saved it held it, a preview of a saved post follows the post's stored trust bit, and a new `include_root` setting names the containment root.
