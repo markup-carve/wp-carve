@@ -9,12 +9,21 @@ rather than a decision, and the question gets re-asked at every release.
 
 ## Registered by default
 
-`Citations`, `CodeGroup`, `Details`, `FencedRender`, `Frontmatter`,
-`HeadingLevelShift`, `HeadingPermalinks`, `ImgFence`, `ListTable`, `MediaEmbed`,
-`SemanticSpan`, `SmartQuotes`, `Spoiler`, `TableOfContents`, `TabNormalize`,
-`Tabs`, `Torchlight`.
+`Citations`, `CodeGroup`, `Details`, `ExternalLinks`, `FencedRender`,
+`Frontmatter`, `HeadingLevelShift`, `HeadingNumbers`, `HeadingPermalinks`,
+`ImgFence`, `ListTable`, `MediaEmbed`, `Mentions`, `SemanticSpan`,
+`SmartQuotes`, `Spoiler`, `TableOfContents`, `TabNormalize`, `Tabs`,
+`TocPlacement`, `Torchlight`, `Wikilinks`.
 
-Most sit behind a setting - see [settings](settings.md).
+Most sit behind a setting - see [settings](settings.md). `TocPlacement` is one
+of the few that do not: `::: toc` is something the author wrote, so it renders
+wherever they wrote it. The `toc_enabled` setting is a separate thing - it
+controls the contents list the plugin injects at the top or bottom of a post.
+
+Generated markup stays out of the visual-editor seed, `TocPlacement` included.
+There the `::: toc` div is left unclaimed, which is what lets the editor
+serialize it back to `::: toc` instead of freezing a rendered nav into the post
+source.
 
 ## Not registered, because the construct already works
 
@@ -35,17 +44,15 @@ Note the separator: `::: note` opens an admonition and `:::note` does not.
 
 ## Not registered, because it is the site's editorial decision
 
-Each of these rewrites or generates content on every post. A plugin default
-would be making an editorial choice on the site's behalf, so they are off and
-the choice is yours.
+Each of these rewrites or generates content on every post, and none of them has
+a setting. A plugin default would be making an editorial choice on the site's
+behalf, so they are off and the choice is yours. (The ones that DO have a
+setting - `ExternalLinks`, `HeadingNumbers`, `Mentions`, `Wikilinks` - are
+listed above: the plugin registers them, the setting decides.)
 
 | extension | what it does | the risk in enabling it blindly |
 | --- | --- | --- |
 | `Autolink` | bare URLs become links | changes existing prose |
-| `ExternalLinks` | adds `target`/`rel` to off-site links | needs the site's own host list |
-| `Mentions` | `@name` and `#tag` become links | only the site knows where they point |
-| `Wikilinks` | `[[Page]]` becomes a link | needs a resolver against real posts |
-| `HeadingNumbers` | numbers every heading | changes every heading on the site |
 | `PlusBullet` | `+` opens a list | reinterprets text that was not a list |
 | `LowercaseHeadingIds` | lowercases heading anchors | **changes existing anchors, breaking inbound links** |
 | `AsciiHeadingIds` | transliterates anchors to ASCII | same, and it mangles non-English titles |
@@ -56,8 +63,7 @@ the choice is yours.
 Each would need its own settings, styles and documentation before it could be
 turned on for a site.
 
-`CodeCallouts`, `ColorSwatch`, `Glossary`, `Index`, `HeadingReference`,
-`TocPlacement`.
+`CodeCallouts`, `ColorSwatch`, `Glossary`, `Index`, `HeadingReference`.
 
 ## Enabling one
 
