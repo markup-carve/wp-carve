@@ -184,6 +184,12 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      # A browser is the only authority on whether a stylesheet's dark branch
+      # resolves: happy-dom cannot evaluate `prefers-color-scheme` at all, so
+      # the contrast test needs real computed colors.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Run JS tests
         run: npm run test:js
 
