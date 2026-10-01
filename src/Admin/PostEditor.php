@@ -131,7 +131,9 @@ class PostEditor
             . '#wp-content-editor-container{border-top:1px solid #dcdcde}',
         );
 
-        $deps = ['jquery', 'wp-api-fetch'];
+        MediaPicker::enqueue();
+
+        $deps = ['jquery', 'wp-api-fetch', MediaPicker::HANDLE];
         if ($codeEditor !== false) {
             $deps[] = 'code-editor';
         }

@@ -555,3 +555,49 @@ if (!function_exists('sanitize_textarea_field')) {
         return trim(strip_tags($str));
     }
 }
+
+/**
+ * Script-queue stubs, so an enqueue contract (which handles, which screens) can
+ * be asserted without WordPress. `$GLOBALS['wpcarve_test_enqueued']` records the
+ * calls; `wpcarve_test_reset_enqueued()` clears them between tests.
+ */
+function wpcarve_test_reset_enqueued(bool $admin = true): void
+{
+    $GLOBALS['wpcarve_test_enqueued'] = ['scripts' => [], 'media' => 0, 'localized' => []];
+    $GLOBALS['wpcarve_test_is_admin'] = $admin;
+}
+
+if (!function_exists('is_admin')) {
+    function is_admin(): bool
+    {
+        return (bool)($GLOBALS['wpcarve_test_is_admin'] ?? true);
+    }
+}
+
+if (!function_exists('wp_enqueue_media')) {
+    function wp_enqueue_media(array $args = []): void
+    {
+        $GLOBALS['wpcarve_test_enqueued']['media'] = ($GLOBALS['wpcarve_test_enqueued']['media'] ?? 0) + 1;
+    }
+}
+
+if (!function_exists('wp_enqueue_script')) {
+    function wp_enqueue_script(
+        string $handle,
+        string $src = '',
+        array $deps = [],
+        $ver = false,
+        $args = []
+    ): void {
+        $GLOBALS['wpcarve_test_enqueued']['scripts'][$handle] = ['src' => $src, 'deps' => $deps, 'ver' => $ver];
+    }
+}
+
+if (!function_exists('wp_localize_script')) {
+    function wp_localize_script(string $handle, string $name, array $data): bool
+    {
+        $GLOBALS['wpcarve_test_enqueued']['localized'][$handle] = [$name => $data];
+
+        return true;
+    }
+}

@@ -21,7 +21,7 @@ The preview uses the in-browser Carve engine when the JS bundle is built
 When the block is selected in Write/Split mode, the block toolbar offers:
 
 - Heading (H1-H6), Strong (`*`), Emphasis (`/`), Underline (`_`), inline code
-  (`` ` ``), link, image
+  (`` ` ``), link, image (opens the media library - see [Images](images.md))
 - Lists (bullet / ordered / task), blockquote, table (rows x columns), code
   block, admonition (note / tip / info / warning / danger / success / example /
   quote), media embed (YouTube / Vimeo / auto URL), divider

@@ -273,11 +273,46 @@
 			const chain = ed.chain().focus();
 			( url === '' ? chain.unsetLink() : chain.setLink( { href: url } ) ).run();
 		}
+		// Visual mode inserts NODES, not source: the serializer writes the
+		// `{.wp-image-N}` run from `attrs.class`, and a captioned image becomes
+		// a carveFigure whose trailing carveCaption is written as `^ Caption`.
+		function insertVisualImage( ed, chosen ) {
+			const attrs = { src: chosen.url, alt: chosen.alt };
+			if ( chosen.className ) {
+				attrs.class = chosen.className;
+			}
+			if ( ! chosen.caption ) {
+				ed.chain().focus().setImage( attrs ).run();
+
+				return;
+			}
+			ed.chain().focus().insertContent( {
+				type: 'carveFigure',
+				content: [
+					{ type: 'paragraph', content: [ { type: 'image', attrs } ] },
+					{ type: 'carveCaption', content: [ { type: 'text', text: chosen.caption } ] },
+				],
+			} ).run();
+		}
+
 		function promptImage() {
 			const ed = ctlRef.current && ctlRef.current.editor;
 			if ( ! ed ) {
 				return;
 			}
+			const media = window.wpCarveMedia;
+			if ( media && media.available() ) {
+				media.open( {
+					fallback: () => promptImageUrl( ed ),
+					onSelect: ( chosen ) => insertVisualImage( ed, chosen ),
+				} );
+
+				return;
+			}
+			promptImageUrl( ed );
+		}
+
+		function promptImageUrl( ed ) {
 			const selected = selectedVisualText( ed );
 			const src = window.prompt( __( 'Image URL', 'carve-markup' ) );
 			if ( ! src ) {
@@ -676,6 +711,33 @@
 			insertSelected( '[@', ']', 'key', value.slice( start, end ).replace( /^@/, '' ) );
 		}
 
+		// Source mode: core's media modal, with the URL dialog as the fallback
+		// when wp.media is not on the screen. Both the toolbar button and the
+		// keyboard shortcut come through here.
+		function openImagePicker() {
+			const media = window.wpCarveMedia;
+			if ( ! media || ! media.available() ) {
+				openInsertDialog( 'image' );
+
+				return;
+			}
+			const selection = sel();
+			media.open( {
+				fallback: () => openInsertDialog( 'image' ),
+				onSelect: ( chosen ) => {
+					const markup = media.toSourceAt(
+						chosen,
+						selection.value.slice( 0, selection.start ),
+						selection.value.slice( selection.end )
+					);
+					setVal(
+						selection.value.slice( 0, selection.start ) + markup + selection.value.slice( selection.end ),
+						selection.start + markup.length
+					);
+				},
+			} );
+		}
+
 		function openInsertDialog( kind ) {
 			const selection = sel();
 			insertSelectionRef.current = selection;
@@ -872,7 +934,7 @@
 				} else if ( code === 'Digit7' ) {
 					linePrefix( '1. ' );
 				} else if ( k === 'i' ) {
-					openInsertDialog( 'image' );
+					openImagePicker();
 				} else {
 					handled = false;
 				}
@@ -1022,7 +1084,7 @@
 					el( ToolbarButton, { icon: 'editor-underline', title: __( 'Underline', 'carve-markup' ), onClick: () => wrap( '_', '_', 'underline' ) } ),
 					el( ToolbarButton, { icon: 'editor-code', title: __( 'Inline code', 'carve-markup' ), onClick: () => wrap( '`', '`', 'code' ) } ),
 					el( ToolbarButton, { icon: 'admin-links', title: __( 'Link', 'carve-markup' ), onClick: () => openInsertDialog( 'link' ) } ),
-					el( ToolbarButton, { icon: 'format-image', title: __( 'Image', 'carve-markup' ), onClick: () => openInsertDialog( 'image' ) } )
+					el( ToolbarButton, { icon: 'format-image', title: __( 'Image', 'carve-markup' ), onClick: openImagePicker } )
 				),
 				el(
 					ToolbarGroup,
