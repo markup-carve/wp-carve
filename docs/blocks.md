@@ -14,7 +14,12 @@ with the tab bar at the top of the block:
 - **Preview** - the rendered result only.
 
 The preview uses the in-browser Carve engine when the JS bundle is built
-(instant, no request), otherwise the REST render endpoint.
+(instant, no request), otherwise the REST render endpoint. Either way it renders
+the same content extensions the published post does, including tabs, details,
+spoilers, code groups, img fences, list-tables and semantic spans. Extensions
+that depend on a setting (table of contents, heading permalinks, heading shift,
+smart quotes) are applied server-side only, so those appear in the published
+post rather than in the instant preview.
 
 ### Toolbar
 

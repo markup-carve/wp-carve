@@ -2,18 +2,33 @@
 // Bundled by `npm run build` into ../vendor/carve.js (IIFE), exposing
 // `window.wpCarveEngine.carveToHtml`. The plugin loads it before the editor
 // script; when it is absent the editor falls back to the REST endpoint.
-import { carveToHtml, tabs, details, spoiler, codeGroup, citations, lintCarve, parse, toAstJson, diffAst } from '@markup-carve/carve'
+import { carveToHtml, tabs, details, spoiler, codeGroup, citations, imgFence, listTable, semanticSpan, lintCarve, parse, toAstJson, diffAst } from '@markup-carve/carve'
 import { analyzeDocument, semanticChanges } from './workbench.js'
 
-// The block preview must match the published front-end render, so the same
-// content widgets the PHP post path enables (CodeGroupExtension, TabsExtension,
-// DetailsExtension, SpoilerExtension) are enabled here. Without them the
-// preview showed raw `<div class="tab">` markup while the front end rendered
-// interactive tabs/disclosures, so tabs and details looked broken in preview.
+// The block preview must match the published front-end render, so every content
+// extension the PHP post path enables unconditionally is enabled here:
+// CodeGroup, Tabs, Details and Spoiler, plus ImgFence, ListTable and
+// SemanticSpan. Without them the preview showed raw markup where the front end
+// rendered the real thing - a `<div class="tab">` for tabs and details, a
+// `<pre><code class="language-img">` of escaped SVG source for an img fence, a
+// nested bullet list for a list-table, and `<span class="ext-samp">` instead of
+// `<samp>` for the deprecated `:samp[...]` spelling.
+//
 // Settings-dependent, non-round-trippable extras (TOC, permalinks, heading
-// shift, smart quotes) are intentionally omitted - they need PHP settings and
-// are added server-side only.
-const EXTENSIONS = [codeGroup(), tabs(), details(), spoiler()]
+// shift, smart quotes) stay out - they need PHP settings and are added
+// server-side only. This does not render the visual-editor seed either: the
+// block takes the in-browser path for the 'post' context only, and the
+// 'editor' context falls through to the server render, which is where PHP
+// drops what cannot round-trip.
+const EXTENSIONS = [
+  codeGroup(),
+  tabs(),
+  details(),
+  spoiler(),
+  imgFence(),
+  listTable(),
+  semanticSpan(),
+]
 
 window.wpCarveEngine = {
   citations,
