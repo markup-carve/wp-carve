@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use MarkupCarve\Carve\CarveConverter;
 use WP_Post;
 use WpCarve\Converter;
 use WpCarve\Includes\IncludePolicy;
@@ -111,16 +112,30 @@ class RenderCache
     }
 
     /**
-     * Cache fingerprint: the plugin version plus a hash of every
-     * render-affecting setting. A plugin/engine upgrade OR any change to a
-     * rendering setting (TOC, smart quotes, torchlight theme, diagram toggles,
-     * ...) changes this, so read() treats the stored HTML as stale and
-     * re-renders on the fly - fixing the case where a settings change left every
-     * already-saved post serving its old cached output.
+     * Compose the fingerprint from its three inputs.
+     *
+     * Separate from signature() so a test can vary the engine version rather
+     * than read the same constant the code reads - a check that derives its
+     * expected value from the value under test cannot fail.
+     */
+    public static function composeSignature(string $pluginVersion, string $engineVersion, string $settings): string
+    {
+        return $pluginVersion . ':' . $engineVersion . ':' . $settings;
+    }
+
+    /**
+     * Cache fingerprint: the plugin version, the carve-php version, and a hash
+     * of every render-affecting setting. Any of the three moving changes this,
+     * so read() treats the stored HTML as stale and re-renders on the fly.
+     *
+     * The engine version is in there because the plugin's requirement is a
+     * caret range: carve-php can move from 0.1.9 to 0.1.10 under an unchanged
+     * plugin version, and a rendering change in that move would otherwise keep
+     * serving cached HTML produced by the older engine.
      */
     private static function signature(): string
     {
-        return WPCARVE_VERSION . ':' . Settings::renderSignature();
+        return self::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature());
     }
 
     /**
