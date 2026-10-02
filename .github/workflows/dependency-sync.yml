@@ -14,9 +14,12 @@ concurrency:
   group: engine-synchronization
   cancel-in-progress: false
 
+# Every job below carries a timeout-minutes bound, so a hung step fails in
+# minutes instead of running to GitHub's 360-minute default.
 jobs:
   synchronize:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:

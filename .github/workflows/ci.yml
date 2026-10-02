@@ -10,10 +10,13 @@ on:
 permissions:
   contents: read
 
+# Every job below carries a timeout-minutes bound, so a hung step fails in
+# minutes instead of running to GitHub's 360-minute default.
 jobs:
   tests:
     name: PHPUnit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -74,6 +77,7 @@ jobs:
   corpus:
     name: The shipped engine against the frozen spec corpus
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -134,6 +138,7 @@ jobs:
   stan:
     name: PHPStan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -152,6 +157,7 @@ jobs:
   cs:
     name: Coding standard
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -170,6 +176,7 @@ jobs:
   js:
     name: JS round-trip tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -206,6 +213,7 @@ jobs:
   integration:
     name: WP ${{ matrix.wordpress }} / PHP ${{ matrix.php }} / Gutenberg ${{ matrix.gutenberg }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -259,6 +267,7 @@ jobs:
   integration-summary:
     name: WP integration
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: integration
     if: always()
     steps:
@@ -270,6 +279,7 @@ jobs:
   php-floor:
     name: One PHP floor, every copy agreeing
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -280,6 +290,7 @@ jobs:
   dist-floor:
     name: The shipped tree parses on the PHP it promises
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -310,6 +321,7 @@ jobs:
   plugin-check:
     name: Plugin Check
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
