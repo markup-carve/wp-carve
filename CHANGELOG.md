@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixes
+
+- The block editor's live preview and the published page agree on a
+  cross-reference whose target differs only in case. The shipped browser bundle
+  was a build of carve-js 0.1.9, which still resolved `</#getting-started>`
+  against a heading id of `Getting-Started`, while the server engine renders it
+  as literal text - so an author saw a working link in the preview and published
+  escaped source. A test now renders the shipped bundle and the pinned engine
+  side by side, so a bundle built from a different release fails the build
+  (#152).
+
+### Changed
+
+- The engines move to carve-php 0.1.11 and carve-js 0.1.10. The frozen corpus
+  the shipped PHP engine is measured against moves with it, to the spec revision
+  carve-php 0.1.11 itself pins: 0 of 2225 documents render differently (#152).
+
 ## [0.1.7] - 2026-10-01
 
 ### Fixes

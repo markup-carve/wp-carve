@@ -394,16 +394,16 @@
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "0.1.10",
+            "version": "0.1.11",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "6d94607eaa9d51c9ed782342161beca77b05aaf9"
+                "reference": "61a3519ef97c6cd1721cd93c66d96f4222ee8a95"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/6d94607eaa9d51c9ed782342161beca77b05aaf9",
-                "reference": "6d94607eaa9d51c9ed782342161beca77b05aaf9",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/61a3519ef97c6cd1721cd93c66d96f4222ee8a95",
+                "reference": "61a3519ef97c6cd1721cd93c66d96f4222ee8a95",
                 "shasum": ""
             },
             "require": {
@@ -443,7 +443,7 @@
                     "homepage": "https://github.com/php-collective"
                 }
             ],
-            "description": "PHP parser for Carve, a human-centered lightweight markup language derived from Markdown and Djot.",
+            "description": "PHP parser for Carve, a lightweight markup language for documents and the web.",
             "homepage": "https://markup-carve.github.io/carve/",
             "keywords": [
                 "carve",
@@ -453,7 +453,7 @@
             ],
             "support": {
                 "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/0.1.10"
+                "source": "https://github.com/markup-carve/carve-php/tree/0.1.11"
             },
             "funding": [
                 {
@@ -461,7 +461,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-29T22:40:16+00:00"
+            "time": "2026-10-07T12:11:20+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
