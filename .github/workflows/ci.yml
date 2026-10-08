@@ -90,19 +90,28 @@ jobs:
       #
       # Both ends move together when carve-php publishes, which is what the
       # header below asks for: 0.1.6 was the first such pair, 0.1.7 with carve
-      # 0.1.5 the second, and carve-php 0.1.10 with carve 0.1.7 the third.
-      # Leaving the corpus at 0.1.5 while the engine moved to 0.1.10 reported 12
-      # documents as divergences introduced here, all of them rulings that
-      # reached the engine ahead of the corpus that pinned them: measured
-      # against carve 0.1.7 the same engine renders 0 of 2134 differently, and
-      # each of the 12 matches the newer expectation rather than the frozen one.
-      # The residual is zero again, so any name this job now reports was
-      # introduced here.
+      # 0.1.5 the second, carve-php 0.1.10 with carve 0.1.7 the third, and
+      # carve-php 0.1.11 with carve c61b0d5 the fourth.
+      #
+      # The ref is no longer chosen, it is READ: c61b0d5 is the revision
+      # carve-php 0.1.11's own tests/spec submodule names, so this job asks
+      # whether the shipped engine is as conformant as the spec it was written
+      # against. Any other ref holds it to a corpus written for a different
+      # engine.
+      #
+      # Leaving the corpus at carve 0.1.7 while the engine moved to 0.1.11
+      # reported 12 documents as divergences introduced here, and the set is
+      # the same one the 0.1.10 move produced for the same reason: four
+      # cross-reference documents, two heading-id documents, an implicit
+      # reference and four colon-fence metadata documents, every one a ruling
+      # that reached the engine ahead of the corpus that pinned it. Against
+      # c61b0d5 the same engine renders 0 of 2225 differently, so any name this
+      # job now reports was introduced here.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 1fe313ce314bb975c22c43386af8f02eceff69cc
+          ref: c61b0d5f904f976ad096ca784f605fdb3e839f0b
           path: carve-freeze
 
       - name: Setup PHP

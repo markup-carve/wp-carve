@@ -1,13 +1,26 @@
 # Documents the engine this plugin SHIPS renders differently from the spec
 # corpus, measured at the pinned freeze.
 #
-#   corpus  markup-carve/carve 1fe313ce314b, the 0.1.7 release, 2134 documents
-#   engine  markup-carve/carve-php 0.1.10, the release composer.lock installs
+#   corpus  markup-carve/carve c61b0d5f904f, 2225 documents
+#   engine  markup-carve/carve-php 0.1.11, the release composer.lock installs
 #
 # Both sides are fixed revisions, so this list is the whole result and not a
 # snapshot of one. A NAME APPEARING HERE is a divergence introduced by a change
 # in this repository, because there are none to inherit: the list is EMPTY, and
-# 0 of 2134 documents render differently.
+# 0 of 2225 documents render differently.
+#
+# WHY c61b0d5 AND NOT A TAG. It is the revision carve-php 0.1.11's own
+# tests/spec submodule names, so the ref is read off the engine rather than
+# chosen. That makes this job ask what the engine was held to when it was
+# written, which is the only question whose answer is the engine's fault.
+#
+# BOTH ENDS MOVED TOGETHER AGAIN for carve-php 0.1.11 and carve c61b0d5. Left at
+# the carve 0.1.7 corpus, the newer engine reported 12 documents as divergences
+# introduced by this repository: four cross-reference documents, two heading-id
+# documents, an implicit heading reference with no definition, and four
+# colon-fence metadata documents. Every one is a ruling that reached the engine
+# ahead of the corpus that pinned it - the same shape, and very nearly the same
+# set, as the 0.1.10 move below. Against c61b0d5 the residual is 0 of 2225.
 #
 # BOTH ENDS MOVED TOGETHER AGAIN for carve-php 0.1.10 and carve 0.1.7. Left at
 # the 0.1.5 corpus, the newer engine reported 12 documents as divergences
