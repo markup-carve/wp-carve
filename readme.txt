@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.7
+Stable tag: 0.1.8
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.8 =
+* Changed: bundled the carve-php 0.1.11 and in-browser carve-js 0.1.10 engines; an engine release can change rendered output, so documents can render differently and more correctly.
+* Fixed: the block editor's live preview and the published page agree on a cross-reference whose target differs from the heading id only in case; the shipped browser bundle showed a working link where the server rendered literal source.
 
 = 0.1.7 =
 * New: the Image control in all three editors opens the WordPress media library instead of prompting for a URL; the insert carries the attachment's `wp-image-N` class so core adds width, height, srcset and sizes, and alt text and caption come from the library once on insert.

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-10-08
+
 ### Fixes
 
 - The block editor's live preview and the published page agree on a
@@ -438,7 +440,9 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.6...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.8...HEAD
+[0.1.8]: https://github.com/markup-carve/wp-carve/compare/0.1.7...0.1.8
+[0.1.7]: https://github.com/markup-carve/wp-carve/compare/0.1.6...0.1.7
 [0.1.6]: https://github.com/markup-carve/wp-carve/compare/0.1.5...0.1.6
 [0.1.5]: https://github.com/markup-carve/wp-carve/compare/0.1.4...0.1.5
 [0.1.4]: https://github.com/markup-carve/wp-carve/compare/0.1.3...0.1.4
