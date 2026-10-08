@@ -1,14 +1,37 @@
-name: Deploy to WordPress.org
+name: Release packages and assets
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      publish:
+        required: true
+        type: boolean
+      tag:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      release_tag:
+        required: true
+        type: string
+      source_sha:
+        required: true
+        type: string
+      release_id:
+        required: true
+        type: string
+      release_body:
+        required: true
+        type: string
+      notes_digest:
+        required: true
+        type: string
 
 permissions:
   contents: write
-
-# Every job below carries a timeout-minutes bound, so a hung step fails in
-# minutes instead of running to GitHub's 360-minute default.
+  actions: read
+  id-token: write
 jobs:
   deploy:
     name: Deploy to WordPress.org
@@ -26,28 +49,48 @@ jobs:
       # not a git ref, so addressing one by tag can match nothing, change
       # nothing and still exit 0.
       - name: A release draft for this tag exists and has notes
-        if: github.event_name != 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           release="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
-            --jq "[.[] | select(.tag_name == \"$GITHUB_REF_NAME\")] | first")"
+            --jq "[.[] | select(.tag_name == \"$LANE_TAG\")] | first")"
           if [ -z "$release" ]; then
-            echo "::error::no release for $GITHUB_REF_NAME. Write the notes first:" \
-                 "gh release create $GITHUB_REF_NAME --draft --notes-file NOTES.md"
+            echo "::error::no release for $LANE_TAG. Write the notes first:" \
+                 "gh release create $LANE_TAG --draft --notes-file NOTES.md"
             exit 1
           fi
           body="$(printf '%s' "$release" | jq -r '.body // ""' | tr -d '[:space:]')"
           [ -n "$body" ] \
-            || { echo "::error::the release for $GITHUB_REF_NAME has no notes"; exit 1; }
+            || { echo "::error::the release for $LANE_TAG has no notes"; exit 1; }
           printf '%s' "$release" | jq -r '"draft=\(.draft) tag=\(.tag_name)"'
 
+        if: ${{ inputs.publish }}
       - name: Checkout code
         uses: actions/checkout@v6
 
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+      - name: Verify approval and checked tag before publishing
+        working-directory: ${{ github.workspace }}
+        if: ${{ inputs.publish }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_SHA: ${{ inputs.source_sha }}
+          RELEASE_NOTES_DIGEST: ${{ inputs.notes_digest }}
+        run: python .github/scripts/release-lane.py permit
+      - name: Expose the candidate tag locally
+        if: ${{ !inputs.publish }}
+        shell: bash
+        env:
+          CANDIDATE_TAG: ${{ inputs.tag }}
+        run: |
+          git tag "$CANDIDATE_TAG" "${{ inputs.source_sha }}"
       - name: Validate version consistency
         run: |
-          TAG="${{ github.event.release.tag_name }}"
+          TAG="${{ inputs.tag }}"
           HEADER_VERSION=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' carve-markup.php)
           CONSTANT_VERSION=$(grep -oP "define\('WPCARVE_VERSION',\s*'\K[0-9]+\.[0-9]+\.[0-9]+" carve-markup.php)
           STABLE_TAG=$(grep -oP '^Stable tag:\s*\K[0-9]+\.[0-9]+\.[0-9]+' readme.txt)
@@ -113,9 +156,20 @@ jobs:
           SLUG: carve-markup
           BUILD_DIR: build/dist/carve-markup
 
+        if: ${{ inputs.publish }}
       - name: Upload release asset
         uses: softprops/action-gh-release@v3
         with:
           files: ${{ steps.deploy.outputs.zip-path }}
+          tag_name: ${{ inputs.tag }}
+          target_commitish: ${{ inputs.source_sha }}
+          draft: true
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ inputs.publish }}
+env:
+  LANE_TAG: ${{ inputs.tag }}
+  LANE_REF: ${{ format('refs/tags/{0}', inputs.tag) }}
+  LANE_REF_TYPE: tag
+  LANE_PUBLISH: ${{ inputs.publish }}

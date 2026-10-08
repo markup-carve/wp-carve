@@ -1,0 +1,12 @@
+{
+  "workflow": ".github/workflows/release-lane.yml",
+  "publisher": ".github/workflows/deploy.yml",
+  "publisher_environments": [
+    "release"
+  ],
+  "registries": {},
+  "assets": [
+    "carve-markup.zip"
+  ],
+  "versions": []
+}
