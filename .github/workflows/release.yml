@@ -4,18 +4,10 @@ name: Release
 # approves. Deriving the run from a tag push would run the gates after the only
 # irreversible act instead of before it.
 #
-# WHERE THIS LANE STOPS, AND WHY. The WordPress.org publish is an SVN push, and
-# it already has a home: `.github/workflows/deploy.yml` runs on
-# `release: published` and does the build, the downgrade and the SVN deploy with
-# SVN_USERNAME / SVN_PASSWORD. That workflow is deliberately left alone and NOT
-# reproduced here, because two SVN pushes for one version is worse than one.
-#
-# So this lane does NOT un-draft the release. A ref or a release event created
-# with github.token does not trigger other workflows, so if this workflow
-# published the draft itself, deploy.yml would never fire and the version would
-# be tagged on GitHub and absent from WordPress.org. The maintainer publishes
-# the draft after the tag exists, and that human action is what fires the
-# deploy. The last step below says so in the run log.
+# The WordPress.org publish is an SVN push, and it runs in THIS workflow, in the
+# `publish` job after the tag. It cannot live in a workflow listening for a
+# published release: a ref or release event created with github.token triggers
+# no other workflow, so that one would never start from here.
 #
 # Every job declares timeout-minutes, so a hung step fails in minutes instead
 # of inheriting GitHub's 360-minute default.
@@ -204,12 +196,66 @@ jobs:
           git push origin "refs/tags/${VER}"
           echo "tagged ${VER} at $GITHUB_SHA"
 
-      # Deliberately the last word of this lane. Publishing the draft from here
-      # would suppress the `release: published` event that deploy.yml listens
-      # for, because events raised with github.token do not trigger workflows.
-      - name: Say what the maintainer still has to do
+  # Runs only after `tag`, so only after the approval. The SVN push is the
+  # WordPress.org publish; the draft is un-drafted last, once that succeeded.
+  publish:
+    name: Deploy to WordPress.org and publish the release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [tag]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      - name: Install locked dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Stage distribution copy (runtime deps only, .distignore applied)
+        run: bash scripts/build-dist.sh
+
+      - name: Downgrade PHP 8.2 syntax for WordPress.org
+        run: bash scripts/downgrade-dist.sh
+
+      - name: The downgraded tree parses on the PHP versions it promises
+        run: bash scripts/lint-dist-floor.sh
+
+      - name: WordPress Plugin Deploy
+        id: deploy
+        uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: carve-markup
+          BUILD_DIR: build/dist/carve-markup
+          # A dispatch runs on main, not on the tag, so the version is passed.
+          VERSION: ${{ inputs.version }}
+
+      - name: Attach the ZIP and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ inputs.version }}
+          ZIP: ${{ steps.deploy.outputs.zip-path }}
         run: |
-          echo "::notice::Tag ${{ inputs.version }} exists. The release draft is still a DRAFT, on purpose."
-          echo "::notice::Publish it by hand: that raises release: published, which is what starts"
-          echo "::notice::deploy.yml and the WordPress.org SVN deploy. Publishing it from inside this"
-          echo "::notice::workflow would not start anything, because github.token events do not trigger workflows."
+          # Listed rather than addressed by tag: a draft's tag is not a git ref.
+          id="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+            --jq "[.[] | select(.tag_name == \"$VER\")] | first | .id")"
+          [ -n "$id" ] && [ "$id" != null ] || { echo "::error::no release for $VER"; exit 1; }
+          gh api -X POST "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$id/assets?name=$(basename "$ZIP")" \
+            -H "Content-Type: application/zip" --input "$ZIP" --jq '.name'
+          # `tag_name` goes with every PATCH, or a draft loses its tag; `-F` so
+          # draft=false is a boolean and not the truthy string "false".
+          gh api "repos/$GITHUB_REPOSITORY/releases/$id" -X PATCH -f tag_name="$VER" -F draft=false --jq '.tag_name'
+          state="$(gh api "repos/$GITHUB_REPOSITORY/releases/$id" --jq '"\(.draft) \(.tag_name)"')"
+          [ "$state" = "false $VER" ] || { echo "::error::the release reads back as '$state'"; exit 1; }
+          echo "published $VER"
