@@ -1,0 +1,215 @@
+name: Release
+
+# The tag is created by THIS workflow, after the gates pass and after a human
+# approves. Deriving the run from a tag push would run the gates after the only
+# irreversible act instead of before it.
+#
+# WHERE THIS LANE STOPS, AND WHY. The WordPress.org publish is an SVN push, and
+# it already has a home: `.github/workflows/deploy.yml` runs on
+# `release: published` and does the build, the downgrade and the SVN deploy with
+# SVN_USERNAME / SVN_PASSWORD. That workflow is deliberately left alone and NOT
+# reproduced here, because two SVN pushes for one version is worse than one.
+#
+# So this lane does NOT un-draft the release. A ref or a release event created
+# with github.token does not trigger other workflows, so if this workflow
+# published the draft itself, deploy.yml would never fire and the version would
+# be tagged on GitHub and absent from WordPress.org. The maintainer publishes
+# the draft after the tag exists, and that human action is what fires the
+# deploy. The last step below says so in the run log.
+#
+# Every job declares timeout-minutes, so a hung step fails in minutes instead
+# of inheriting GitHub's 360-minute default.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without a leading v (e.g. 0.1.9)'
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: The tag is free and every version surface agrees
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: The tag does not exist yet
+        run: |
+          VER="${{ inputs.version }}"
+          if git rev-parse -q --verify "refs/tags/${VER}" >/dev/null; then
+            echo "::error::Tag ${VER} already exists. A version published to" \
+                 "WordPress.org cannot be moved; supersede it instead."
+            exit 1
+          fi
+
+      # Three shipped surfaces: the plugin header WordPress reads in the admin,
+      # the runtime constant the plugin stamps on its own assets, and the
+      # readme.txt stable tag the plugin directory serves. deploy.yml checks the
+      # same three, but only after the tag exists - which is too late.
+      - name: The plugin header, the constant and the stable tag declare this version
+        run: |
+          VER="${{ inputs.version }}"
+          HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' carve-markup.php)
+          CONSTANT=$(grep -oP "define\('WPCARVE_VERSION',\s*'\K[0-9]+\.[0-9]+\.[0-9]+" carve-markup.php)
+          STABLE=$(grep -oP '^Stable tag:\s*\K[0-9]+\.[0-9]+\.[0-9]+' readme.txt)
+          echo "requested:  $VER"
+          echo "header:     $HEADER"
+          echo "constant:   $CONSTANT"
+          echo "stable tag: $STABLE"
+          status=0
+          for pair in "header:$HEADER" "constant:$CONSTANT" "stable tag:$STABLE"; do
+            got="${pair##*:}"
+            what="${pair%%:*}"
+            if [ -z "$got" ]; then
+              echo "::error::could not read the $what version at all."
+              status=1
+            elif [ "$got" != "$VER" ]; then
+              echo "::error::the $what declares $got, but this run would release $VER."
+              status=1
+            fi
+          done
+          exit "$status"
+
+      - name: The changelog describes this version
+        run: |
+          VER="${{ inputs.version }}"
+          if ! grep -qE "^## \[?${VER//./\\.}\]?" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $VER."
+            exit 1
+          fi
+
+      # readme.txt has its own changelog, and it is the one users read in the
+      # plugin directory. A release missing that section ships with a blank
+      # "what changed" panel.
+      - name: readme.txt has a changelog entry for this version
+        run: |
+          VER="${{ inputs.version }}"
+          if ! grep -qE "^=\s*${VER//./\\.}\s*(=|[^=]*=)" readme.txt; then
+            echo "::error::readme.txt has no changelog entry for $VER."
+            exit 1
+          fi
+
+  release-notes:
+    name: A release draft for this version exists and has notes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # `write`, not `read`: a DRAFT release is invisible to a caller without
+      # push access, so under `contents: read` the listing comes back empty and
+      # this reports "no draft" for a draft sitting right there with notes in it.
+      contents: write
+    steps:
+      # Listed rather than addressed by tag: a draft's tag is not a git ref, so
+      # `gh release view <tag>` can match nothing, change nothing and exit 0.
+      - name: The draft exists and has notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VER: ${{ inputs.version }}
+        run: |
+          release="$(gh api "repos/$REPO/releases" --paginate \
+            --jq "[.[] | select(.tag_name == \"$VER\")] | first")"
+          if [ -z "$release" ]; then
+            echo "::error::no release draft for $VER. Write the notes first."
+            echo "::error::if a draft DOES exist, this job could not see it - check that it still declares contents: write"
+            exit 1
+          fi
+          body="$(printf '%s' "$release" | jq -r '.body // ""' | tr -d '[:space:]')"
+          if [ -z "$body" ]; then
+            echo "::error::the release for $VER has no notes."
+            exit 1
+          fi
+          printf '%s' "$release" | jq -r '"draft=\(.draft) tag=\(.tag_name)"'
+
+  tests:
+    name: PHPUnit, PHPStan and the distribution build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: PHP syntax
+        run: |
+          find src -name "*.php" -exec php -l {} \;
+          php -l carve-markup.php
+          php -l uninstall.php
+
+      - run: composer test
+
+      - run: composer stan
+
+      # The things deploy.yml does after the approval has been spent. Running
+      # them here means a build that cannot be produced refuses the tag rather
+      # than failing an SVN push on a version that is already public.
+      - name: Stage the distribution copy
+        run: bash scripts/build-dist.sh
+
+      - name: Downgrade PHP 8.2 syntax for WordPress.org
+        run: bash scripts/downgrade-dist.sh
+
+      - name: The downgraded tree parses on the PHP versions it promises
+        run: bash scripts/lint-dist-floor.sh
+
+  tag:
+    name: Create the tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [guard, release-notes, tests]
+    # THE APPROVAL GATE, and the only one: GitHub prompts once per gated job,
+    # so a second `environment:` would ask twice for one decision. `needs:`
+    # makes this unreachable until every gate above passes.
+    environment: release-approval
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Push the tag
+        run: |
+          VER="${{ inputs.version }}"
+          # Re-checked under the approval: main can move while a run waits for a
+          # reviewer, and the gates measured the commit that was current then.
+          HEADER=$(grep -oP '^\s*\*\s*Version:\s*\K[0-9]+\.[0-9]+\.[0-9]+' carve-markup.php)
+          STABLE=$(grep -oP '^Stable tag:\s*\K[0-9]+\.[0-9]+\.[0-9]+' readme.txt)
+          if [ "$HEADER" != "$VER" ] || [ "$STABLE" != "$VER" ]; then
+            echo "::error::the plugin now declares header=$HEADER stable=$STABLE." \
+                 "main moved while this run waited for approval, so the gate result" \
+                 "no longer describes it. Re-run the workflow."
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/${VER}" >/dev/null; then
+            echo "::error::Tag ${VER} appeared while this run waited. Stopping."
+            exit 1
+          fi
+          git tag "${VER}" "$GITHUB_SHA"
+          git push origin "refs/tags/${VER}"
+          echo "tagged ${VER} at $GITHUB_SHA"
+
+      # Deliberately the last word of this lane. Publishing the draft from here
+      # would suppress the `release: published` event that deploy.yml listens
+      # for, because events raised with github.token do not trigger workflows.
+      - name: Say what the maintainer still has to do
+        run: |
+          echo "::notice::Tag ${{ inputs.version }} exists. The release draft is still a DRAFT, on purpose."
+          echo "::notice::Publish it by hand: that raises release: published, which is what starts"
+          echo "::notice::deploy.yml and the WordPress.org SVN deploy. Publishing it from inside this"
+          echo "::notice::workflow would not start anything, because github.token events do not trigger workflows."
