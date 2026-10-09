@@ -53,6 +53,7 @@ if (!file_exists($autoload)) {
     exit(2);
 }
 require $autoload;
+require __DIR__ . '/lib/declared-pairs.php';
 
 /**
  * How many documents the corpus is SUPPOSED to hold, derived from something
@@ -67,8 +68,9 @@ require $autoload;
  *
  * So the reference is the corpus's SOURCE: tests/corpus is generated from the
  * `::: compare` blocks in resources/examples/{core,extensions,edge-cases}.md,
- * one block per pair, and the generator refuses to write a corpus where the two
- * disagree. Both live in the same checkout, so this costs no second clone.
+ * one pair per `carve` fence in a block, and the generator refuses to write a
+ * corpus where the two disagree. Both live in the same checkout, so this costs
+ * no second clone.
  *
  * This is the approach the sibling repositories arrived at, ported rather than
  * reinvented.
@@ -89,24 +91,7 @@ function declaredCorpusSize(string $corpusDir): int
             exit(1);
         }
 
-        // Mirrors the generator's state machine rather than grepping: a
-        // `::: compare` line inside an already-open block is content, not a
-        // second pair, and a block closes on a bare marker line.
-        $marker = null;
-        foreach (explode("\n", (string)file_get_contents($path)) as $rawLine) {
-            $line = trim($rawLine);
-            if ($marker !== null) {
-                if ($line === $marker) {
-                    $marker = null;
-                }
-
-                continue;
-            }
-            if (preg_match('/^(:{3,})\s+compare(\s+\S.*)?$/', $line, $m) === 1) {
-                $declared++;
-                $marker = $m[1];
-            }
-        }
+        $declared += countDeclaredPairs((string)file_get_contents($path));
     }
 
     if ($declared === 0) {
@@ -248,7 +233,7 @@ foreach ($sources as $source) {
 $declared = declaredCorpusSize($corpusDir);
 if (count($pairs) !== $declared) {
     fwrite(STDERR, sprintf(
-        "::error::%d corpus pairs found in %s, but the spec's example pages declare %d. Every ::: compare block in "
+        "::error::%d corpus pairs found in %s, but the spec's example pages declare %d. Every carve example in a ::: compare block in "
         . "resources/examples/{core,extensions,edge-cases}.md becomes one corpus pair, so a difference means the corpus "
         . "checked out here is not the one those pages describe - a truncated or stale checkout, or a corpus that needs "
         . "regenerating. It does not mean this run was clean.\n",
