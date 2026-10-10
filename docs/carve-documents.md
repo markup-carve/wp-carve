@@ -21,6 +21,9 @@ Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provid
   source is a plain textarea and Tab moves focus as usual.
 - **Split** for viewport-height source and preview panes with bidirectional
   proportional scroll sync (enabled by default and independently toggleable).
+  Like the block's Split mode, the preview waits while the cursor line holds
+  only a new list marker, so the marker does not flash into the item above
+  (see [Blocks](blocks.md)).
 - **Preview** for a full-width rendered preview.
 - **Download .crv** for a lossless local copy.
 - **Move into a Carve block** when the document needs to be composed with other

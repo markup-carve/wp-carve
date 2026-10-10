@@ -21,6 +21,16 @@ that depend on a setting (table of contents, heading permalinks, heading shift,
 smart quotes) are applied server-side only, so those appear in the published
 post rather than in the instant preview.
 
+While you type a new list item, the Split preview keeps its last render as long
+as the line under the cursor holds only a list marker (`-`, `*`, `1.`, `a)`,
+`iv.`, a bare `.`, optionally with a task box such as `[ ]`). A marker with
+nothing after it is paragraph text in Carve, so rendering it would fold it into
+the item above for one keystroke. The preview catches up as soon as the line
+gets content, the cursor leaves the line, or the source loses focus. Markers
+inside a code fence or a `%%%` comment do not hold the preview, and `+` never
+does. Only the preview waits: the saved source and the published output are
+unchanged.
+
 ### Toolbar
 
 When the block is selected in Write/Split mode, the block toolbar offers:
