@@ -5,7 +5,11 @@
 
    A marker with no content after it is paragraph text in Carve, so Enter on a
    marker-only line removes the marker instead of continuing. `+` is the
-   continuation marker, not a bullet, and is never continued. */
+   continuation marker, not a bullet, and is never continued.
+
+   `holdsPreview( text, cursor )` tells both editors' previews to keep their last
+   render while the cursor line is such a marker-only line, which would otherwise
+   fold into the item above for one keystroke. */
 ( function () {
 	'use strict';
 
@@ -175,30 +179,95 @@
 		return String.fromCharCode( value.charCodeAt( 0 ) + 1 );
 	}
 
+	// Blanks the first `depth` quote markers, the ones of the quote a fence sits
+	// in; any further `>` is code text.
+	function unquote( line, depth ) {
+		let done = 0;
+		for ( let count = 0; count < depth; count++ ) {
+			const marker = /^ *> ?/.exec( line.slice( done ) );
+			if ( ! marker ) {
+				break;
+			}
+			done += marker[ 0 ].length;
+		}
+
+		return ' '.repeat( done ) + line.slice( done );
+	}
+
+	// A fence may open after the quote, description and item markers starting its
+	// line. `column` is where the innermost of them puts its content; a task box
+	// does not move it. Each pass consumes at least one character, so
+	// `- - - …` stays linear.
+	function fenceBody( line ) {
+		let done = 0;
+		let column = null;
+		let quotes = 0;
+		for ( ;; ) {
+			const rest = line.slice( done );
+			const marker = /^ *(?:> ?|: +)/.exec( rest );
+			const item = marker ? null : matchItem( rest );
+			if ( ! marker && ! item ) {
+				break;
+			}
+			quotes += marker && marker[ 0 ].trim() === '>' ? 1 : 0;
+			column = done + ( marker ? marker[ 0 ].length : contentColumn( item ) );
+			done += marker ? marker[ 0 ].length : item.length;
+		}
+
+		return { text: ' '.repeat( done ) + line.slice( done ), column: column, quotes: quotes };
+	}
+
 	// A list marker inside fenced code or a `%%%` comment is not a list. A fence left open
 	// inside a list item ends with that item, at the first line indented less.
 	function inFence( lines, index ) {
 		let open = null;
 		for ( let at = 0; at <= index; at++ ) {
-			const line = lines[ at ];
-			if ( open && line.trim() && /^ */.exec( line )[ 0 ].length < open.indent ) {
+			const line = open ? unquote( lines[ at ], open.quotes ) : lines[ at ];
+			if ( open && line.trim() && leading( line ) < open.indent ) {
 				open = null;
 			}
-			// A fence may open on an item's marker line, at the item's content column.
-			const item = matchItem( line );
-			const body = item ? ' '.repeat( item.length ) + line.slice( item.length ) : line;
-			const fence = at < index ? /^( *)(`{3,}|~{3,}|%{3,})(.*)$/.exec( open ? line : body ) : null;
+			const body = open || at >= index ? null : fenceBody( lines[ at ] );
+			const fence = at < index ? /^( *)(`{3,}|~{3,}|%{3,})(.*)$/.exec( open ? line : body.text ) : null;
 			if ( ! fence ) {
 				continue;
 			}
 			if ( ! open ) {
-				open = { run: fence[ 2 ], indent: fence[ 1 ].length };
+				// A fence character after the run makes it inline code: ```code```.
+				if ( fence[ 2 ][ 0 ] !== '%' && fence[ 3 ].includes( fence[ 2 ][ 0 ] ) ) {
+					continue;
+				}
+				open = { run: fence[ 2 ], indent: body.column === null ? fence[ 1 ].length : body.column, quotes: body.quotes };
 			} else if ( fence[ 2 ][ 0 ] === open.run[ 0 ] && fence[ 2 ].length >= open.run.length && ! fence[ 3 ].trim() ) {
 				open = null;
 			}
 		}
 
 		return open !== null;
+	}
+
+	// A line holding only a list marker, an optional bullet task box and
+	// whitespace, under any quote markers. `+` and `* * *` are not markers.
+	function isBareMarker( line ) {
+		const body = line.replace( /^[ \t]*(?:>[ \t]*)*/, '' ).replace( /[ \t]+$/, '' );
+		const item = body ? matchItem( body + ' ' ) : null;
+
+		return !! item && item.length === body.length + 1;
+	}
+
+	// Whether a preview should wait while the cursor sits at offset `cursor`.
+	// A misread costs one flicker or one deferred render, never the output.
+	function holdsPreview( text, cursor ) {
+		const lineStart = text.lastIndexOf( '\n', cursor - 1 ) + 1;
+		let lineEnd = text.indexOf( '\n', cursor );
+		if ( lineEnd < 0 ) {
+			lineEnd = text.length;
+		}
+		if ( ! isBareMarker( text.slice( lineStart, lineEnd ).replace( /\r$/, '' ) ) ) {
+			return false;
+		}
+		const index = text.slice( 0, lineStart ).split( '\n' ).length - 1;
+
+		return ! inFence( text.split( '\n' ).map( ( line ) => line.replace( /\r$/, '' ) ), index );
 	}
 
 	// No list interrupts a paragraph: in a run of lines opened by paragraph text
@@ -488,5 +557,11 @@
 			&& ! event.isComposing && event.keyCode !== 229;
 	}
 
-	window.wpCarveListContinuation = { edit: edit, indent: indent, isPlainEnter: isPlainEnter };
+	window.wpCarveListContinuation = {
+		edit: edit,
+		indent: indent,
+		isPlainEnter: isPlainEnter,
+		isBareMarker: isBareMarker,
+		holdsPreview: holdsPreview,
+	};
 }() );

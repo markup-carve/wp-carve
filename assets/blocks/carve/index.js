@@ -529,6 +529,8 @@
 		const insertSelectionRef = useRef( null );
 		const previewRef = useRef( null );
 		const timer = useRef( null );
+		const heldRef = useRef( false );
+		const renderNowRef = useRef( null );
 
 		useEffect( () => {
 			const syncFullscreen = () => {
@@ -584,18 +586,14 @@
 		}
 		const changes = engine && engine.semanticChanges ? engine.semanticChanges( savedSource, source ) : [];
 
-		useEffect( () => {
-			if ( mode === 'visual' || ! showPreview ) {
-				return undefined;
-			}
-			clearTimeout( timer.current );
+		renderNowRef.current = () => {
+			heldRef.current = false;
 			// Both Preview and Split render server-side (carve-php) so the preview
 			// matches the front end exactly - media embeds show as real players,
-			// server-only constructs render faithfully. Debounced, so live typing
-			// in Split stays responsive.
+			// server-only constructs render faithfully.
 			let bibliography = [];
 			try { bibliography = attributes.bibliography ? JSON.parse( attributes.bibliography ) : []; } catch ( error ) { bibliography = []; }
-			timer.current = setTimeout( () => renderPreview(
+			renderPreview(
 				source,
 				( rendered ) => { setPreviewError( '' ); setHtml( rendered ); },
 				setPreviewError,
@@ -604,8 +602,46 @@
 				'post',
 				bibliography,
 				attributes.citationMode
-			), 200 );
-			return () => clearTimeout( timer.current );
+			);
+		};
+
+		// A bare list marker under the focused cursor would render folded into
+		// the item above; the preview keeps its last render until the line changes.
+		function holdsPreview( value ) {
+			const lists = window.wpCarveListContinuation;
+			const ta = taRef.current;
+			if ( ! lists || ! lists.holdsPreview || ! ta || ( ta.ownerDocument && ta.ownerDocument.activeElement !== ta ) ) {
+				return false;
+			}
+
+			return lists.holdsPreview( value, ta.selectionEnd );
+		}
+
+		function releaseHold( force ) {
+			if ( ! heldRef.current || timer.current || ( ! force && holdsPreview( source ) ) ) {
+				return;
+			}
+			renderNowRef.current();
+		}
+
+		useEffect( () => {
+			if ( mode === 'visual' || ! showPreview ) {
+				return undefined;
+			}
+			clearTimeout( timer.current );
+			// Debounced, so live typing in Split stays responsive.
+			timer.current = setTimeout( () => {
+				timer.current = null;
+				if ( holdsPreview( source ) ) {
+					heldRef.current = true;
+					return;
+				}
+				renderNowRef.current();
+			}, 200 );
+			return () => {
+				clearTimeout( timer.current );
+				timer.current = null;
+			};
 		}, [ source, mode, showPreview, attributes.profile, attributes.bibliography, attributes.citationMode ] );
 
 		// Surface the code-block language as the floating badge in Preview/Split
@@ -1253,6 +1289,8 @@
 			onKeyDown,
 			onPaste,
 			onScroll: syncScroll,
+			onSelect: () => releaseHold( false ),
+			onBlur: () => releaseHold( true ),
 		} );
 
 		const previewField = previewError

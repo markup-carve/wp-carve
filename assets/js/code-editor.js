@@ -38,7 +38,10 @@
 	const postIdEl = document.getElementById( 'post_ID' );
 	const postId = postIdEl ? ( parseInt( postIdEl.value, 10 ) || 0 ) : 0;
 
+	// Set while a bare-marker line holds the preview back (see holdsPreview).
+	let held = false;
 	function render( source ) {
+		held = false;
 		if ( ! preview || ! cfg.restRender || ! wp || ! wp.apiFetch ) {
 			return;
 		}
@@ -126,18 +129,47 @@
 		} );
 	}
 
+	// A bare list marker under the focused cursor would render folded into the
+	// item above; the preview keeps its last render until the line changes.
 	let timer = null;
+	function holdsPreview() {
+		if ( ! lists || ! lists.holdsPreview ) {
+			return false;
+		}
+		if ( cm ) {
+			return cm.hasFocus() && lists.holdsPreview( cm.getValue(), cm.indexFromPos( cm.getCursor() ) );
+		}
+
+		return document.activeElement === textarea && lists.holdsPreview( textarea.value, textarea.selectionEnd );
+	}
+
 	function schedule() {
 		clearTimeout( timer );
 		timer = setTimeout( () => {
+			timer = null;
+			if ( holdsPreview() ) {
+				held = true;
+				return;
+			}
 			render( cm ? cm.getValue() : textarea.value );
 		}, 250 );
 	}
 
+	function releaseHold( force ) {
+		if ( ! held || timer || ( ! force && holdsPreview() ) ) {
+			return;
+		}
+		render( cm ? cm.getValue() : textarea.value );
+	}
+
 	if ( cm ) {
 		cm.on( 'change', schedule );
+		cm.on( 'cursorActivity', () => releaseHold( false ) );
+		cm.on( 'blur', () => releaseHold( true ) );
 	} else {
 		textarea.addEventListener( 'input', schedule );
+		[ 'select', 'keyup', 'mouseup' ].forEach( ( type ) => textarea.addEventListener( type, () => releaseHold( false ) ) );
+		textarea.addEventListener( 'blur', () => releaseHold( true ) );
 	}
 
 	let syncingScroll = false;
