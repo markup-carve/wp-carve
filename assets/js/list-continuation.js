@@ -9,6 +9,8 @@
 	'use strict';
 
 	const ITEM = /^( *)(?:([-*])|(\d+|[a-zA-Z]+)?([.)]))(\{[^{}\n]*\})?( +)/;
+	// Lines that open or are a block of their own, never paragraph text.
+	const BLOCK = /^ *(?:#|`{3}|~{3}|:|\{|%|\||(?:-{3,}|\*{3,}|_{3,}) *$)/;
 	const TASK = /^\[[ xX\-_>?]\](?: +|$)/;
 	const ROMAN = [
 		[ 1000, 'm' ], [ 900, 'cm' ], [ 500, 'd' ], [ 400, 'cd' ], [ 100, 'c' ], [ 90, 'xc' ],
@@ -118,6 +120,10 @@
 				continue;
 			}
 			const other = indent === item.indent.length ? matchItem( line ) : null;
+			// Text right under a non-blank line is a lazy continuation of an item.
+			if ( ! other && at > 0 && lines[ at - 1 ].trim() && ! BLOCK.test( line ) ) {
+				continue;
+			}
 			const letters = other && other.value && /^[a-zA-Z]+$/.test( other.value );
 			const sameCase = letters && ( other.value === other.value.toUpperCase() ) === ( item.value === item.value.toUpperCase() );
 			if ( ! sameCase || other.delimiter !== item.delimiter ) {
@@ -205,7 +211,7 @@
 			return false;
 		}
 
-		return ! matchItem( top ) && ! /^ *(?:#|`{3}|~{3}|:|\{|%|\|)/.test( top );
+		return ! matchItem( top ) && ! BLOCK.test( top );
 	}
 
 	function edit( text, cursor ) {

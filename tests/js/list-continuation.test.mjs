@@ -59,6 +59,8 @@ const CONTINUES = [
   ['c then ci is roman from the first item', 'c. one|\nci. two', 'c. one\nci. |\nci. two'],
   ['a case change starts a new roman list', 'a. one\nb. two\nI. three|', 'a. one\nb. two\nI. three\nII. |'],
   ['an item after a loose continuation paragraph', '- one\n\n  more\n- two|', '- one\n\n  more\n- two\n- |'],
+  ['roman across a lazy line', 'iv. four\nlazy\nv. five|', 'iv. four\nlazy\nv. five\nvi. |'],
+  ['an item under a thematic break', '---\n- one|', '---\n- one\n- |'],
   ['an item under a heading', '# Title\n- one|', '# Title\n- one\n- |'],
   ['an item after a lazy line in the list', '- one\nlazy\n- two|', '- one\nlazy\n- two\n- |'],
   ['a fence left open in an earlier item ends with it', '- top\n  ```\n  code\n\n- next|', '- top\n  ```\n  code\n\n- next\n- |'],
