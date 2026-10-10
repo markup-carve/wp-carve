@@ -179,9 +179,19 @@
 		return String.fromCharCode( value.charCodeAt( 0 ) + 1 );
 	}
 
-	// Quote markers do not move a line's column for fence purposes.
-	function unquote( line ) {
-		return line.replace( /^(?: *> ?)+/, ( prefix ) => ' '.repeat( prefix.length ) );
+	// Blanks the first `depth` quote markers, the ones of the quote a fence sits
+	// in; any further `>` is code text.
+	function unquote( line, depth ) {
+		let done = 0;
+		for ( let count = 0; count < depth; count++ ) {
+			const marker = /^ *> ?/.exec( line.slice( done ) );
+			if ( ! marker ) {
+				break;
+			}
+			done += marker[ 0 ].length;
+		}
+
+		return ' '.repeat( done ) + line.slice( done );
 	}
 
 	// A fence may open after the quote, description and item markers starting its
@@ -191,6 +201,7 @@
 	function fenceBody( line ) {
 		let done = 0;
 		let column = null;
+		let quotes = 0;
 		for ( ;; ) {
 			const rest = line.slice( done );
 			const marker = /^ *(?:> ?|: +)/.exec( rest );
@@ -198,11 +209,12 @@
 			if ( ! marker && ! item ) {
 				break;
 			}
+			quotes += marker && marker[ 0 ].trim() === '>' ? 1 : 0;
 			column = done + ( marker ? marker[ 0 ].length : contentColumn( item ) );
 			done += marker ? marker[ 0 ].length : item.length;
 		}
 
-		return { text: ' '.repeat( done ) + line.slice( done ), column: column };
+		return { text: ' '.repeat( done ) + line.slice( done ), column: column, quotes: quotes };
 	}
 
 	// A list marker inside fenced code or a `%%%` comment is not a list. A fence left open
@@ -210,7 +222,7 @@
 	function inFence( lines, index ) {
 		let open = null;
 		for ( let at = 0; at <= index; at++ ) {
-			const line = unquote( lines[ at ] );
+			const line = open ? unquote( lines[ at ], open.quotes ) : lines[ at ];
 			if ( open && line.trim() && leading( line ) < open.indent ) {
 				open = null;
 			}
@@ -224,7 +236,7 @@
 				if ( fence[ 2 ][ 0 ] !== '%' && fence[ 3 ].includes( fence[ 2 ][ 0 ] ) ) {
 					continue;
 				}
-				open = { run: fence[ 2 ], indent: body.column === null ? fence[ 1 ].length : body.column };
+				open = { run: fence[ 2 ], indent: body.column === null ? fence[ 1 ].length : body.column, quotes: body.quotes };
 			} else if ( fence[ 2 ][ 0 ] === open.run[ 0 ] && fence[ 2 ].length >= open.run.length && ! fence[ 3 ].trim() ) {
 				open = null;
 			}

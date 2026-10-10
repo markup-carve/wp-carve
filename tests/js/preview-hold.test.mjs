@@ -11,7 +11,7 @@ const documentSource = readFileSync(new URL('../../assets/js/code-editor.js', im
 
 const sandbox = { window: {} };
 runInNewContext(listSource, sandbox);
-const { isBareMarker, holdsPreview } = sandbox.window.wpCarveListContinuation;
+const { edit, isBareMarker, holdsPreview } = sandbox.window.wpCarveListContinuation;
 const { carveToHtml } = await import('@markup-carve/carve');
 
 // `|` marks the caret.
@@ -80,6 +80,13 @@ test('a fence opened inside a block quote or a description still counts', () => 
   assert.equal(holds('> ```\n> - |\n'), false);
   assert.equal(holds('> ```\n> x\n> ```\n> - |'), true);
   assert.equal(holds(':: term\n: ```\n  - |\n  ```\n'), false);
+});
+
+test('a quoted fence line inside a top-level fence is code, not a closer', () => {
+  assert.match(carveToHtml('```\n> ```\n- x\n'), /<pre><code>&gt; ```\s+- x/);
+  assert.equal(holds('```\n> ```\n-|'), false);
+  assert.equal(holds('> ```\n> > ```\n> -|'), false);
+  assert.equal(edit('```\n> ```\n- x', 13), null);
 });
 
 test('a task box on an ordered item is text, so it opens no fence', () => {
