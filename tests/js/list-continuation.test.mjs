@@ -55,6 +55,9 @@ const CONTINUES = [
   ['mid-item splits the rest into the next item', '- one| two', '- one\n- | two'],
   ['nested ordered under a bullet', '- top\n  1. one|', '- top\n  1. one\n  2. |'],
   ['task box on an ordered item is content', '1. [ ] one|', '1. [ ] one\n2. |'],
+  ['i then j is alpha from the first item', 'i. one|\nj. two', 'i. one\nj. |\nj. two'],
+  ['c then ci is roman from the first item', 'c. one|\nci. two', 'c. one\nci. |\nci. two'],
+  ['a fence left open in an earlier item ends with it', '- top\n  ```\n  code\n\n- next|', '- top\n  ```\n  code\n\n- next\n- |'],
 ];
 
 for (const [name, before, after] of CONTINUES) {

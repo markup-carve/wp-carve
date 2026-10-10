@@ -105,11 +105,10 @@
 		return /^i$/i.test( first );
 	}
 
-	// The letter markers of this list from its first item down to the current
-	// line. Deeper lines are nested content; a shallower one ends the search.
-	function siblings( lines, index, item ) {
-		const found = [ item.value ];
-		for ( let at = index - 1; at >= 0; at-- ) {
+	// The nearest sibling letter marker of this list in direction `step`, or
+	// null. Deeper lines are nested content; a shallower one ends the list.
+	function sibling( lines, index, item, step ) {
+		for ( let at = index + step; at >= 0 && at < lines.length; at += step ) {
 			const line = lines[ at ];
 			if ( ! line.trim() ) {
 				continue;
@@ -120,12 +119,24 @@
 			}
 			const other = indent === item.indent.length ? matchItem( line ) : null;
 			if ( ! other || other.delimiter !== item.delimiter || ! other.value || ! /^[a-zA-Z]+$/.test( other.value ) ) {
-				break;
+				return null;
 			}
-			found.unshift( other.value );
+
+			return { index: at, value: other.value };
 		}
 
-		return found;
+		return null;
+	}
+
+	// The list's first two letter markers, which settle its dialect.
+	function leadingPair( lines, index, item ) {
+		let first = { index: index, value: item.value };
+		for ( let before = sibling( lines, index, item, -1 ); before; before = sibling( lines, before.index, item, -1 ) ) {
+			first = before;
+		}
+		const second = sibling( lines, first.index, item, 1 );
+
+		return [ first.value, second ? second.value : undefined ];
 	}
 
 	function nextValue( lines, index, item ) {
@@ -139,7 +150,7 @@
 			return value.startsWith( '0' ) ? next.padStart( value.length, '0' ) : next;
 		}
 		const upper = value === value.toUpperCase();
-		if ( isRoman( siblings( lines, index, item ) ) ) {
+		if ( isRoman( leadingPair( lines, index, item ) ) ) {
 			const number = fromRoman( value );
 			if ( ! number ) {
 				return null;
@@ -155,17 +166,22 @@
 		return String.fromCharCode( value.charCodeAt( 0 ) + 1 );
 	}
 
-	// A list marker inside fenced code is code, not a list.
+	// A list marker inside fenced code is code, not a list. A fence left open
+	// inside a list item ends with that item, at the first line indented less.
 	function inFence( lines, index ) {
 		let open = null;
-		for ( let at = 0; at < index; at++ ) {
-			const fence = /^ *(`{3,}|~{3,})(.*)$/.exec( lines[ at ] );
+		for ( let at = 0; at <= index; at++ ) {
+			const line = lines[ at ];
+			if ( open && line.trim() && /^ */.exec( line )[ 0 ].length < open.indent ) {
+				open = null;
+			}
+			const fence = at < index ? /^( *)(`{3,}|~{3,})(.*)$/.exec( line ) : null;
 			if ( ! fence ) {
 				continue;
 			}
 			if ( ! open ) {
-				open = fence[ 1 ];
-			} else if ( fence[ 1 ][ 0 ] === open[ 0 ] && fence[ 1 ].length >= open.length && ! fence[ 2 ].trim() ) {
+				open = { run: fence[ 2 ], indent: fence[ 1 ].length };
+			} else if ( fence[ 2 ][ 0 ] === open.run[ 0 ] && fence[ 2 ].length >= open.run.length && ! fence[ 3 ].trim() ) {
 				open = null;
 			}
 		}
@@ -184,8 +200,8 @@
 		if ( ! item || cursor < lineStart + item.length ) {
 			return null;
 		}
-		const lines = text.slice( 0, lineStart ).split( '\n' );
-		const index = lines.length - 1;
+		const lines = text.split( '\n' );
+		const index = text.slice( 0, lineStart ).split( '\n' ).length - 1;
 		if ( inFence( lines, index ) ) {
 			return null;
 		}
@@ -194,7 +210,7 @@
 		}
 		let marker = item.bullet;
 		if ( marker === undefined ) {
-			const value = nextValue( lines.slice( 0, index ).concat( line ), index, item );
+			const value = nextValue( lines, index, item );
 			if ( value === null ) {
 				return null;
 			}
