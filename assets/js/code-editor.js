@@ -69,8 +69,26 @@
 	const lists = window.wpCarveListContinuation;
 	if ( lists && cm ) {
 		// A key map added here outranks `extraKeys`, and Pass hands every Enter
-		// it does not continue to them and to the default newline.
+		// or Tab it does not handle to them and to the editor's default.
 		const Pass = wp.CodeMirror && wp.CodeMirror.Pass;
+		const listIndent = ( editor, outdent ) => {
+			const single = ! editor.listSelections || editor.listSelections().length === 1;
+			const next = single
+				? lists.indent( editor.getValue(), editor.indexFromPos( editor.getCursor( 'from' ) ), editor.indexFromPos( editor.getCursor( 'to' ) ), outdent )
+				: null;
+			if ( ! next ) {
+				if ( Pass ) {
+					return Pass;
+				}
+				editor.execCommand( outdent ? 'indentLess' : 'defaultTab' );
+
+				return undefined;
+			}
+			editor.replaceRange( next.text, editor.posFromIndex( next.from ), editor.posFromIndex( next.to ) );
+			editor.setSelection( editor.posFromIndex( next.start ), editor.posFromIndex( next.end ) );
+
+			return undefined;
+		};
 		cm.addKeyMap( {
 			Enter: ( editor ) => {
 				const next = editor.somethingSelected()
@@ -89,6 +107,8 @@
 
 				return undefined;
 			},
+			Tab: ( editor ) => listIndent( editor, false ),
+			'Shift-Tab': ( editor ) => listIndent( editor, true ),
 		} );
 	} else if ( lists ) {
 		textarea.addEventListener( 'keydown', ( event ) => {
