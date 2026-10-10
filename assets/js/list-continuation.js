@@ -175,7 +175,10 @@
 			if ( open && line.trim() && /^ */.exec( line )[ 0 ].length < open.indent ) {
 				open = null;
 			}
-			const fence = at < index ? /^( *)(`{3,}|~{3,})(.*)$/.exec( line ) : null;
+			// A fence may open on an item's marker line, at the item's content column.
+			const item = matchItem( line );
+			const body = item ? ' '.repeat( item.length ) + line.slice( item.length ) : line;
+			const fence = at < index ? /^( *)(`{3,}|~{3,})(.*)$/.exec( open ? line : body ) : null;
 			if ( ! fence ) {
 				continue;
 			}
@@ -187,6 +190,21 @@
 		}
 
 		return open !== null;
+	}
+
+	// No list interrupts a paragraph, so a marker line directly under paragraph
+	// text is more of that paragraph. Any item above it in the same run of lines
+	// means a list is already open; a block construct above leaves it alone.
+	function interruptsParagraph( lines, index ) {
+		let top = null;
+		for ( let at = index - 1; at >= 0 && lines[ at ].trim(); at-- ) {
+			if ( matchItem( lines[ at ] ) ) {
+				return false;
+			}
+			top = lines[ at ];
+		}
+
+		return top !== null && ! /^ *(?:#|`{3}|~{3}|:|\{|%|\|)/.test( top );
 	}
 
 	function edit( text, cursor ) {
@@ -202,7 +220,7 @@
 		}
 		const lines = text.split( '\n' );
 		const index = text.slice( 0, lineStart ).split( '\n' ).length - 1;
-		if ( inFence( lines, index ) ) {
+		if ( inFence( lines, index ) || interruptsParagraph( lines, index ) ) {
 			return null;
 		}
 		if ( ! line.slice( item.length ).trim() ) {

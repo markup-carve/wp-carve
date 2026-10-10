@@ -57,6 +57,8 @@ const CONTINUES = [
   ['task box on an ordered item is content', '1. [ ] one|', '1. [ ] one\n2. |'],
   ['i then j is alpha from the first item', 'i. one|\nj. two', 'i. one\nj. |\nj. two'],
   ['c then ci is roman from the first item', 'c. one|\nci. two', 'c. one\nci. |\nci. two'],
+  ['an item under a heading', '# Title\n- one|', '# Title\n- one\n- |'],
+  ['an item after a lazy line in the list', '- one\nlazy\n- two|', '- one\nlazy\n- two\n- |'],
   ['a fence left open in an earlier item ends with it', '- top\n  ```\n  code\n\n- next|', '- top\n  ```\n  code\n\n- next\n- |'],
 ];
 
@@ -100,6 +102,9 @@ const LEAVES = [
   ['quoted list item', '> - one|'],
   ['inside a backtick fence', '```\n- one|\n```'],
   ['inside a tilde fence', '~~~\n1. one|\n~~~'],
+  ['inside a fence opened on an item line', '- ```\n  - code|\n  ```'],
+  ['a marker line under paragraph text', 'text\n- prose|'],
+  ['an ordered marker line under paragraph text', 'text\n1. prose|'],
 ];
 
 for (const [name, before] of LEAVES) {
