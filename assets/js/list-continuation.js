@@ -118,7 +118,9 @@
 				continue;
 			}
 			const other = indent === item.indent.length ? matchItem( line ) : null;
-			if ( ! other || other.delimiter !== item.delimiter || ! other.value || ! /^[a-zA-Z]+$/.test( other.value ) ) {
+			const letters = other && other.value && /^[a-zA-Z]+$/.test( other.value );
+			const sameCase = letters && ( other.value === other.value.toUpperCase() ) === ( item.value === item.value.toUpperCase() );
+			if ( ! sameCase || other.delimiter !== item.delimiter ) {
 				return null;
 			}
 
@@ -166,7 +168,7 @@
 		return String.fromCharCode( value.charCodeAt( 0 ) + 1 );
 	}
 
-	// A list marker inside fenced code is code, not a list. A fence left open
+	// A list marker inside fenced code or a `%%%` comment is not a list. A fence left open
 	// inside a list item ends with that item, at the first line indented less.
 	function inFence( lines, index ) {
 		let open = null;
@@ -178,7 +180,7 @@
 			// A fence may open on an item's marker line, at the item's content column.
 			const item = matchItem( line );
 			const body = item ? ' '.repeat( item.length ) + line.slice( item.length ) : line;
-			const fence = at < index ? /^( *)(`{3,}|~{3,})(.*)$/.exec( open ? line : body ) : null;
+			const fence = at < index ? /^( *)(`{3,}|~{3,}|%{3,})(.*)$/.exec( open ? line : body ) : null;
 			if ( ! fence ) {
 				continue;
 			}
@@ -192,19 +194,18 @@
 		return open !== null;
 	}
 
-	// No list interrupts a paragraph, so a marker line directly under paragraph
-	// text is more of that paragraph. Any item above it in the same run of lines
-	// means a list is already open; a block construct above leaves it alone.
-	function interruptsParagraph( lines, index ) {
+	// No list interrupts a paragraph: in a run of lines opened by paragraph text
+	// at this item's indent or shallower, a marker line is more of that paragraph.
+	function interruptsParagraph( lines, index, item ) {
 		let top = null;
 		for ( let at = index - 1; at >= 0 && lines[ at ].trim(); at-- ) {
-			if ( matchItem( lines[ at ] ) ) {
-				return false;
-			}
 			top = lines[ at ];
 		}
+		if ( top === null || /^ */.exec( top )[ 0 ].length > item.indent.length ) {
+			return false;
+		}
 
-		return top !== null && ! /^ *(?:#|`{3}|~{3}|:|\{|%|\|)/.test( top );
+		return ! matchItem( top ) && ! /^ *(?:#|`{3}|~{3}|:|\{|%|\|)/.test( top );
 	}
 
 	function edit( text, cursor ) {
@@ -220,7 +221,7 @@
 		}
 		const lines = text.split( '\n' );
 		const index = text.slice( 0, lineStart ).split( '\n' ).length - 1;
-		if ( inFence( lines, index ) || interruptsParagraph( lines, index ) ) {
+		if ( inFence( lines, index ) || interruptsParagraph( lines, index, item ) ) {
 			return null;
 		}
 		if ( ! line.slice( item.length ).trim() ) {

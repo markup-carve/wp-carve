@@ -57,6 +57,8 @@ const CONTINUES = [
   ['task box on an ordered item is content', '1. [ ] one|', '1. [ ] one\n2. |'],
   ['i then j is alpha from the first item', 'i. one|\nj. two', 'i. one\nj. |\nj. two'],
   ['c then ci is roman from the first item', 'c. one|\nci. two', 'c. one\nci. |\nci. two'],
+  ['a case change starts a new roman list', 'a. one\nb. two\nI. three|', 'a. one\nb. two\nI. three\nII. |'],
+  ['an item after a loose continuation paragraph', '- one\n\n  more\n- two|', '- one\n\n  more\n- two\n- |'],
   ['an item under a heading', '# Title\n- one|', '# Title\n- one\n- |'],
   ['an item after a lazy line in the list', '- one\nlazy\n- two|', '- one\nlazy\n- two\n- |'],
   ['a fence left open in an earlier item ends with it', '- top\n  ```\n  code\n\n- next|', '- top\n  ```\n  code\n\n- next\n- |'],
@@ -104,6 +106,9 @@ const LEAVES = [
   ['inside a tilde fence', '~~~\n1. one|\n~~~'],
   ['inside a fence opened on an item line', '- ```\n  - code|\n  ```'],
   ['a marker line under paragraph text', 'text\n- prose|'],
+  ['a nested marker line under item paragraph text', '- one\n\n  more\n  - prose|'],
+  ['a second marker line under paragraph text', 'text\n- prose\n- prose|'],
+  ['inside a comment fence', '%%%\n\n- hidden|\n%%%'],
   ['an ordered marker line under paragraph text', 'text\n1. prose|'],
 ];
 
