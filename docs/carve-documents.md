@@ -14,6 +14,8 @@ Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provid
   selected text stays selected under its new delimiters, a bare caret lands
   between them, a list or heading prefix carries the selection along with the
   text it shifts, and a block template puts the caret on its empty body line.
+  Enter in a list item continues the list, and Enter on an empty item ends
+  it; the rules are the block editor's (see [Blocks](blocks.md)).
 - **Split** for viewport-height source and preview panes with bidirectional
   proportional scroll sync (enabled by default and independently toggleable).
 - **Preview** for a full-width rendered preview.

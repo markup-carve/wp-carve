@@ -902,6 +902,16 @@
 		}
 
 		function onKeyDown( e ) {
+			const lists = window.wpCarveListContinuation;
+			if ( lists && lists.isPlainEnter( e.nativeEvent || e ) ) {
+				const { value, start, end } = sel();
+				const next = start === end ? lists.edit( value, start ) : null;
+				if ( next ) {
+					e.preventDefault();
+					setVal( value.slice( 0, next.from ) + next.text + value.slice( next.to ), next.cursor );
+				}
+				return;
+			}
 			if ( ( e.ctrlKey || e.metaKey ) && e.shiftKey && e.key.toLowerCase() === 'p' ) {
 				e.preventDefault();
 				setCommandOpen( true );
