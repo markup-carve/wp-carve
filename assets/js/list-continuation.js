@@ -382,7 +382,13 @@
 			if ( ! lines[ at ].trim() || indent <= item.indent.length ) {
 				continue;
 			}
-			const shift = Math.max( delta, -indent );
+			// A lazy line short of the item's content column must stay short of
+			// the new parent's too, or it turns into a block of that parent.
+			const lazy = ! outdent && indent < contentColumn( item );
+			const shift = lazy ? Math.min( 0, column - 1 - indent ) : Math.max( delta, -indent );
+			if ( ! shift ) {
+				continue;
+			}
 			lines[ at ] = shift > 0 ? ' '.repeat( shift ) + lines[ at ] : lines[ at ].slice( -shift );
 			local.push( { index: at, cut: Math.max( 0, -shift ), delta: shift } );
 		}

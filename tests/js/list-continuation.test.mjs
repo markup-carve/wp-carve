@@ -244,6 +244,19 @@ test('the engine keeps a paragraph after the list outside it once an item nests'
   assert.deepEqual(parse(after).children.map(block => block.type), ['list', 'paragraph']);
 });
 
+test('an under-indented lazy line stays paragraph text of the moved item', () => {
+  for (const [before, after] of [
+    ['1. a\n2. b|\n # outside', '1. a\n   1. b|\n # outside'],
+    ['9. a\n10. b|\n   # outside', '9. a\n   1. b|\n  # outside'],
+  ]) {
+    assert.equal(tab(before), after);
+    const list = parse(after.replace('|', '')).children;
+    assert.equal(list.length, 1);
+    const child = list[0].items[0].children[1];
+    assert.deepEqual(child.items[0].children.map(block => block.type), ['paragraph']);
+  }
+});
+
 test('a selection mixing prose and items shifts the prose by two spaces', () => {
   // `text` is a lazy line of `b` and stays; the blank line gets no spaces.
   assert.equal(tab('- a\n- |b\ntext\n\nmore|', false), '- a\n  - |b\ntext\n\n  more|');
