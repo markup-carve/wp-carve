@@ -12,6 +12,7 @@ use WP_Post;
 use WpCarve\Converter;
 use WpCarve\Includes\IncludePolicy;
 use WpCarve\InlineToggle;
+use WpCarve\ListContinuation;
 use WpCarve\Plugin;
 use WpCarve\Settings;
 
@@ -134,7 +135,7 @@ class PostEditor
 
         MediaPicker::enqueue();
 
-        $deps = ['jquery', 'wp-api-fetch', MediaPicker::HANDLE, InlineToggle::register()];
+        $deps = ['jquery', 'wp-api-fetch', MediaPicker::HANDLE, InlineToggle::register(), ListContinuation::register()];
         if ($codeEditor !== false) {
             $deps[] = 'code-editor';
         }

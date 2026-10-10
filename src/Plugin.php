@@ -427,6 +427,7 @@ class Plugin
 
         $deps[] = MediaPicker::HANDLE;
         $deps[] = InlineToggle::register();
+        $deps[] = ListContinuation::register();
         wp_enqueue_script(
             'wpcarve-editor',
             WPCARVE_URL . 'assets/blocks/carve/index.js',

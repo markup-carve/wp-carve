@@ -66,6 +66,46 @@
 		cm = instance && instance.codemirror;
 	}
 
+	const lists = window.wpCarveListContinuation;
+	if ( lists && cm ) {
+		// A key map added here outranks `extraKeys`, and Pass hands every Enter
+		// it does not continue to them and to the default newline.
+		const Pass = wp.CodeMirror && wp.CodeMirror.Pass;
+		cm.addKeyMap( {
+			Enter: ( editor ) => {
+				const next = editor.somethingSelected()
+					? null
+					: lists.edit( editor.getValue(), editor.indexFromPos( editor.getCursor() ) );
+				if ( ! next ) {
+					if ( Pass ) {
+						return Pass;
+					}
+					editor.execCommand( 'newlineAndIndent' );
+
+					return undefined;
+				}
+				editor.replaceRange( next.text, editor.posFromIndex( next.from ), editor.posFromIndex( next.to ) );
+				editor.setCursor( editor.posFromIndex( next.cursor ) );
+
+				return undefined;
+			},
+		} );
+	} else if ( lists ) {
+		textarea.addEventListener( 'keydown', ( event ) => {
+			if ( ! lists.isPlainEnter( event ) || textarea.selectionStart !== textarea.selectionEnd ) {
+				return;
+			}
+			const next = lists.edit( textarea.value, textarea.selectionStart );
+			if ( ! next ) {
+				return;
+			}
+			event.preventDefault();
+			textarea.setRangeText( next.text, next.from, next.to );
+			textarea.setSelectionRange( next.cursor, next.cursor );
+			textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		} );
+	}
+
 	let timer = null;
 	function schedule() {
 		clearTimeout( timer );

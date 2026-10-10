@@ -38,6 +38,13 @@ When the block is selected in Write/Split mode, the block toolbar offers:
 Keyboard shortcuts in the source editor: `Ctrl/Cmd+B` strong, `Ctrl/Cmd+I`
 emphasis, `Ctrl/Cmd+U` underline, `Ctrl/Cmd+K` link.
 
+Enter at the end of a list item starts the next one with the same indent and
+spacing: `- ` and `* ` repeat, `1.`, `a)` and `ii.` count on, a bare-dot `. `
+item repeats, and a task item continues as an open `[ ]` box. Enter on an item
+that holds only its marker removes the marker and ends the list. `+` is the
+continuation marker, not a bullet, so a `+ ` line is not continued. Shift+Enter
+always inserts a plain newline. The Carve Document editor does the same.
+
 The inline marks toggle. Clicking Strong on an already strong selection, or
 pressing its shortcut again, removes the delimiters instead of adding a second
 pair, and the selection stays on the text. This covers strong, emphasis,
