@@ -1,6 +1,7 @@
-/* Enter in a list item, shared by the block source editor and the classic
-   source editor: `edit( text, cursor )` returns the edit that continues the
-   list, or null to leave Enter alone.
+/* Enter and Tab in a list item, shared by the block source editor and the
+   classic source editor: `edit( text, cursor )` returns the edit that continues
+   the list, or null to leave Enter alone. `indent( text, start, end, outdent )`
+   moves the selected items one nesting level, or returns null to leave Tab alone.
 
    A marker with no content after it is paragraph text in Carve, so Enter on a
    marker-only line removes the marker instead of continuing. `+` is the
@@ -249,6 +250,236 @@
 		return { from: cursor, to: cursor, text: prefix, cursor: cursor + prefix.length };
 	}
 
+	function markerOf( item ) {
+		return item.bullet !== undefined ? item.bullet : ( item.value || '' ) + item.delimiter;
+	}
+
+	// Attributes and a task box do not count: a child nests at marker plus separator.
+	function contentColumn( item ) {
+		return item.indent.length + markerOf( item ).length + item.separator.length;
+	}
+
+	function leading( line ) {
+		return /^ */.exec( line )[ 0 ].length;
+	}
+
+	// Only paragraph text continues lazily, so the line above must be text too.
+	function isLazy( lines, at ) {
+		return at > 0 && !! lines[ at - 1 ].trim() && ! BLOCK.test( lines[ at - 1 ] ) && ! BLOCK.test( lines[ at ] );
+	}
+
+	function listItem( lines, index ) {
+		const item = matchItem( lines[ index ] );
+		if ( ! item || inFence( lines, index ) || interruptsParagraph( lines, index, item ) ) {
+			return null;
+		}
+
+		return item;
+	}
+
+	// The nearest item above at this item's column (`sibling`) or shallower
+	// (`parent`), skipping nested content and lazy lines.
+	function itemAbove( lines, index, item, parent ) {
+		const column = item.indent.length;
+		for ( let at = index - 1; at >= 0; at-- ) {
+			const line = lines[ at ];
+			if ( ! line.trim() ) {
+				continue;
+			}
+			const indent = leading( line );
+			if ( indent > column || ( parent && indent === column ) ) {
+				continue;
+			}
+			const other = listItem( lines, at );
+			if ( other ) {
+				return parent || indent === column ? { index: at, item: other } : null;
+			}
+			if ( ! isLazy( lines, at ) ) {
+				return null;
+			}
+		}
+
+		return null;
+	}
+
+	// The last line of the item: its deeper lines and lazy lines. After a blank
+	// line only a block at the content column still belongs to it.
+	function itemEnd( lines, index, item ) {
+		let end = index;
+		for ( let at = index + 1; at < lines.length; at++ ) {
+			const line = lines[ at ];
+			if ( ! line.trim() ) {
+				continue;
+			}
+			const floor = at - 1 === end ? item.indent.length + 1 : contentColumn( item );
+			if ( leading( line ) >= floor ) {
+				end = at;
+			} else if ( at - 1 === end && ! listItem( lines, at ) && isLazy( lines, at ) ) {
+				end = at;
+			} else {
+				break;
+			}
+		}
+
+		return end;
+	}
+
+	// The item a new child at `column` would join: the last one at that column
+	// between the parent and `index`.
+	function lastChild( lines, parentIndex, index, column ) {
+		for ( let at = index - 1; at > parentIndex; at-- ) {
+			const line = lines[ at ];
+			if ( ! line.trim() || leading( line ) > column ) {
+				continue;
+			}
+			const other = leading( line ) === column ? listItem( lines, at ) : null;
+			if ( ! other && leading( line ) < column && isLazy( lines, at ) ) {
+				continue;
+			}
+
+			return other ? { index: at, item: other } : null;
+		}
+
+		return null;
+	}
+
+	function firstValue( lines, index, item ) {
+		const value = item.value;
+		if ( /^\d+$/.test( value ) ) {
+			return '1';
+		}
+		const first = isRoman( leadingPair( lines, index, item ) ) ? 'i' : 'a';
+
+		return value === value.toUpperCase() ? first.toUpperCase() : first;
+	}
+
+	function ordered( item ) {
+		return item.bullet === undefined && item.value !== undefined;
+	}
+
+	// Moves the item on line `index` one level and records each changed line's
+	// prefix in `changes`. False when the item cannot move.
+	function moveItem( lines, index, item, outdent, changes ) {
+		const anchor = itemAbove( lines, index, item, outdent );
+		if ( ! anchor ) {
+			return false;
+		}
+		const column = outdent ? anchor.item.indent.length : contentColumn( anchor.item );
+		let marker = markerOf( item );
+		if ( outdent && ordered( item ) && ordered( anchor.item ) ) {
+			const value = nextValue( lines, anchor.index, anchor.item );
+			marker = value === null ? marker : value + anchor.item.delimiter;
+		} else if ( ! outdent && ordered( item ) ) {
+			const joined = lastChild( lines, anchor.index, index, column );
+			const value = joined && ordered( joined.item ) ? nextValue( lines, joined.index, joined.item ) : null;
+			marker = value === null ? firstValue( lines, index, item ) + item.delimiter : value + joined.item.delimiter;
+		}
+		const end = itemEnd( lines, index, item );
+		const oldPrefix = item.indent.length + markerOf( item ).length;
+		const newPrefix = column + marker.length;
+		const delta = newPrefix - oldPrefix;
+		const saved = lines.slice( index, end + 1 );
+		const local = [ { index: index, cut: oldPrefix, delta: delta } ];
+		lines[ index ] = ' '.repeat( column ) + marker + lines[ index ].slice( oldPrefix );
+		for ( let at = index + 1; at <= end; at++ ) {
+			const indent = leading( lines[ at ] );
+			if ( ! lines[ at ].trim() || indent <= item.indent.length ) {
+				continue;
+			}
+			// A lazy line short of the item's content column must stay short of
+			// the new parent's too, or it turns into a block of that parent.
+			// Moving an under-indented block out would turn it into text instead.
+			const short = indent < contentColumn( item );
+			if ( outdent && short && BLOCK.test( lines[ at ] ) ) {
+				continue;
+			}
+			const shift = ! outdent && short ? Math.min( 0, column - 1 - indent ) : Math.max( delta, -indent );
+			if ( ! shift ) {
+				continue;
+			}
+			lines[ at ] = shift > 0 ? ' '.repeat( shift ) + lines[ at ] : lines[ at ].slice( -shift );
+			local.push( { index: at, cut: Math.max( 0, -shift ), delta: shift } );
+		}
+		// The move must land where it aimed: a marker that now reads as paragraph
+		// text, or nests under another item, is put back.
+		const moved = listItem( lines, index );
+		const parent = moved ? itemAbove( lines, index, moved, true ) : null;
+		const expected = outdent ? itemAbove( lines, anchor.index, anchor.item, true ) : anchor;
+		if ( ! moved || ( parent ? parent.index : -1 ) !== ( expected ? expected.index : -1 ) ) {
+			lines.splice( index, saved.length, ...saved );
+			return false;
+		}
+		changes.push( ...local );
+
+		return true;
+	}
+
+	// Shift+Tab's plain fallback: up to two leading spaces.
+	function shiftPlain( lines, at, outdent, changes ) {
+		if ( outdent ) {
+			const cut = Math.min( 2, leading( lines[ at ] ) );
+			lines[ at ] = lines[ at ].slice( cut );
+			changes.push( { index: at, cut: cut, delta: -cut } );
+		} else {
+			lines[ at ] = '  ' + lines[ at ];
+			changes.push( { index: at, cut: 0, delta: 2 } );
+		}
+	}
+
+	function indent( text, start, end, outdent ) {
+		const lines = text.split( '\n' );
+		const lineOf = ( offset ) => text.slice( 0, offset ).split( '\n' ).length - 1;
+		const first = lineOf( start );
+		const last = end > start && text[ end - 1 ] === '\n' ? lineOf( end ) - 1 : lineOf( end );
+		const changes = [];
+		const plain = [];
+		let moved = false;
+		let covered = -1;
+		for ( let at = first; at <= last; at++ ) {
+			if ( at <= covered ) {
+				continue;
+			}
+			const item = listItem( lines, at );
+			const itemLast = item ? itemEnd( lines, at, item ) : at;
+			if ( item && moveItem( lines, at, item, outdent, changes ) ) {
+				moved = true;
+				covered = itemLast;
+			} else if ( ! item && lines[ at ].trim() ) {
+				// An item that cannot move stays put, so its children keep their column.
+				plain.push( at );
+			}
+		}
+		if ( ! moved ) {
+			return null;
+		}
+		plain.forEach( ( at ) => shiftPlain( lines, at, outdent, changes ) );
+
+		const original = text.split( '\n' );
+		const offsetIn = ( rows, row, column ) => rows.slice( 0, row ).reduce( ( sum, line ) => sum + line.length + 1, 0 ) + column;
+		const map = ( offset ) => {
+			const row = lineOf( offset );
+			const column = offset - offsetIn( original, row, 0 );
+			const change = changes.find( ( entry ) => entry.index === row );
+			if ( ! change ) {
+				return offsetIn( lines, row, column );
+			}
+			const mapped = column >= change.cut ? column + change.delta : Math.min( column, change.cut + change.delta );
+
+			return offsetIn( lines, row, Math.max( 0, mapped ) );
+		};
+		const rows = changes.map( ( entry ) => entry.index );
+		const top = Math.min( ...rows );
+		const bottom = Math.max( ...rows );
+
+		return {
+			from: offsetIn( original, top, 0 ),
+			to: offsetIn( original, bottom, original[ bottom ].length ),
+			text: lines.slice( top, bottom + 1 ).join( '\n' ),
+			start: map( start ),
+			end: map( end ),
+		};
+	}
+
 	// Shift+Enter and every other chord keep the editor's own newline, and an
 	// Enter that commits an IME composition belongs to the IME.
 	function isPlainEnter( event ) {
@@ -257,5 +488,5 @@
 			&& ! event.isComposing && event.keyCode !== 229;
 	}
 
-	window.wpCarveListContinuation = { edit: edit, isPlainEnter: isPlainEnter };
+	window.wpCarveListContinuation = { edit: edit, indent: indent, isPlainEnter: isPlainEnter };
 }() );

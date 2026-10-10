@@ -45,6 +45,20 @@ that holds only its marker removes the marker and ends the list. `+` is the
 continuation marker, not a bullet, so a `+ ` line is not continued. Shift+Enter
 always inserts a plain newline. The Carve Document editor does the same.
 
+Tab on a list item nests it under the item above: the marker moves to that
+item's content column, which is three columns under `1. `, four under `10. `
+and two under `- `, so the new sublist really nests instead of folding into
+the parent's text. Shift+Tab moves the item back to its parent's marker column.
+The item's continuation lines and child items move with it. A numbered item
+that becomes the first child restarts at `1.`, `a.` or `i.` in its own style,
+one that joins an existing child list takes the next number there, and one
+that moves out takes the number after its parent. Bullets and task boxes are
+kept. This works on a bare marker right after Enter, so Enter, Tab, type gives
+a nested item. With several lines selected, each selected item moves once. The
+first item of a list has nothing to nest under and a top-level item has
+nowhere to go, so there Tab and Shift+Tab shift the line by two spaces, as
+they do on any line that is not a list item.
+
 The inline marks toggle. Clicking Strong on an already strong selection, or
 pressing its shortcut again, removes the delimiters instead of adding a second
 pair, and the selection stays on the text. This covers strong, emphasis,

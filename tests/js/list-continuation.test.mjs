@@ -11,7 +11,8 @@ const documentSource = readFileSync(new URL('../../assets/js/code-editor.js', im
 
 const sandbox = { window: {} };
 runInNewContext(listSource, sandbox);
-const { edit, isPlainEnter } = sandbox.window.wpCarveListContinuation;
+const { edit, indent, isPlainEnter } = sandbox.window.wpCarveListContinuation;
+const { parse } = await import('@markup-carve/carve');
 
 // `|` marks the caret. Returns the document after Enter, caret marked, or null
 // when the editor should insert its own newline.
@@ -137,6 +138,137 @@ test('only a plain Enter outside an IME composition continues', () => {
   assert.equal(isPlainEnter({ ...base, key: 'a' }), false);
 });
 
+// `|` marks the caret, or both ends of a selection. Returns the document
+// after Tab (Shift+Tab with `outdent`), selection marked, or null when the
+// editor should keep its plain two-space indent.
+function tab(marked, outdent = false) {
+  const first = marked.indexOf('|');
+  let text = marked.slice(0, first) + marked.slice(first + 1);
+  const second = text.indexOf('|');
+  const end = second < 0 ? first : second;
+  if (second >= 0) text = text.slice(0, second) + text.slice(second + 1);
+  const next = indent(text, first, end, outdent);
+  if (!next) return null;
+  const result = text.slice(0, next.from) + next.text + text.slice(next.to);
+  if (next.start === next.end) return result.slice(0, next.start) + '|' + result.slice(next.start);
+  return result.slice(0, next.start) + '|' + result.slice(next.start, next.end) + '|' + result.slice(next.end);
+}
+
+// Where the engine puts the item whose text is `word`: its list depth, and its
+// ordinal when the list is ordered. A bare marker gets `new` typed after it.
+function placement(source, word) {
+  const typed = source.replace(/\|/g, '').replace(/^( *(?:[-*]|[0-9a-zA-Z]*[.)]) (?:\[ \] )?)$/gm, '$1new');
+  let found = null;
+  (function walk(blocks, depth) {
+    for (const block of blocks) {
+      if (block.type !== 'list') {
+        if (block.children) walk(block.children, depth);
+        continue;
+      }
+      block.items.forEach((item, at) => {
+        const paragraph = item.children[0];
+        const text = paragraph && paragraph.type === 'paragraph' ? paragraph.children.map(node => node.value || '').join('') : '';
+        if (text === word || text.endsWith(' ' + word)) {
+          found = { depth, ordinal: block.ordered ? (block.start || 1) + at : null };
+        }
+        walk(item.children, depth + 1);
+      });
+    }
+  })(parse(typed).children, 1);
+  return found;
+}
+
+// [name, before, outdent, after, word, depth, ordinal]
+const MOVES = [
+  ['bullet nests under the previous bullet', '- a\n- b|', false, '- a\n  - b|', 'b', 2, null],
+  ['bare bullet right after Enter', '- a\n- |', false, '- a\n  - |', 'new', 2, null],
+  ['star bullet keeps its character', '* a\n* b|', false, '* a\n  * b|', 'b', 2, null],
+  ['bullet under a numbered item reaches its content column', '1. a\n- b|', false, '1. a\n   - b|', 'b', 2, null],
+  ['bare numbered item after Enter restarts at 1', '1. a\n2. |', false, '1. a\n   1. |', 'new', 2, 1],
+  ['numbered item becomes the first child', '1. a\n2. b|', false, '1. a\n   1. b|', 'b', 2, 1],
+  ['a two-digit parent needs four columns', '10. a\n11. b|', false, '10. a\n    1. b|', 'b', 2, 1],
+  ['joining a child list takes the next ordinal', '1. a\n   1. x\n2. y|', false, '1. a\n   1. x\n   2. y|', 'y', 2, 2],
+  ['joining a child list across its lazy line', '1. a\n   1. x\nmore\n2. y|', false, '1. a\n   1. x\nmore\n   2. y|', 'y', 2, 2],
+  ['paren delimiter is kept', '1) a\n2) b|', false, '1) a\n   1) b|', 'b', 2, 1],
+  ['alpha restarts at a', 'a. x\nb. y|', false, 'a. x\n   a. y|', 'y', 2, 1],
+  ['upper alpha restarts at A', 'A. x\nB. y|', false, 'A. x\n   A. y|', 'y', 2, 1],
+  ['roman restarts at i', 'i. x\nii. y|', false, 'i. x\n   i. y|', 'y', 2, 1],
+  ['upper roman restarts at I', 'I. x\nII. y|', false, 'I. x\n   I. y|', 'y', 2, 1],
+  ['bare dot stays a bare dot', '. a\n. b|', false, '. a\n  . b|', 'b', 2, 1],
+  ['task box comes along', '- [ ] a\n- [x] b|', false, '- [ ] a\n  - [x] b|', 'b', 2, null],
+  ['continuation lines and children move with the item', '- a\n- b|\n  more\n  - c', false, '- a\n  - b|\n    more\n    - c', 'c', 3, null],
+  ['the caret mid-item moves with the text', '- a\n- b|c', false, '- a\n  - b|c', 'bc', 2, null],
+  ['an item after its sibling\'s child list joins it', '- a\n  - x\n- b|', false, '- a\n  - x\n  - b|', 'b', 2, null],
+  ['an item after a loose paragraph of its sibling', '- a\n\n  more\n\n- b|', false, '- a\n\n  more\n\n  - b|', 'b', 2, null],
+  ['a paragraph after the list stays out of the item', '1. a\n2. b|\n\n  outside', false, '1. a\n   1. b|\n\n  outside', 'b', 2, 1],
+  ['a loose child block after a blank line moves with the item', '- a\n- b|\n\n  more', false, '- a\n  - b|\n\n    more', 'b', 2, null],
+  ['outdent a bullet to the parent marker column', '1. a\n   - b|', true, '1. a\n- b|', 'b', 1, null],
+  ['outdent a numbered child takes the next parent ordinal', '1. a\n   1. b|', true, '1. a\n2. b|', 'b', 1, 2],
+  ['outdent past nine widens the marker and keeps the children', '9. a\n   1. b|\n      - c', true, '9. a\n10. b|\n    - c', 'c', 2, null],
+  ['outdent a third level', '- a\n  - b\n    - c|', true, '- a\n  - b\n  - c|', 'c', 2, null],
+  ['outdent a bare marker', '- a\n  - |', true, '- a\n- |', 'new', 1, null],
+  ['outdent into an alpha list', 'a. x\n   1. y|', true, 'a. x\nb. y|', 'y', 1, 2],
+  ['selection nests each item once', '1. a\n2. |b\n3. c|', false, '1. a\n   1. |b\n   2. c|', 'c', 2, 2],
+  ['selection skips an item that cannot move', '- |a\n- b|', false, '- |a\n  - b|', 'b', 2, null],
+  ['selection moves a child once with its parent', '- a\n- |b\n  - c|', false, '- a\n  - |b\n    - c|', 'c', 3, null],
+  ['selection outdents siblings in order', '1. a\n   1. |b\n   2. c|', true, '1. a\n2. |b\n3. c|', 'c', 1, 3],
+];
+
+for (const [name, before, outdent, after, word, depth, ordinal] of MOVES) {
+  test(`${outdent ? 'Shift+Tab' : 'Tab'} moves the item: ${name}`, () => {
+    assert.equal(tab(before, outdent), after);
+    assert.deepEqual(placement(after, word), { depth, ordinal });
+  });
+}
+
+const KEEPS_TAB = [
+  ['first item of a list', '- a|', false],
+  ['first child of an item', '- a\n  - b|', false],
+  ['top-level outdent', '- a|', true],
+  ['prose', 'text|', false],
+  ['prose outdent', '  text|', true],
+  ['plus is not a bullet', '- a\n+ b|', false],
+  ['parenthesized number', '1. a\n(2) b|', false],
+  ['inside a fence', '```\n- a\n- b|\n```', false],
+  ['a marker line under paragraph text', 'text\n- a\n- b|', false],
+  ['dash without a space', '- a\n-b|', false],
+];
+
+for (const [name, before, outdent] of KEEPS_TAB) {
+  test(`${outdent ? 'Shift+Tab' : 'Tab'} keeps the plain indent: ${name}`, () => {
+    assert.equal(tab(before, outdent), null);
+  });
+}
+
+test('the engine keeps a paragraph after the list outside it once an item nests', () => {
+  const after = tab('1. a\n2. b|\n\n  outside').replace('|', '');
+  assert.deepEqual(parse(after).children.map(block => block.type), ['list', 'paragraph']);
+});
+
+test('an under-indented lazy line stays paragraph text of the moved item', () => {
+  for (const [before, after] of [
+    ['1. a\n2. b|\n # outside', '1. a\n   1. b|\n # outside'],
+    ['9. a\n10. b|\n   # outside', '9. a\n   1. b|\n  # outside'],
+  ]) {
+    assert.equal(tab(before), after);
+    const list = parse(after.replace('|', '')).children;
+    assert.equal(list.length, 1);
+    const child = list[0].items[0].children[1];
+    assert.deepEqual(child.items[0].children.map(block => block.type), ['paragraph']);
+  }
+});
+
+test('Shift+Tab leaves a block between the marker and content columns a block', () => {
+  const after = tab('- a\n  - b|\n   # heading', true);
+  assert.equal(after, '- a\n- b|\n   # heading');
+  assert.deepEqual(parse(after.replace('|', '')).children[0].items[1].children.map(block => block.type), ['paragraph', 'heading']);
+});
+
+test('a selection mixing prose and items shifts the prose by two spaces', () => {
+  // `text` is a lazy line of `b` and stays; the blank line gets no spaces.
+  assert.equal(tab('- a\n- |b\ntext\n\nmore|', false), '- a\n  - |b\ntext\n\n  more|');
+});
+
 function nodes(tree, type) {
   if (Array.isArray(tree)) return tree.flatMap(node => nodes(node, type));
   if (!tree || typeof tree !== 'object') return [];
@@ -189,14 +321,15 @@ function blockEditor(source, caret) {
       const field = nodes(tree, 'textarea')[0];
       field.props.ref.current = textarea;
       let prevented = false;
+      const key = modifiers.key || 'Enter';
       field.props.onKeyDown({
-        key: 'Enter',
-        code: 'Enter',
+        key,
+        code: key,
         ctrlKey: false,
         metaKey: false,
         altKey: false,
         shiftKey: !!modifiers.shift,
-        nativeEvent: { key: 'Enter', isComposing: !!modifiers.composing, keyCode: 13, shiftKey: !!modifiers.shift },
+        nativeEvent: { key, isComposing: !!modifiers.composing, keyCode: 13, shiftKey: !!modifiers.shift },
         preventDefault() { prevented = true; },
         stopPropagation() {},
       });
@@ -210,6 +343,26 @@ test('Enter in the block source continues the list and moves the caret', () => {
   assert.equal(editor.press(), true);
   assert.equal(editor.attributes.carve, '- one\n- ');
   assert.equal(editor.textarea.selectionStart, 8);
+});
+
+test('Tab in the block source nests a numbered item at the content column', () => {
+  const editor = blockEditor('1. a\n2. ', 8);
+  assert.equal(editor.press({ key: 'Tab' }), true);
+  assert.equal(editor.attributes.carve, '1. a\n   1. ');
+  assert.equal(editor.textarea.selectionStart, 11);
+});
+
+test('Shift+Tab in the block source moves a child back out', () => {
+  const editor = blockEditor('1. a\n   1. b', 13);
+  assert.equal(editor.press({ key: 'Tab', shift: true }), true);
+  assert.equal(editor.attributes.carve, '1. a\n2. b');
+  assert.equal(editor.textarea.selectionStart, 10);
+});
+
+test('Tab in the block source keeps the two-space indent on prose', () => {
+  const editor = blockEditor('text', 4);
+  assert.equal(editor.press({ key: 'Tab' }), true);
+  assert.equal(editor.attributes.carve, '  text');
 });
 
 test('Shift+Enter in the block source keeps the default newline', () => {
@@ -245,12 +398,15 @@ function fakeCodeMirror(value, caret) {
     getValue() { return this.value; },
     somethingSelected: () => false,
     getCursor() { return this.caret; },
+    listSelections() { return [{}]; },
+    setSelection(from, to) { this.caret = from; this.selectionEnd = to; },
     indexFromPos: pos => pos,
     posFromIndex: index => index,
     replaceRange(text, from, to) { this.value = this.value.slice(0, from) + text + this.value.slice(to); },
     setCursor(pos) { this.caret = pos; },
     execCommand(name) { this.commands.push(name); },
-    pressEnter() { return maps.map(map => map.Enter).find(Boolean)(this); },
+    pressEnter() { return this.press('Enter'); },
+    press(key) { return maps.map(map => map[key]).find(Boolean)(this); },
   };
   return cm;
 }
@@ -275,6 +431,27 @@ test('Enter in the classic CodeMirror editor continues an ordered list', () => {
   assert.equal(cm.pressEnter(), undefined);
   assert.equal(cm.value, 'a. one\nb. ');
   assert.equal(cm.caret, 10);
+});
+
+test('Tab and Shift+Tab in the classic CodeMirror editor nest and un-nest an item', () => {
+  const cm = fakeCodeMirror('- a\n- b', 7);
+  classicEditor(cm);
+  assert.equal(cm.press('Tab'), undefined);
+  assert.equal(cm.value, '- a\n  - b');
+  assert.equal(cm.caret, 9);
+  assert.equal(cm.press('Shift-Tab'), undefined);
+  assert.equal(cm.value, '- a\n- b');
+  assert.equal(cm.caret, 7);
+});
+
+test('Tab in the classic CodeMirror editor passes on prose and on a first item', () => {
+  for (const value of ['text', '- a']) {
+    const cm = fakeCodeMirror(value, value.length);
+    const { Pass } = classicEditor(cm);
+    assert.equal(cm.press('Tab'), Pass);
+    assert.equal(cm.press('Shift-Tab'), Pass);
+    assert.equal(cm.value, value);
+  }
 });
 
 test('Enter in the classic CodeMirror editor passes on prose', () => {

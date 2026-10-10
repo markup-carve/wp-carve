@@ -917,10 +917,15 @@
 				setCommandOpen( true );
 				return;
 			}
-			// Tab / Shift+Tab indent-outdent the selected lines.
+			// Tab / Shift+Tab nest or un-nest the selected list items, and
+			// indent-outdent any other line by two spaces.
 			if ( e.key === 'Tab' ) {
 				e.preventDefault();
-				if ( e.shiftKey ) {
+				const { value, start, end } = sel();
+				const next = lists ? lists.indent( value, start, end, e.shiftKey ) : null;
+				if ( next ) {
+					setVal( value.slice( 0, next.from ) + next.text + value.slice( next.to ), next.start, next.end );
+				} else if ( e.shiftKey ) {
 					outdentLines();
 				} else {
 					linePrefix( '  ' );
