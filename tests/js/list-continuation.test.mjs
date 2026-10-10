@@ -61,6 +61,7 @@ const CONTINUES = [
   ['an item after a loose continuation paragraph', '- one\n\n  more\n- two|', '- one\n\n  more\n- two\n- |'],
   ['roman across a lazy line', 'iv. four\nlazy\nv. five|', 'iv. four\nlazy\nv. five\nvi. |'],
   ['an item under a thematic break', '---\n- one|', '---\n- one\n- |'],
+  ['a heading between paragraph text and the item', 'text\n# Title\n- one|', 'text\n# Title\n- one\n- |'],
   ['an item under a heading', '# Title\n- one|', '# Title\n- one\n- |'],
   ['an item after a lazy line in the list', '- one\nlazy\n- two|', '- one\nlazy\n- two\n- |'],
   ['a fence left open in an earlier item ends with it', '- top\n  ```\n  code\n\n- next|', '- top\n  ```\n  code\n\n- next\n- |'],

@@ -206,6 +206,9 @@
 		let top = null;
 		for ( let at = index - 1; at >= 0 && lines[ at ].trim(); at-- ) {
 			top = lines[ at ];
+			if ( BLOCK.test( top ) ) {
+				break;
+			}
 		}
 		if ( top === null || /^ */.exec( top )[ 0 ].length > item.indent.length ) {
 			return false;
