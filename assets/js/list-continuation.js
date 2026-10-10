@@ -388,8 +388,12 @@
 			}
 			// A lazy line short of the item's content column must stay short of
 			// the new parent's too, or it turns into a block of that parent.
-			const lazy = ! outdent && indent < contentColumn( item );
-			const shift = lazy ? Math.min( 0, column - 1 - indent ) : Math.max( delta, -indent );
+			// Moving an under-indented block out would turn it into text instead.
+			const short = indent < contentColumn( item );
+			if ( outdent && short && BLOCK.test( lines[ at ] ) ) {
+				continue;
+			}
+			const shift = ! outdent && short ? Math.min( 0, column - 1 - indent ) : Math.max( delta, -indent );
 			if ( ! shift ) {
 				continue;
 			}

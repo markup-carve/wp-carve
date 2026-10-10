@@ -258,6 +258,12 @@ test('an under-indented lazy line stays paragraph text of the moved item', () =>
   }
 });
 
+test('Shift+Tab leaves a block between the marker and content columns a block', () => {
+  const after = tab('- a\n  - b|\n   # heading', true);
+  assert.equal(after, '- a\n- b|\n   # heading');
+  assert.deepEqual(parse(after.replace('|', '')).children[0].items[1].children.map(block => block.type), ['paragraph', 'heading']);
+});
+
 test('a selection mixing prose and items shifts the prose by two spaces', () => {
   // `text` is a lazy line of `b` and stays; the blank line gets no spaces.
   assert.equal(tab('- a\n- |b\ntext\n\nmore|', false), '- a\n  - |b\ntext\n\n  more|');
