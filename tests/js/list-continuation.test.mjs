@@ -199,6 +199,8 @@ const MOVES = [
   ['the caret mid-item moves with the text', '- a\n- b|c', false, '- a\n  - b|c', 'bc', 2, null],
   ['an item after its sibling\'s child list joins it', '- a\n  - x\n- b|', false, '- a\n  - x\n  - b|', 'b', 2, null],
   ['an item after a loose paragraph of its sibling', '- a\n\n  more\n\n- b|', false, '- a\n\n  more\n\n  - b|', 'b', 2, null],
+  ['a paragraph after the list stays out of the item', '1. a\n2. b|\n\n  outside', false, '1. a\n   1. b|\n\n  outside', 'b', 2, 1],
+  ['a loose child block after a blank line moves with the item', '- a\n- b|\n\n  more', false, '- a\n  - b|\n\n    more', 'b', 2, null],
   ['outdent a bullet to the parent marker column', '1. a\n   - b|', true, '1. a\n- b|', 'b', 1, null],
   ['outdent a numbered child takes the next parent ordinal', '1. a\n   1. b|', true, '1. a\n2. b|', 'b', 1, 2],
   ['outdent past nine widens the marker and keeps the children', '9. a\n   1. b|\n      - c', true, '9. a\n10. b|\n    - c', 'c', 2, null],
@@ -236,6 +238,11 @@ for (const [name, before, outdent] of KEEPS_TAB) {
     assert.equal(tab(before, outdent), null);
   });
 }
+
+test('the engine keeps a paragraph after the list outside it once an item nests', () => {
+  const after = tab('1. a\n2. b|\n\n  outside').replace('|', '');
+  assert.deepEqual(parse(after).children.map(block => block.type), ['list', 'paragraph']);
+});
 
 test('a selection mixing prose and items shifts the prose by two spaces', () => {
   // `text` is a lazy line of `b` and stays; the blank line gets no spaces.

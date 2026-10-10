@@ -301,7 +301,8 @@
 		return null;
 	}
 
-	// The last line of the item: its deeper lines and lazy lines.
+	// The last line of the item: its deeper lines and lazy lines. After a blank
+	// line only a block at the content column still belongs to it.
 	function itemEnd( lines, index, item ) {
 		let end = index;
 		for ( let at = index + 1; at < lines.length; at++ ) {
@@ -309,7 +310,8 @@
 			if ( ! line.trim() ) {
 				continue;
 			}
-			if ( leading( line ) > item.indent.length ) {
+			const floor = at - 1 === end ? item.indent.length + 1 : contentColumn( item );
+			if ( leading( line ) >= floor ) {
 				end = at;
 			} else if ( at - 1 === end && ! listItem( lines, at ) && isLazy( lines, at ) ) {
 				end = at;
