@@ -188,6 +188,7 @@ const MOVES = [
   ['numbered item becomes the first child', '1. a\n2. b|', false, '1. a\n   1. b|', 'b', 2, 1],
   ['a two-digit parent needs four columns', '10. a\n11. b|', false, '10. a\n    1. b|', 'b', 2, 1],
   ['joining a child list takes the next ordinal', '1. a\n   1. x\n2. y|', false, '1. a\n   1. x\n   2. y|', 'y', 2, 2],
+  ['joining a child list across its lazy line', '1. a\n   1. x\nmore\n2. y|', false, '1. a\n   1. x\nmore\n   2. y|', 'y', 2, 2],
   ['paren delimiter is kept', '1) a\n2) b|', false, '1) a\n   1) b|', 'b', 2, 1],
   ['alpha restarts at a', 'a. x\nb. y|', false, 'a. x\n   a. y|', 'y', 2, 1],
   ['upper alpha restarts at A', 'A. x\nB. y|', false, 'A. x\n   A. y|', 'y', 2, 1],

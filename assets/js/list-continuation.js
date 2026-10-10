@@ -263,8 +263,9 @@
 		return /^ */.exec( line )[ 0 ].length;
 	}
 
+	// Only paragraph text continues lazily, so the line above must be text too.
 	function isLazy( lines, at ) {
-		return at > 0 && !! lines[ at - 1 ].trim() && ! BLOCK.test( lines[ at ] );
+		return at > 0 && !! lines[ at - 1 ].trim() && ! BLOCK.test( lines[ at - 1 ] ) && ! BLOCK.test( lines[ at ] );
 	}
 
 	function listItem( lines, index ) {
@@ -332,6 +333,9 @@
 				continue;
 			}
 			const other = leading( line ) === column ? listItem( lines, at ) : null;
+			if ( ! other && leading( line ) < column && isLazy( lines, at ) ) {
+				continue;
+			}
 
 			return other ? { index: at, item: other } : null;
 		}
