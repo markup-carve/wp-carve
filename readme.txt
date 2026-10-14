@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.8
+Stable tag: 0.1.9
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,12 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.9 =
+* Fixed: the classic and block editors hold the previous preview while an unfinished list marker is under the cursor.
+* Fixed: footnotes and continued table cells survive visual editing with the updated grammar bridge.
+* New: Enter continues lists in both source editors; Tab and Shift+Tab nest items in the block and CodeMirror editors.
+* Changed: the browser and server engines move to carve 0.1.11 and carve-php 0.1.12, and safe Markdown migrations now include preserved headings and lists.
 
 = 0.1.8 =
 * Changed: bundled the carve-php 0.1.11 and in-browser carve-js 0.1.10 engines; an engine release can change rendered output, so documents can render differently and more correctly.

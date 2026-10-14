@@ -75,6 +75,7 @@ const CASES = {
 	footnote: 'See it.[^1]\n\n[^1]: The note.',
 	definitionList: ':: Term\n:  Definition.',
 	table: '|= A |= B |\n| 1 | 2 |',
+	tableContinuation: '|= A |= B |\n| x | first |\n+ y | second |',
 	mentionCitation: 'A citation [@smith2020] and a #tag.',
 	span: 'A [styled span]{.mark #s1}.',
 	// Nested containers: the serializer must widen the outer fence past the
@@ -97,12 +98,9 @@ test('the wp-carve shell keeps an untouched source envelope exact', async () => 
 	// source back anyway, an envelope that returned it would be indistinguishable
 	// from having no envelope at all.
 	//
-	// This used to be `{title="Say \"hi\""}` over a `::: details`, which
-	// carve-grammars 7ef51b6 now round-trips exactly - the drift it was chosen
-	// for is gone, and it is covered as a round-trip case below instead. The GFM
-	// table separator replaces it: `|---|` normalizes to `|=`, which is one of
-	// the cosmetic rewrites the block's own lossy guard is written to ignore.
-	const carve = '| A | B |\n|---|---|\n| 1 | 2 |';
+	// The writer normalizes the extra heading space. An untouched visual editor
+	// still returns the author's exact source through its envelope.
+	const carve = '#  Heading\n';
 	const el = document.createElement('div');
 	document.body.appendChild(el);
 	const { initVisualEditor } = await import('../../assets/js/tiptap/visual-editor.js');
@@ -111,6 +109,11 @@ test('the wp-carve shell keeps an untouched source envelope exact', async () => 
 	assert.notEqual(editor.getEditableCarve(), carve, 'the approval gate must see rich-mapping drift');
 	editor.destroy();
 	el.remove();
+});
+
+test('GFM table separator spelling survives the current grammar bridge', () => {
+	const carve = '| A | B |\n|---|---|\n| 1 | 2 |';
+	assert.equal(roundTrip(carve), carve);
 });
 
 for (const [name, carve] of Object.entries(CASES)) {

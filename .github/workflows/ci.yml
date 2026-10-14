@@ -81,37 +81,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # The spec freeze: carve 0.1.7 (1fe313c), 2134 documents. Pinned to a
-      # RELEASE rather than tracking carve main, because the engine on the other
-      # side of this comparison is an exact lockfile revision too. With one end
-      # fixed and the other moving, the number this job produces measures the
-      # spec's pace, and a breach carries no information about the branch that
-      # hit it.
-      #
-      # Both ends move together when carve-php publishes, which is what the
-      # header below asks for: 0.1.6 was the first such pair, 0.1.7 with carve
-      # 0.1.5 the second, carve-php 0.1.10 with carve 0.1.7 the third, and
-      # carve-php 0.1.11 with carve c61b0d5 the fourth.
-      #
-      # The ref is no longer chosen, it is READ: c61b0d5 is the revision
-      # carve-php 0.1.11's own tests/spec submodule names, so this job asks
-      # whether the shipped engine is as conformant as the spec it was written
-      # against. Any other ref holds it to a corpus written for a different
-      # engine.
-      #
-      # Leaving the corpus at carve 0.1.7 while the engine moved to 0.1.11
-      # reported 12 documents as divergences introduced here, and the set is
-      # the same one the 0.1.10 move produced for the same reason: four
-      # cross-reference documents, two heading-id documents, an implicit
-      # reference and four colon-fence metadata documents, every one a ruling
-      # that reached the engine ahead of the corpus that pinned it. Against
-      # c61b0d5 the same engine renders 0 of 2225 differently, so any name this
-      # job now reports was introduced here.
+      # Keep the corpus fixed at spec 0.1.9, the release this plugin's
+      # carve-php 0.1.12 lock was checked against. The engine renders all
+      # 2508 documents without a divergence. A moving corpus would test an
+      # upstream change rather than this plugin's locked renderer.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: c61b0d5f904f976ad096ca784f605fdb3e839f0b
+          ref: 5484177ac75dc07355b5d22f3f15a7b9e66b341e
           path: carve-freeze
 
       - name: Setup PHP
