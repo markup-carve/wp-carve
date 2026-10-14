@@ -72,8 +72,10 @@ class MigratorTest extends TestCase
         $analysis = (new Migrator())->analyze(5);
 
         $this->assertSame('markdown', $analysis['source']);
-        $this->assertFalse($analysis['can_auto_migrate']);
-        $this->assertSame('Migration fidelity requires review.', $analysis['reason']);
+        $this->assertTrue($analysis['can_auto_migrate']);
+        $this->assertSame('OK', $analysis['reason']);
+        $this->assertSame('markdown-bullet-list', $analysis['report']['diagnostics'][1]['code']);
+        $this->assertSame('preserved', $analysis['report']['diagnostics'][1]['fidelity']);
     }
 
     public function testHtmlIsDetected(): void
