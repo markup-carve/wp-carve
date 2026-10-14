@@ -11,14 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
-- The classic and block editors hold the previous preview while the cursor sits on an unfinished list marker.
-- Footnotes and table continuation cells survive a visual editor round trip with the updated grammar bridge.
+- The classic and block editors hold the previous preview while the cursor sits on an unfinished list marker (#164).
+- Tab nests a list item at its parent's content column (#162).
+- A compare block counts every Carve pair, not one per block (#158).
+- A table continuation line joins its cell with one space in the visual editor, and the cell text survives a round trip (#166).
 
 ### Improvements
 
-- Enter continues a list item in both source editors. Tab and Shift+Tab nest and un-nest items in the block and CodeMirror editors.
-- Markdown with preserved headings, lists and bold text can now pass the migration safety check.
-- The browser renderer uses carve 0.1.11 and the server renderer uses carve-php 0.1.12.
+- Enter continues a list item in both source editors. Tab and Shift+Tab nest and un-nest items in the block and CodeMirror editors (#160, #162).
+- Markdown with preserved headings, lists and bold text can now pass the migration safety check (#165).
+- The browser renderer uses carve 0.1.11 with carve-grammars 0.1.15, and the server renderer uses carve-php 0.1.12 (#165, #166).
 
 ## [0.1.8] - 2026-10-08
 

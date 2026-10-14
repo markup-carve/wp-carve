@@ -42,9 +42,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 
 = 0.1.9 =
 * Fixed: the classic and block editors hold the previous preview while an unfinished list marker is under the cursor.
-* Fixed: footnotes and continued table cells survive visual editing with the updated grammar bridge.
+* Fixed: a continued table cell joins its lines with one space in the visual editor and keeps its text through visual editing.
+* Fixed: Tab nests a list item at its parent's content column, and a compare block counts every Carve pair.
 * New: Enter continues lists in both source editors; Tab and Shift+Tab nest items in the block and CodeMirror editors.
-* Changed: the browser and server engines move to carve 0.1.11 and carve-php 0.1.12, and safe Markdown migrations now include preserved headings and lists.
+* Changed: the browser and server engines move to carve 0.1.11, carve-grammars 0.1.15 and carve-php 0.1.12, and safe Markdown migrations now include preserved headings and lists.
 
 = 0.1.8 =
 * Changed: bundled the carve-php 0.1.11 and in-browser carve-js 0.1.10 engines; an engine release can change rendered output, so documents can render differently and more correctly.
