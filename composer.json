@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=8.2",
-        "markup-carve/carve-grammars": "^0.1.15",
+        "markup-carve/carve-grammars": "^0.1.16",
         "markup-carve/carve-php": "^0.1.12",
         "markup-carve/carve-php-media-embed": "^0.1.5",
         "torchlight/engine": "^1.0"

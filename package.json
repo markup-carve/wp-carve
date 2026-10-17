@@ -14,8 +14,8 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "0.1.11",
-    "@markup-carve/carve-grammars": "0.1.15"
+    "@markup-carve/carve": "^0.1.11",
+    "@markup-carve/carve-grammars": "^0.1.16"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",
