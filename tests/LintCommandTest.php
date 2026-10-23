@@ -87,6 +87,17 @@ class LintCommandTest extends TestCase
         );
     }
 
+    public function testMediaEmbedDirectivesAreLintedOnlyWhenTheExtensionRenders(): void
+    {
+        $source = "Watch :media[]\n";
+
+        $this->assertSame([], LintCommand::engineFindings(new Converter([]), [$source])['findings']);
+
+        $findings = LintCommand::engineFindings(new Converter(['media_embed_enabled' => true]), [$source])['findings'];
+        $this->assertCount(1, $findings);
+        $this->assertStringStartsWith('1:7 media-embed-unresolved ', $findings[0]);
+    }
+
     public function testEmptySourceIsNotLinted(): void
     {
         $this->assertSame([], (new Converter([]))->lint("  \n"));

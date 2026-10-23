@@ -12,13 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixes
 
 - Code fences placed back to back keep their code text as written. With Torchlight highlighting on, the second and later blocks gained indentation inside a section, a container, a details block or a spoiler (#169, #170).
+- Highlighted `carve` fences color a `+` as a continuation marker only where Carve attaches it, so `>+` and `>>+` read as text. The visual editor opens a document that holds an empty line block (#173).
 
 ### Improvements
 
-- The server renderer moves to carve-php `dev-main` at a320ec67d82e (after 0.1.14, with markup-carve/carve-php#3760), and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.17 (#169, #170).
+- The server renderer moves to carve-php `dev-main` at a320ec67d82e (after 0.1.14, with markup-carve/carve-php#3760), and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.18. Media embeds use carve-php-media-embed 0.1.6 (#169, #170, #173).
 - Includes can insert a source file, or one named region of it, as a code block (`{{ file.php @code:php }}`) (#169).
 - Continuation markers, quote prefixes and description columns follow the Carve 0.1.11 rules, so some documents render differently (#169).
-- `wp carve lint` runs carve-php's document linter on every Carve source and lists each finding by line, column and rule. A post with findings reports `WARN` (#172).
+- `wp carve lint` runs carve-php's document linter on every Carve source and lists each finding by line, column and rule. With media embeds on, it also reports a media directive that renders no embed. A post with findings reports `WARN` (#172, #173).
 
 ## [0.1.9] - 2026-10-14
 

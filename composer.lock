@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "43f8359c177707f986dbb9056a53c585",
+    "content-hash": "996f71a3c531176983bc6f7a1fd73a29",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -350,16 +350,16 @@
         },
         {
             "name": "markup-carve/carve-grammars",
-            "version": "v0.1.17",
+            "version": "v0.1.18",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "36601af3097780f1c95531b32f479adbb2348478"
+                "reference": "6a5ec11379facafac01c37d7092f58ff18a9184d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/36601af3097780f1c95531b32f479adbb2348478",
-                "reference": "36601af3097780f1c95531b32f479adbb2348478",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/6a5ec11379facafac01c37d7092f58ff18a9184d",
+                "reference": "6a5ec11379facafac01c37d7092f58ff18a9184d",
                 "shasum": ""
             },
             "require": {
@@ -390,7 +390,7 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-10-18T09:37:35+00:00"
+            "time": "2026-10-23T17:15:44+00:00"
         },
         {
             "name": "markup-carve/carve-php",
@@ -466,21 +466,21 @@
         },
         {
             "name": "markup-carve/carve-php-media-embed",
-            "version": "0.1.5",
+            "version": "0.1.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php-media-embed.git",
-                "reference": "cb206321283513c062f69a5ee21ffafe682753b9"
+                "reference": "ff1f9e0b4a87346714693cfd4e8f33a2fa6c4486"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/cb206321283513c062f69a5ee21ffafe682753b9",
-                "reference": "cb206321283513c062f69a5ee21ffafe682753b9",
+                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/ff1f9e0b4a87346714693cfd4e8f33a2fa6c4486",
+                "reference": "ff1f9e0b4a87346714693cfd4e8f33a2fa6c4486",
                 "shasum": ""
             },
             "require": {
                 "dereuromark/media-embed": "^1.0",
-                "markup-carve/carve-php": "^0.1.11",
+                "markup-carve/carve-php": "^0.1.14",
                 "php": ">=8.2"
             },
             "require-dev": {
@@ -526,7 +526,7 @@
                 "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
                 "source": "https://github.com/markup-carve/carve-php-media-embed"
             },
-            "time": "2026-10-08T00:57:51+00:00"
+            "time": "2026-10-23T12:48:36+00:00"
         },
         {
             "name": "nette/schema",
