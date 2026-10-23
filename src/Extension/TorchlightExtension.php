@@ -135,11 +135,7 @@ class TorchlightExtension implements ExtensionInterface
                 if ($diffMarkers !== []) {
                     $html = self::restoreDiffMarkers($html, $diffMarkers);
                 }
-                // End on a newline like carve-php's own code block: an adjacent
-                // fence would otherwise share the `</pre>` line, and the section
-                // indenter then pads the second block's code text.
-                $html = rtrim($this->reapplyPreAttributes($html, $block, $diffMarkers !== [] ? ['has-diff'] : []), "\n") . "\n";
-                $event->setHtml($html);
+                $event->setHtml($this->reapplyPreAttributes($html, $block, $diffMarkers !== [] ? ['has-diff'] : []));
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.
             }
