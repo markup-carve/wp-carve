@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-10-23
+
+### Fixes
+
+- With Torchlight highlighting on, two or more code fences placed back to back keep their code text as written. The second and later blocks gained indentation inside a section, a container or a details block.
+
+### Improvements
+
+- The server renderer moves to carve-php 0.1.14 and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.17. This brings code-block includes (`{{ file.php @code:php }}`, optionally with `@region:name`) and the 0.1.11 rules for continuation markers, quote prefixes and description columns, so some documents render differently and more correctly.
+
 ## [0.1.9] - 2026-10-14
 
 ### Fixes
@@ -455,7 +465,9 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.8...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.10...HEAD
+[0.1.10]: https://github.com/markup-carve/wp-carve/compare/0.1.9...0.1.10
+[0.1.9]: https://github.com/markup-carve/wp-carve/compare/0.1.8...0.1.9
 [0.1.8]: https://github.com/markup-carve/wp-carve/compare/0.1.7...0.1.8
 [0.1.7]: https://github.com/markup-carve/wp-carve/compare/0.1.6...0.1.7
 [0.1.6]: https://github.com/markup-carve/wp-carve/compare/0.1.5...0.1.6

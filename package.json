@@ -1,6 +1,6 @@
 {
   "name": "@markup-carve/wp-carve",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "type": "module",
   "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
@@ -14,8 +14,8 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "0.1.11",
-    "@markup-carve/carve-grammars": "0.1.15"
+    "@markup-carve/carve": "0.1.13",
+    "@markup-carve/carve-grammars": "0.1.17"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",
