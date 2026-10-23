@@ -30,6 +30,7 @@ use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Extension\TocPlacementExtension;
 use MarkupCarve\Carve\Extension\WikilinksExtension;
 use MarkupCarve\Carve\Lint\DocumentLinter;
+use MarkupCarve\Carve\Lint\LintWarning;
 use MarkupCarve\Carve\NodeType;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\PlainTextRenderer;
@@ -39,6 +40,7 @@ use MarkupCarve\Carve\SafeMode;
 use MarkupCarve\Carve\Transform\FilesystemIncludeResolver;
 use MarkupCarve\Carve\Transform\IncludeExpander;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
+use MarkupCarve\MediaEmbed\MediaEmbedLinter;
 use Throwable;
 use WpCarve\Extension\TorchlightExtension;
 use WpCarve\Includes\IncludeReport;
@@ -246,7 +248,18 @@ class Converter
             return [];
         }
 
-        return (new DocumentLinter())->lint($carve, ['extensions' => $this->converterFor($context)->getExtensions()]);
+        $extensions = $this->converterFor($context)->getExtensions();
+        $warnings = (new DocumentLinter())->lint($carve, ['extensions' => $extensions]);
+        // DocumentLinter has no extension hook, so media-embed lints its own
+        // directives against the instance the render registered.
+        foreach ($extensions as $extension) {
+            if ($extension instanceof MediaEmbedExtension) {
+                $warnings = array_merge($warnings, (new MediaEmbedLinter($extension))->lint($carve));
+            }
+        }
+        usort($warnings, static fn (LintWarning $a, LintWarning $b): int => [$a->line, $a->column] <=> [$b->line, $b->column]);
+
+        return $warnings;
     }
 
     /**
