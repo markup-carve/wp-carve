@@ -29,6 +29,7 @@ use MarkupCarve\Carve\Extension\TabNormalizeExtension;
 use MarkupCarve\Carve\Extension\TabsExtension;
 use MarkupCarve\Carve\Extension\TocPlacementExtension;
 use MarkupCarve\Carve\Extension\WikilinksExtension;
+use MarkupCarve\Carve\Lint\DocumentLinter;
 use MarkupCarve\Carve\NodeType;
 use MarkupCarve\Carve\Profile;
 use MarkupCarve\Carve\Renderer\PlainTextRenderer;
@@ -231,6 +232,21 @@ class Converter
             },
             $html,
         ) ?? $html;
+    }
+
+    /**
+     * Run carve-php's document linter over the authored source, with the
+     * extensions this context renders with so their references resolve.
+     *
+     * @return array<int, \MarkupCarve\Carve\Lint\LintWarning>
+     */
+    public function lint(string $carve, string $context = 'post'): array
+    {
+        if (trim($carve) === '') {
+            return [];
+        }
+
+        return (new DocumentLinter())->lint($carve, ['extensions' => $this->converterFor($context)->getExtensions()]);
     }
 
     /**
