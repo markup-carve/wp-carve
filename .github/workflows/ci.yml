@@ -51,8 +51,8 @@ jobs:
   # comment content on the front end, so this is what a WordPress site
   # publishes.
   #
-  # BOTH SIDES ARE PINNED. Composer resolves the engine's release constraint
-  # to the exact tag recorded in composer.lock, which is what the plugin
+  # BOTH SIDES ARE PINNED. Composer resolves the engine's main-branch commit
+  # to the exact revision recorded in composer.lock, which is what the plugin
   # bundles; the corpus is pinned to the spec freeze for the same reason. An
   # unpinned corpus made this job measure UPSTREAM MOVEMENT: two spec pull
   # requests landing on carve main took the corpus from 1239 documents to 1241,
@@ -81,15 +81,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Keep the corpus fixed at spec 0.1.9, the release this plugin's
-      # carve-php 0.1.12 lock was checked against. The engine renders all
-      # 2508 documents without a divergence. A moving corpus would test an
-      # upstream change rather than this plugin's locked renderer.
+      # Use the spec commit pinned by the locked carve-php engine's tests/spec
+      # submodule. Both ends stay fixed while CI compares them; a moving corpus
+      # would measure upstream changes instead of this plugin.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 5484177ac75dc07355b5d22f3f15a7b9e66b341e
+          ref: 7f080efedaebfb6b2dc220e30dd1df8417cd7dbe
           path: carve-freeze
 
       - name: Setup PHP

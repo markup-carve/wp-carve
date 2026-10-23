@@ -535,6 +535,24 @@ CARVE;
         $this->assertGreaterThan(1, count(array_unique($m[0])), 'expected varied token colors from the carve grammar');
     }
 
+    public function testAdjacentHighlightedFencesPreserveTheSecondCodeBlock(): void
+    {
+        $converter = new Converter(['post_profile' => 'full', 'torchlight_enabled' => true]);
+        $source = "# Examples\n\n```carve\n## Requirements\n\n- PHP 8.3 or later\n- Composer 2\n- A database\n```\n```carve\n## Requirements\n\n- PHP 8.2 or later\n- Composer 2.7\n- A database\n```\n";
+        $html = $converter->toHtml($source, 'post');
+
+        preg_match_all('/<pre\b.*?<code\b[^>]*>(.*?)<\/code><\/pre>/s', $html, $blocks);
+        $this->assertCount(2, $blocks[1]);
+        $this->assertSame(
+            "## Requirements\n\n- PHP 8.3 or later\n- Composer 2\n- A database\n",
+            html_entity_decode(strip_tags($blocks[1][0]), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        );
+        $this->assertSame(
+            "## Requirements\n\n- PHP 8.2 or later\n- Composer 2.7\n- A database\n",
+            html_entity_decode(strip_tags($blocks[1][1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        );
+    }
+
     public function testCslBibliographyRendersNumberedCitationsAndReferences(): void
     {
         $converter = new Converter(['post_profile' => 'article']);

@@ -14,5 +14,5 @@ return [
         'wp-api-fetch',
         'wp-server-side-render',
     ],
-    'version' => '0.1.9',
+    'version' => '0.1.10',
 ];
