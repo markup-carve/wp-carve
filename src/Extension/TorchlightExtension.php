@@ -48,9 +48,23 @@ class TorchlightExtension implements ExtensionInterface
             // instead of falling back to plaintext. Ships in the
             // markup-carve/carve-grammars Composer package (parity with how
             // wp-djot registers php-collective/djot-grammars).
-            $grammarPath = dirname(__DIR__, 2) . '/vendor/markup-carve/carve-grammars/textmate/carve.tmLanguage.json';
-            if (file_exists($grammarPath)) {
-                $this->engine->getEnvironment()->grammars->register('carve', $grammarPath);
+            $grammarDir = dirname(__DIR__, 2) . '/vendor/markup-carve/carve-grammars/textmate';
+            $grammars = $this->engine->getEnvironment()->grammars;
+            if (file_exists($grammarDir . '/carve.tmLanguage.json')) {
+                $grammars->register('carve', $grammarDir . '/carve.tmLanguage.json');
+            }
+            // carve-grammars' csv/tsv grammars scope the separator and quoted
+            // fields; phiki's own color columns only. The Carve grammar embeds
+            // them by scope, and phiki has no public API to map a scope.
+            foreach (['csv', 'tsv'] as $language) {
+                $path = $grammarDir . '/' . $language . '.tmLanguage.json';
+                if (!file_exists($path)) {
+                    continue;
+                }
+                $grammars->register($language, $path);
+                (function (string $scope, string $name): void {
+                    $this->scopesToGrammar[$scope] = $name;
+                })->call($grammars, 'text.' . $language . '.carve', $language);
             }
         }
     }
@@ -67,7 +81,8 @@ class TorchlightExtension implements ExtensionInterface
                 return;
             }
             $language = (string)($block->getLanguage() ?: 'text');
-            $code = str_replace("\t", '    ', $block->getContent());
+            // In a tsv body the tab is the separator the grammar scopes.
+            $code = $language === 'tsv' ? $block->getContent() : str_replace("\t", '    ', $block->getContent());
             // A `{.diff}` fence keeps its markers out of the highlighter: they
             // are stripped here and restored after, the same order
             // carve-grammars/diff/index.js uses. Highlighting marker-bearing
@@ -135,7 +150,11 @@ class TorchlightExtension implements ExtensionInterface
                 if ($diffMarkers !== []) {
                     $html = self::restoreDiffMarkers($html, $diffMarkers);
                 }
-                $event->setHtml($this->reapplyPreAttributes($html, $block, $diffMarkers !== [] ? ['has-diff'] : []));
+                // carve-php's own code block ends with a newline, and its
+                // container indentation relies on it: without one the next
+                // <pre> shares this line and its code lines gain the padding.
+                $html = rtrim($this->reapplyPreAttributes($html, $block, $diffMarkers !== [] ? ['has-diff'] : []), "\n") . "\n";
+                $event->setHtml($html);
             } catch (Throwable) {
                 // Unknown grammar / theme: leave carve-php's plain output in place.
             }

@@ -93,6 +93,9 @@ normalization applies to both):
 event and replaces each fenced block with themed, highlighted HTML. It uses `torchlight/engine`, which highlights locally with TextMate grammars -
 no API token, no network. The package is bundled with the plugin; enable it with
 the `torchlight_enabled` setting.
+`carve`, `csv` and `tsv` fences use the grammars from carve-grammars, so a
+`csv` or `tsv` body shows its separators and quoted fields, also inside a
+`carve` fence.
 Line numbers come from Torchlight's server-side gutter. Enable them globally
 with `torchlight_line_numbers`, or for one block with a preceding attribute line:
 

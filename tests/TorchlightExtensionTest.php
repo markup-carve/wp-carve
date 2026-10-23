@@ -77,4 +77,34 @@ class TorchlightExtensionTest extends TestCase
         $this->assertStringNotContainsString('phiki-themes', $html);
         $this->assertStringNotContainsString('--phiki-dark-color', $html);
     }
+
+    public function testCsvFenceScopesTheSeparator(): void
+    {
+        $html = $this->render("```csv\nname,qty\n\"a, b\",2\n```", 'github-light');
+
+        $this->assertSame(2, substr_count($html, '<span class="token" style="color: #d73a49;">,</span>'), 'each separator is its own operator-colored token');
+        $this->assertStringContainsString('<span class="token" style="color: #032f62;">&quot;a, b&quot;</span>', $html, 'a quoted field keeps its comma');
+    }
+
+    public function testTsvFenceScopesTheSeparator(): void
+    {
+        $html = $this->render("```tsv\nname\tqty\n```", 'github-light');
+
+        $this->assertStringContainsString("<span class=\"token\" style=\"color: #d73a49;\">\t</span>", $html, 'the tab separator is its own operator-colored token');
+    }
+
+    public function testCsvFenceInsideCarveFenceIsHighlighted(): void
+    {
+        $html = $this->render("````carve\n```csv\nname,qty\n```\n````", 'github-light');
+
+        $this->assertStringContainsString('<span class="token" style="color: #d73a49;">,</span>', $html);
+    }
+
+    public function testAdjacentFencesInASectionKeepTheirCodeLinesUnindented(): void
+    {
+        $html = $this->render("## Usage\n\n```php\n\$x = 1;\n```\n\n```php\n\$y = 2;\nif (\$a) {}\n```\n", 'github-light');
+
+        $this->assertStringNotContainsString('</pre><pre', $html, 'each highlighted block starts on its own line');
+        $this->assertDoesNotMatchRegularExpression('/^ +<\/span><\/div>/m', $html, 'no code line carries the section indentation');
+    }
 }
