@@ -55,7 +55,8 @@ class TorchlightExtension implements ExtensionInterface
             }
             // carve-grammars' csv/tsv grammars scope the separator and quoted
             // fields; phiki's own color columns only. The Carve grammar embeds
-            // them by scope, and phiki has no public API to map a scope.
+            // them by scope (a csv fence nested in a carve fence), and phiki has
+            // no public API to map a scope.
             foreach (['csv', 'tsv'] as $language) {
                 $path = $grammarDir . '/' . $language . '.tmLanguage.json';
                 if (!file_exists($path)) {
@@ -81,7 +82,8 @@ class TorchlightExtension implements ExtensionInterface
                 return;
             }
             $language = (string)($block->getLanguage() ?: 'text');
-            // In a tsv body the tab is the separator the grammar scopes.
+            // In a tsv body the tab is the separator the grammar scopes. A tsv
+            // fence nested in a carve fence still gets spaces, so it stays plain.
             $code = $language === 'tsv' ? $block->getContent() : str_replace("\t", '    ', $block->getContent());
             // A `{.diff}` fence keeps its markers out of the highlighter: they
             // are stripped here and restored after, the same order

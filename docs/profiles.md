@@ -94,8 +94,9 @@ event and replaces each fenced block with themed, highlighted HTML. It uses `tor
 no API token, no network. The package is bundled with the plugin; enable it with
 the `torchlight_enabled` setting.
 `carve`, `csv` and `tsv` fences use the grammars from carve-grammars, so a
-`csv` or `tsv` body shows its separators and quoted fields, also inside a
-`carve` fence.
+`csv` or `tsv` body shows its separators and quoted fields. A `csv` fence inside
+a `carve` fence does too; a nested `tsv` fence does not, because a `carve` body
+has its tabs expanded to spaces before highlighting.
 Line numbers come from Torchlight's server-side gutter. Enable them globally
 with `torchlight_line_numbers`, or for one block with a preceding attribute line:
 
