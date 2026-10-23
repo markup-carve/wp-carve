@@ -42,6 +42,7 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 
 = 0.1.10 =
 * Fixed: with Torchlight highlighting on, code fences placed back to back keep their code text as written instead of gaining indentation.
+* New: `wp carve lint` reports every carve-php linter finding by line, column and rule.
 * Changed: bundled carve-php main at a320ec67d82e (after 0.1.14) and, in the browser, carve 0.1.13 with carve-grammars 0.1.17; this adds code-block includes and the newer continuation-marker and description rules, so some documents render differently and more correctly.
 
 = 0.1.9 =

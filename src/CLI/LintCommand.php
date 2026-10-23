@@ -24,6 +24,8 @@ use WpCarve\Plugin;
  * block) it renders the source and reports:
  *
  *   - error the source threw or rendered empty (broken Carve),
+ *   - warn carve-php's document linter (every engine rule) flagged the
+ *              source; each finding is listed below the post line,
  *   - notes features the Visual editor simplifies vs the front end - a table
  *              of contents, heading permalinks, diagrams or abbreviations are
  *              generated on render and are intentionally omitted from the visual
@@ -52,6 +54,7 @@ class LintCommand
 
         $rows = [];
         $errors = 0;
+        $withWarnings = 0;
         $withNotes = 0;
         foreach ($ids as $id) {
             $id = (int)$id;
@@ -70,6 +73,10 @@ class LintCommand
 
             $status = 'ok';
             $notes = [];
+            ['findings' => $findings, 'failures' => $failures] = self::engineFindings($converter, $sources);
+            if ($failures !== []) {
+                $status = 'error';
+            }
             foreach ($sources as $source) {
                 try {
                     $post = $converter->toHtml($source, 'post', null, $safe);
@@ -93,9 +100,16 @@ class LintCommand
                 }
             }
 
+            if ($status === 'ok' && $findings !== []) {
+                $status = 'warn';
+            }
             if ($status === 'error') {
                 $errors++;
-            } elseif ($notes !== []) {
+            }
+            if ($findings !== []) {
+                $withWarnings++;
+            }
+            if ($status !== 'error' && $notes !== []) {
                 $withNotes++;
             }
 
@@ -108,6 +122,9 @@ class LintCommand
                 (string)get_the_title($id),
                 $simplifies,
             ));
+            foreach ([...$failures, ...$findings] as $finding) {
+                WP_CLI::log('       ' . $finding);
+            }
         }
 
         if ($rows === []) {
@@ -117,11 +134,51 @@ class LintCommand
         }
 
         WP_CLI::success(sprintf(
-            '%d Carve post(s): %d error(s), %d with visual-editor caveats.',
+            '%d Carve post(s): %d error(s), %d with lint warnings, %d with visual-editor caveats.',
             count($rows),
             $errors,
+            $withWarnings,
             $withNotes,
         ));
+    }
+
+    /**
+     * Run carve-php's document linter over each source and format every
+     * finding as `line:column rule message`, prefixed with the source's
+     * position when a post holds more than one. A linter that throws is a
+     * failure, not a finding: no rule result exists for that source.
+     *
+     * @param \WpCarve\Converter $converter
+     * @param array<int, string> $sources
+     *
+     * @return array{findings: array<int, string>, failures: array<int, string>}
+     */
+    public static function engineFindings(Converter $converter, array $sources): array
+    {
+        $findings = [];
+        $failures = [];
+        $label = count($sources) > 1;
+        foreach (array_values($sources) as $i => $source) {
+            try {
+                $warnings = $converter->lint($source);
+            } catch (Throwable $e) {
+                $failures[] = ($label ? 'source ' . ($i + 1) . ' ' : '') . 'lint threw: ' . $e->getMessage();
+
+                continue;
+            }
+            foreach ($warnings as $warning) {
+                $findings[] = sprintf(
+                    '%s%d:%d %s %s',
+                    $label ? 'source ' . ($i + 1) . ' ' : '',
+                    $warning->line,
+                    $warning->column,
+                    $warning->rule,
+                    $warning->message,
+                );
+            }
+        }
+
+        return ['findings' => $findings, 'failures' => $failures];
     }
 
     /**

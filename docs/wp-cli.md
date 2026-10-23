@@ -64,8 +64,9 @@ Carve are omitted from the list.
 ## `wp carve lint`
 
 Read-only health check for Carve content. Renders every Carve-enabled post (the
-"Render as Carve" toggle or a `carve/markup` block) and reports render errors
-plus the features the **Visual editor simplifies** relative to the front end.
+"Render as Carve" toggle or a `carve/markup` block) and reports render errors,
+every finding of the bundled carve-php linter, and the features the **Visual
+editor simplifies** relative to the front end.
 
 ```bash
 # Lint every Carve post:
@@ -76,10 +77,14 @@ wp carve lint --post=123
 wp carve lint --post_type=page
 ```
 
-Each line is `OK` / `ERROR` with the post ID, title, and any caveats:
+Each line is `OK` / `WARN` / `ERROR` with the post ID, title, and any caveats.
+Linter findings follow on their own lines as `line:column rule message`,
+prefixed with `source N` when a post holds more than one Carve source:
 
 ```
 OK     #6  Carve TOC demo  [visual editor simplifies: table of contents]
+WARN   #9  Release notes  [visual editor simplifies: -]
+       3:9 markdown-strong-double-star `**bold**` renders as literal asterisks, not bold. Carve writes strong as *bold*.
 ```
 
 ### What it reports
@@ -87,6 +92,7 @@ OK     #6  Carve TOC demo  [visual editor simplifies: table of contents]
 | Column | Meaning |
 | --- | --- |
 | `ERROR` | The source threw during render, or rendered empty (broken Carve). |
+| `WARN` | carve-php's document linter reported at least one finding. It runs every engine rule, with the extensions the front end renders with, and line numbers refer to the stored source. |
 | visual editor simplifies | Generated markup present on the front end but intentionally omitted from the visual-editor seed - a table of contents, heading permalinks, diagrams, or abbreviations. These are render-time output, not part of the source, so the Visual editor shows the plain source instead (it never freezes into the post). Not a problem - just so you know what differs. |
 
 It writes nothing; use it before or after a migration to spot content that fails
