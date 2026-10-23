@@ -11,11 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
-- With Torchlight highlighting on, two or more code fences placed back to back keep their code text as written. The second and later blocks gained indentation inside a section, a container or a details block.
+- With Torchlight highlighting on, two or more code fences placed back to back keep their code text as written. The second and later blocks gained indentation inside a section, a container or a details block (#169).
 
 ### Improvements
 
-- The server renderer moves to carve-php 0.1.14 and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.17. This brings code-block includes (`{{ file.php @code:php }}`, optionally with `@region:name`) and the 0.1.11 rules for continuation markers, quote prefixes and description columns, so some documents render differently and more correctly.
+- The server renderer moves to carve-php 0.1.14, and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.17 (#169).
+- Includes can insert a source file, or one named region of it, as a code block (`{{ file.php @code:php }}`) (#169).
+- Continuation markers, quote prefixes and description columns follow the Carve 0.1.11 rules, so some documents render differently (#169).
 
 ## [0.1.9] - 2026-10-14
 
