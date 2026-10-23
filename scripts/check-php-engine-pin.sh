@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Check the released carve-php pin: composer.json names a release constraint,
-# composer.lock resolves it to a tagged release, and that tag is a commit on
-# carve-php main.
+# Check the carve-php pin. Release constraints must resolve to a tag on main;
+# a development constraint must resolve to a main commit in composer.lock.
 #
 # Usage: ./scripts/check-php-engine-pin.sh <carve-php checkout with tags>
 
@@ -22,18 +21,41 @@ if [ -z "${constraint}" ]; then
     echo "::error::${pkg} is not required by this repo - this check is watching nothing"
     exit 1
 fi
-case "${constraint}" in
-    *dev* | *'#'* | *' as '* | *'@'*)
-        echo "::error::${pkg} is \"${constraint}\" - it must be a release constraint such as ^0.1.9, not a branch, alias or commit"
-        exit 1
-        ;;
-esac
-
 lock_field() {
     php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === $argv[1]) { echo $argv[2] === "reference" ? ($p["source"]["reference"] ?? "") : ($p["version"] ?? ""); break; }' "${pkg}" "$1"
 }
 version="$(lock_field version)"
 reference="$(lock_field reference)"
+if [ "${constraint}" = 'dev-main as 0.1.x-dev' ]; then
+    if [ "${version}" != 'dev-main' ] || ! [[ "${reference}" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "::error::${pkg} ${constraint} resolves to ${version} (${reference}), expected a dev-main commit"
+        exit 1
+    fi
+    if ! git -C "${engine_dir}" cat-file -e "${reference}^{commit}" 2>/dev/null \
+        || ! git -C "${engine_dir}" merge-base --is-ancestor "${reference}" origin/main; then
+        echo "::error::${pkg} ${reference} is not a commit on carve-php main"
+        exit 1
+    fi
+    engine_spec="$(git -C "${engine_dir}" ls-tree "${reference}" tests/spec | awk '{print $3}')"
+    corpus_spec="$(sed -n '/name: Check out the corpus at the spec freeze/,/path: carve-freeze/s/^[[:space:]]*ref: \([0-9a-f]\{40\}\)[[:space:]]*$/\1/p' .github/workflows/ci.yml)"
+    if [ -z "${engine_spec}" ] || [ "${engine_spec}" != "${corpus_spec}" ]; then
+        echo "::error::CI corpus ${corpus_spec} does not match ${pkg} tests/spec ${engine_spec}"
+        exit 1
+    fi
+    behind="$(git -C "${engine_dir}" rev-list --count "${reference}..origin/main")"
+    echo "${pkg}: locked dev-main ${reference}; main is ${behind} commit(s) ahead"
+    if [ "${behind}" -gt 0 ]; then
+        echo "::warning::${pkg} is ${behind} commit(s) behind carve-php main"
+    fi
+    exit 0
+fi
+
+case "${constraint}" in
+    *dev* | *'#'* | *' as '* | *'@'*)
+        echo "::error::${pkg} is \"${constraint}\" - use a release constraint or the supported dev-main alias"
+        exit 1
+        ;;
+esac
 if ! printf '%s' "${version}" | grep -qE '^v?[0-9]+\.[0-9]+\.[0-9]+$'; then
     echo "::error::composer.lock resolves ${pkg} to \"${version}\", which is not a tagged release"
     exit 1

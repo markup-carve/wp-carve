@@ -43,7 +43,13 @@ jobs:
         run: |
           set -euo pipefail
           composer require markup-carve/carve-grammars markup-carve/carve-php-media-embed --no-update --no-interaction --no-scripts --no-plugins
-          composer update markup-carve/carve-php markup-carve/carve-grammars markup-carve/carve-php-media-embed --with-dependencies --no-progress --no-scripts --no-plugins
+          # Keep the reviewed dev-main commit in composer.lock until a tagged
+          # carve-php release replaces it. Moving it needs a new corpus check.
+          php_before="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === "markup-carve/carve-php") { echo $p["source"]["reference"] ?? ""; break; }')"
+          composer update markup-carve/carve-grammars markup-carve/carve-php-media-embed --with-dependencies --no-progress --no-scripts --no-plugins
+          php_after="$(php -r '$l=json_decode(file_get_contents("composer.lock"), true); foreach ($l["packages"] as $p) if ($p["name"] === "markup-carve/carve-php") { echo $p["source"]["reference"] ?? ""; break; }')"
+          test -n "${php_before}" && test "${php_before}" = "${php_after}" \
+            || { echo '::error::dependency sync moved the reviewed carve-php commit'; exit 1; }
           npm install --ignore-scripts @markup-carve/carve@latest @markup-carve/carve-grammars@latest
           npm run build
 

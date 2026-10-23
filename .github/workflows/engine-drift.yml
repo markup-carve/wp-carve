@@ -38,10 +38,10 @@ name: Engine drift
 # because the pinned grammar declares the same carve-js revision this repo does.
 # When a grammar release exists again, this goes back to a version constraint.
 #
-# The PHP engine is a released Composer constraint. The job fails when the
-# manifest names a branch, alias or commit, when the lock resolves it to
-# anything but a tagged release, or when that tag is not a commit on carve-php
-# main. Lag behind the latest tag is a warning.
+# The PHP engine normally uses a released Composer constraint. A dev-main
+# dependency is accepted only when composer.lock records a reachable main
+# commit and CI's pinned corpus matches that engine's spec submodule. Lag
+# behind main is a warning.
 
 on:
   schedule:
@@ -136,7 +136,7 @@ jobs:
           check '@markup-carve/carve' carve-js carve-js
           check '@markup-carve/carve-grammars' carve-grammars carve-grammars
 
-      - name: The PHP engine pin is a released tag on carve-php main
+      - name: The PHP engine pin resolves to a commit on carve-php main
         run: bash scripts/check-php-engine-pin.sh carve-php
 
       - name: Every Composer development dependency pins a reachable main revision

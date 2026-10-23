@@ -11,11 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
-- With Torchlight highlighting on, two or more code fences placed back to back keep their code text as written. The second and later blocks gained indentation inside a section, a container or a details block (#169).
+- Code fences placed back to back keep their code text as written. With Torchlight highlighting on, the second and later blocks gained indentation inside a section, a container, a details block or a spoiler (#169, #170).
 
 ### Improvements
 
-- The server renderer moves to carve-php 0.1.14, and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.17 (#169).
+- The server renderer moves to carve-php `dev-main` at a320ec67d82e (after 0.1.14, with markup-carve/carve-php#3760), and the browser preview and visual editor to carve 0.1.13 with carve-grammars 0.1.17 (#169, #170).
+- A Composer install of the plugin needs `"markup-carve/carve-php": "dev-main as 0.1.x-dev"` in the root project until the next carve-php release. The WordPress.org package bundles the locked engine (#170).
 - Includes can insert a source file, or one named region of it, as a code block (`{{ file.php @code:php }}`) (#169).
 - Continuation markers, quote prefixes and description columns follow the Carve 0.1.11 rules, so some documents render differently (#169).
 

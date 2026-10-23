@@ -553,6 +553,10 @@ CARVE;
                 "# Examples\n\n::: note\n```carve\n{$first}```\n```carve\n{$second}```\n```php\n{$third}```\n:::\n",
                 [$first, $second, $third],
             ],
+            'two fences in a details block' => [
+                "# Examples\n\n::: details Requirements\n```carve\n{$first}```\n```php\n{$third}```\n:::\n",
+                [$first, $third],
+            ],
         ];
     }
 

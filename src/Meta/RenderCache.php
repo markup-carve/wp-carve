@@ -128,10 +128,9 @@ class RenderCache
      * of every render-affecting setting. Any of the three moving changes this,
      * so read() treats the stored HTML as stale and re-renders on the fly.
      *
-     * The engine version is in there because the plugin's requirement is a
-     * caret range: carve-php can move from 0.1.9 to 0.1.10 under an unchanged
-     * plugin version, and a rendering change in that move would otherwise keep
-     * serving cached HTML produced by the older engine.
+     * The engine version catches tagged dependency updates made without a
+     * plugin version bump. A dev-main commit may keep the same LIB_VERSION,
+     * so bump WPCARVE_VERSION whenever that lockfile revision changes.
      */
     private static function signature(): string
     {
