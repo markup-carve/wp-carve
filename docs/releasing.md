@@ -51,6 +51,17 @@ triggers an automated deploy to the WordPress.org plugin SVN.
 `.distignore` controls what is excluded from the deployed SVN tree (tests,
 build tooling, docs, vendor cruft).
 
+## Distribution
+
+The plugin ships only as a zip: the WordPress.org SVN deploy from
+`release.yml`, plus the same zip attached to the GitHub release. Every engine
+is bundled inside it: carve-php (server renderer), carve-js (browser preview)
+and carve-grammars (visual editor and highlighting). Sites never resolve
+dependencies through Composer, so bundling an engine at a main commit
+(`dev-main as 0.1.x-dev`) is fine and needs no install instructions. Release
+notes must not tell users to add Composer constraints. The CHANGELOG records
+the exact bundled version or commit of each engine.
+
 ## WordPress.org listing
 
 The plugin is **listed**: <https://wordpress.org/plugins/carve-markup/>, under
