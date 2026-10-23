@@ -112,6 +112,17 @@ class IncludePolicyTest extends TestCase
         $this->assertStringNotContainsString('{{', $html);
     }
 
+    public function testTrustedSaveExpandsACodeIncludeRegion(): void
+    {
+        file_put_contents($this->root . '/sample.php', "<?php\n// #region demo\necho 'shown';\n// #endregion demo\necho 'hidden';\n");
+        $this->saveAs(self::ADMIN, 12, "{{ sample.php @region:demo @code:php }}\n");
+
+        $html = $this->renderPost(12);
+
+        $this->assertStringContainsString("<pre><code class=\"language-php\">echo 'shown';\n</code></pre>", $html);
+        $this->assertStringNotContainsString('hidden', $html);
+    }
+
     public function testUntrustedSaveLeavesTheDirectiveLiteral(): void
     {
         $this->saveAs(self::AUTHOR, 11, "{{ chapter.crv }}\n");

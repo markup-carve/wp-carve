@@ -535,6 +535,44 @@ CARVE;
         $this->assertGreaterThan(1, count(array_unique($m[0])), 'expected varied token colors from the carve grammar');
     }
 
+    /**
+     * @return array<string, array{0: string, 1: array<string>}>
+     */
+    public static function adjacentHighlightedFencesProvider(): array
+    {
+        $first = "## Requirements\n\n- PHP 8.3 or later\n- Composer 2\n- A database\n";
+        $second = "## Requirements\n\n- PHP 8.2 or later\n- Composer 2.7\n- A database\n";
+        $third = "if (\$a) {\n    return;\n}\n";
+
+        return [
+            'two fences in a section' => [
+                "# Examples\n\n```carve\n{$first}```\n```carve\n{$second}```\n",
+                [$first, $second],
+            ],
+            'three fences in a container' => [
+                "# Examples\n\n::: note\n```carve\n{$first}```\n```carve\n{$second}```\n```php\n{$third}```\n:::\n",
+                [$first, $second, $third],
+            ],
+        ];
+    }
+
+    /**
+     * @param array<string> $expected
+     */
+    #[DataProvider('adjacentHighlightedFencesProvider')]
+    public function testAdjacentHighlightedFencesKeepTheirCodeText(string $source, array $expected): void
+    {
+        $converter = new Converter(['post_profile' => 'full', 'torchlight_enabled' => true]);
+        $html = $converter->toHtml($source, 'post');
+
+        preg_match_all('/<pre\b.*?<code\b[^>]*>(.*?)<\/code><\/pre>/s', $html, $blocks);
+        $actual = array_map(
+            static fn (string $code): string => html_entity_decode(strip_tags($code), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+            $blocks[1],
+        );
+        $this->assertSame($expected, $actual);
+    }
+
     public function testCslBibliographyRendersNumberedCitationsAndReferences(): void
     {
         $converter = new Converter(['post_profile' => 'article']);

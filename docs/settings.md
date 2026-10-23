@@ -88,6 +88,10 @@ stops expanding once someone without the capability saves it. The flag lives in
 the `_wpcarve_include_trusted` post meta and is written by the save alone; REST,
 `meta_input` and custom-field writes to it are refused.
 
+`{{ sample.php @code:php }}` inserts a source file as one code block, and
+`{{ sample.php @region:demo @code:php }}` inserts only the lines between its
+`#region demo` and `#endregion demo` markers.
+
 The root is used exactly as stored. A relative or missing root expands nothing
 and reports `include-root-refused`. Targets outside the root, through `..` or a
 symlink, are refused by carve-php.

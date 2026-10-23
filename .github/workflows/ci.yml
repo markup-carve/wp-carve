@@ -81,15 +81,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Keep the corpus fixed at spec 0.1.9, the release this plugin's
-      # carve-php 0.1.12 lock was checked against. The engine renders all
-      # 2508 documents without a divergence. A moving corpus would test an
-      # upstream change rather than this plugin's locked renderer.
+      # Keep the corpus fixed at the spec commit carve-php 0.1.14 pins in its
+      # tests/spec submodule. The engine renders all 3023 documents without a
+      # divergence. A moving corpus would test an upstream change rather than
+      # this plugin's locked renderer.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 5484177ac75dc07355b5d22f3f15a7b9e66b341e
+          ref: 7f080efedaebfb6b2dc220e30dd1df8417cd7dbe
           path: carve-freeze
 
       - name: Setup PHP
