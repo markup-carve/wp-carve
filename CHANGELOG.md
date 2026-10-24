@@ -9,13 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.11] - 2026-10-23
 
+Torchlight highlighting now handles adjacent code blocks and CSV or TSV fences inside Carve content.
+
 ### Fixes
 
-- With Torchlight highlighting on, a code fence right after another one inside a section keeps its code lines as written; each highlighted block ends on its own line again (#174, #175).
+- Adjacent highlighted code fences keep their original lines inside sections, with each block ending on its own line (#174, #175).
 
 ### Improvements
 
-- With Torchlight highlighting on, `csv` and `tsv` fences use the carve-grammars csv/tsv grammars, so separators and quoted fields are colored and a comma inside quotes stays in its field. A `csv` fence inside a `carve` fence highlights too (#175).
+- CSV and TSV fences color separators and quoted fields, including a CSV fence inside a Carve fence (#175).
+
+**Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.10...0.1.11
 
 ## [0.1.10] - 2026-10-23
 
