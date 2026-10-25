@@ -1,7 +1,7 @@
 # Documents the shipped engine renders differently from its pinned spec corpus.
 #
-#   corpus  markup-carve/carve 7f080efedaeb, 3023 documents (the engine's tests/spec)
-#   engine  markup-carve/carve-php dev-main a320ec67d82e, from composer.lock
+#   corpus  markup-carve/carve 236ec12b5ac5, 3064 documents (the engine's tests/spec)
+#   engine  markup-carve/carve-php 0.1.16 20d920713845, from composer.lock
 #
 # The list is empty. The locked engine renders every document at this freeze
 # without a divergence. The earlier pin movements below explain the history
