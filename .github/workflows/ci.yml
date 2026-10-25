@@ -81,15 +81,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Use the spec commit pinned by the locked carve-php engine's tests/spec
-      # submodule (scripts/check-php-engine-pin.sh enforces the match). A
-      # moving corpus would test an upstream change rather than this plugin's
-      # locked renderer.
+      # Use the published spec 0.1.13 corpus. A moving corpus would test an
+      # upstream change rather than this plugin's locked renderer.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 7f080efedaebfb6b2dc220e30dd1df8417cd7dbe
+          ref: 236ec12b5ac5ad9aba5ce034cbcb9aec2f2dd20c
           path: carve-freeze
 
       - name: Setup PHP
