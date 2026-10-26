@@ -39,8 +39,8 @@ final class RevisionDiff
 
         $options = [
             'show_split_view' => true,
-            'title_left' => __('Removed'),
-            'title_right' => __('Added'),
+            'title_left' => __('Removed', 'carve-markup'),
+            'title_right' => __('Added', 'carve-markup'),
         ];
         $options = apply_filters('revision_text_diff_options', $options, 'post_content', $from, $to);
         $contentDiff = wp_text_diff($old['content'], $new['content'], $options);
@@ -63,11 +63,13 @@ final class RevisionDiff
             if (!$diff) {
                 continue;
             }
+            // translators: %d is the Carve block number in the post.
+            $blockName = sprintf(__('Carve source (block %d)', 'carve-markup'), $index + 1);
             $result[] = [
                 'id' => 'wpcarve_source_' . ($index + 1),
                 'name' => count($pairs) === 1
                     ? __('Carve source', 'carve-markup')
-                    : sprintf(__('Carve source (block %d)', 'carve-markup'), $index + 1),
+                    : $blockName,
                 'diff' => $diff,
             ];
         }
