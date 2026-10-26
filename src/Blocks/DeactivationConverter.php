@@ -47,7 +47,7 @@ final class DeactivationConverter
         $slug = $post->post_name !== '' ? $post->post_name : 'carve-' . $postId;
         foreach ($sources as $source) {
             $index = count($existing) + 1;
-            $filename = sanitize_file_name($slug . '-block-' . $index . '.crv');
+            $filename = sanitize_file_name($slug . '-' . $postId . '-block-' . $index . '.crv');
             $existing[] = ['filename' => $filename, 'source' => $source];
             $archives[] = ['filename' => $filename, 'index' => $index];
         }
