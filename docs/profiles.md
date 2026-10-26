@@ -11,8 +11,9 @@ WordPress `wp_kses`, with post context except for `comment`. “Literal” means
 source remains visible as text; “stripped” means the sampled construct disappears.
 The browser request column marks constructs that can make the browser fetch
 media or supporting assets. Links require a reader click and are not marked.
-Remote images load in the post profiles. With optional features enabled, media
-embeds load provider frames, PlantUML fences use Kroki, and math loads local
+The `full`, `article`, and `none` profiles can emit remote images. With optional
+features enabled, media embeds load provider frames, PlantUML fences use Kroki,
+and math loads local
 KaTeX assets. The `wpcarve_katex_base` filter can point those assets at a CDN.
 The comment converter does not register media embeds or diagram renderers.
 
@@ -132,9 +133,9 @@ it and the reader, and a string sanitizer is not browser-grade.
 Carve is Djot-based, so a literal `<div>` typed in the source is **text**, not
 HTML. Raw HTML is only produced by Djot's explicit raw syntax - a `` `=html ``
 fenced block or an inline `` `<tag>`{=html} `` span - and only when the active
-profile permits raw nodes. Only the **`full`** profile does; `article` (the
-default), `comment` and `minimal` deny it, so their raw blocks render as escaped
-text.
+profile permits raw nodes. The **`full`** and **`none`** profiles permit
+them; `article` (the default), `comment`, and `minimal` deny them, so their raw
+blocks render as escaped text.
 
 When raw HTML is permitted, it is rendered and then filtered by `wp_kses` (layer
 2 above): safe tags and sanitized inline `style` attributes survive, while
