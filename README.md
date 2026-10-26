@@ -11,6 +11,8 @@
 A WordPress plugin for the [Carve](https://github.com/markup-carve/carve) markup language - lightweight markup for documents and the web.
 Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-php`](https://github.com/markup-carve/carve-php) engine.
 
+[Watch the WordPress demo](https://www.youtube.com/watch?v=FT_IMW8ABng)
+
 ## Features
 
 - **Carve rendering** in posts/pages (per-post "Render as Carve" toggle), the `[carve]…[/carve]` shortcode, and comments.
