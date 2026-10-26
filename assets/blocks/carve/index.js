@@ -596,6 +596,8 @@
 	}
 
 	const modesByClientId = new Map();
+	const signaturesByClientId = new Map();
+	const modesBySignature = new Map();
 
 	function Edit( props ) {
 		const { attributes, setAttributes, clientId } = props;
@@ -617,6 +619,16 @@
 			if ( [ 'write', 'split', 'preview' ].includes( current ) || ( hasVisual && current === 'visual' ) ) {
 				return current;
 			}
+			const matchingModes = source && modesBySignature.get( signature );
+			if ( matchingModes ) {
+				const modes = new Set( matchingModes.values() );
+				if ( modes.size === 1 ) {
+					const matched = modes.values().next().value;
+					if ( [ 'write', 'split', 'preview' ].includes( matched ) || ( hasVisual && matched === 'visual' ) ) {
+						return matched;
+					}
+				}
+			}
 			try {
 				const saved = source && modeKey && JSON.parse( window.sessionStorage.getItem( modeKey ) );
 				if ( saved?.signature === signature &&
@@ -635,7 +647,18 @@
 		const [ mode, setMode ] = useState( initialModeRef.current );
 		useEffect( () => {
 			modesByClientId.set( clientId, mode );
-		}, [ clientId, mode ] );
+			const previous = signaturesByClientId.get( clientId );
+			if ( previous && previous !== signature ) {
+				modesBySignature.get( previous )?.delete( clientId );
+			}
+			if ( source ) {
+				signaturesByClientId.set( clientId, signature );
+				if ( ! modesBySignature.has( signature ) ) {
+					modesBySignature.set( signature, new Map() );
+				}
+				modesBySignature.get( signature ).set( clientId, mode );
+			}
+		}, [ clientId, mode, signature, source ] );
 		const [ html, setHtml ] = useState( '' );
 		const [ previewError, setPreviewError ] = useState( '' );
 		const [ ingest, setIngest ] = useState( null );
