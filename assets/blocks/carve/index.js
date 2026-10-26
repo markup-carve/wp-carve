@@ -565,6 +565,28 @@
 		);
 	}
 
+	function editorModeKey( clientId ) {
+		const postId = wp.data?.select( 'core/editor' )?.getCurrentPostId() ||
+			( window.location?.search || '' ).match( /[?&]post=(\d+)/ )?.[ 1 ];
+		const blocks = wp.data?.select( 'core/block-editor' );
+		if ( ! postId || ! clientId || ! blocks?.getBlockOrder ) {
+			return '';
+		}
+		const path = [];
+		let current = clientId;
+		let parent = blocks.getBlockRootClientId?.( current );
+		while ( current ) {
+			const index = blocks.getBlockOrder( parent ).indexOf( current );
+			if ( index < 0 ) {
+				return '';
+			}
+			path.unshift( index );
+			current = parent;
+			parent = current ? blocks.getBlockRootClientId?.( current ) : undefined;
+		}
+		return 'wpcarve:editor-mode:' + postId + ':' + path.join( '.' );
+	}
+
 	function Edit( props ) {
 		const { attributes, setAttributes, clientId } = props;
 		const blockRef = useRef( null );
@@ -578,7 +600,23 @@
 
 		const hasVisual = !! cfg.visualEditor;
 		const startMode = hasVisual && cfg.startMode === 'visual' ? 'visual' : 'write';
-		const [ mode, setMode ] = useState( startMode );
+		const modeKey = editorModeKey( clientId );
+		function initialMode() {
+			try {
+				const saved = modeKey && window.sessionStorage.getItem( modeKey );
+				if ( [ 'write', 'split', 'preview' ].includes( saved ) || ( hasVisual && saved === 'visual' ) ) {
+					return saved;
+				}
+			} catch ( error ) {
+				// Storage may be disabled; keep the configured start mode.
+			}
+			return startMode;
+		}
+		const initialModeRef = useRef( null );
+		if ( initialModeRef.current === null ) {
+			initialModeRef.current = initialMode();
+		}
+		const [ mode, setMode ] = useState( initialModeRef.current );
 		const [ html, setHtml ] = useState( '' );
 		const [ previewError, setPreviewError ] = useState( '' );
 		const [ ingest, setIngest ] = useState( null );
@@ -608,6 +646,17 @@
 		const timer = useRef( null );
 		const heldRef = useRef( false );
 		const renderNowRef = useRef( null );
+
+		useEffect( () => {
+			if ( ! modeKey ) {
+				return;
+			}
+			try {
+				window.sessionStorage.setItem( modeKey, mode );
+			} catch ( error ) {
+				// The editor still works when browser storage is disabled.
+			}
+		}, [ modeKey, mode ] );
 
 		useEffect( () => {
 			const syncFullscreen = () => {

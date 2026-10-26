@@ -114,6 +114,7 @@ class ConverterTest extends TestCase
         // Carve-specific extras: task-list checkboxes and media-embed iframes.
         $this->assertArrayHasKey('input', $allowed);
         $this->assertTrue($allowed['input']['checked']);
+        $this->assertTrue($allowed['input']['aria-label']);
         $this->assertArrayHasKey('label', $allowed);
         $this->assertArrayHasKey('iframe', $allowed);
         $this->assertTrue($allowed['iframe']['allowfullscreen']);

@@ -1110,6 +1110,7 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 .wpcarve li > input[type="checkbox"] {
 	appearance: none;
 	-webkit-appearance: none;
+	font-size: inherit;
 	margin-right: 0.45em;
 	width: 1em;
 	height: 1em;
@@ -1136,6 +1137,67 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	border: solid #fff;
 	border-width: 0 2px 2px 0;
 	transform: rotate(45deg);
+}
+
+/* Carve task states beyond open and done use the same marker in rendered
+   content and in the visual editor. The symbol stays visible without color. */
+:is(.wpcarve li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > input[type="checkbox"],
+	.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > label > input:not(:checked)[type="checkbox"]) {
+	appearance: none;
+	-webkit-appearance: none;
+	font-size: inherit;
+	width: 1em;
+	height: 1em;
+	border: 1.5px solid var(--wpcarve-task-accent, #64748b);
+	border-radius: 3px;
+	background: transparent;
+	position: relative;
+	opacity: 1;
+	vertical-align: -0.15em;
+}
+
+:is(.wpcarve li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > input[type="checkbox"],
+	.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > label > input:not(:checked)[type="checkbox"])::after {
+	position: absolute;
+	inset: -0.15em 0 0;
+	color: var(--wpcarve-task-accent, #64748b);
+	font: 700 0.85em/1 sans-serif;
+	text-align: center;
+}
+
+:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="/"] { --wpcarve-task-accent: #2563eb; }
+:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="-"] { --wpcarve-task-accent: #64748b; }
+:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state=">"] { --wpcarve-task-accent: #7c3aed; }
+:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="?"] { --wpcarve-task-accent: #0f766e; }
+:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="!"] { --wpcarve-task-accent: #b45309; }
+
+:is(.wpcarve li[data-task-state="/"] > input,
+	.wpcarve-ve-surface li[data-task-state="/"] > label > input:not(:checked))::after {
+	content: "";
+	inset: 0 auto 0 0;
+	width: 50%;
+	background: #2563eb;
+}
+:is(.wpcarve li[data-task-state="-"] > input,
+	.wpcarve-ve-surface li[data-task-state="-"] > label > input:not(:checked))::after { content: "−"; }
+:is(.wpcarve li[data-task-state=">"] > input,
+	.wpcarve-ve-surface li[data-task-state=">"] > label > input:not(:checked))::after { content: ">"; }
+:is(.wpcarve li[data-task-state="?"] > input,
+	.wpcarve-ve-surface li[data-task-state="?"] > label > input:not(:checked))::after { content: "?"; }
+:is(.wpcarve li[data-task-state="!"] > input,
+	.wpcarve-ve-surface li[data-task-state="!"] > label > input:not(:checked))::after {
+	content: "!";
+	font-size: 1em;
+}
+
+@media (forced-colors: active) {
+	:is(.wpcarve li[data-task-state="/"] > input,
+	.wpcarve-ve-surface li[data-task-state="/"] > label > input:not(:checked))::after {
+		content: "/";
+		inset: -0.15em 0 0;
+		width: auto;
+		background: none;
+	}
 }
 
 /* Table of contents: collapsible disclosure, closed by default. */
