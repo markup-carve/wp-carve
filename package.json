@@ -15,8 +15,8 @@
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "0.1.15",
-    "@markup-carve/carve-grammars": "0.1.22",
+    "@markup-carve/carve": "^0.1.15",
+    "@markup-carve/carve-grammars": "^0.1.22",
     "prismjs": "^1.30.0"
   },
   "devDependencies": {
