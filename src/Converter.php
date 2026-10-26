@@ -493,6 +493,7 @@ class Converter
             'type' => true,
             'checked' => true,
             'disabled' => true,
+            'aria-label' => true,
             'class' => true,
             'id' => true,
             // Radio groups for the CSS-only tabs / code-group widgets share a

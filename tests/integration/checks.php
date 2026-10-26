@@ -272,10 +272,12 @@ if (class_exists(\WpCarve\Converter::class)) {
     $converter = new \WpCarve\Converter([]);
 
     // Generated markup the allowlist must keep: task-list checkboxes.
-    $taskHtml = $converter->toHtml("- [x] done\n- [ ] open");
+    $taskHtml = $converter->toHtml("- [x] done\n- [ ] open\n- [/] Review");
     $carve_check(
-        'sanitization keeps task-list checkboxes through wp_kses',
-        str_contains($taskHtml, '<input') && str_contains($taskHtml, 'checkbox'),
+        'sanitization keeps task states and checkbox labels through wp_kses',
+        str_contains($taskHtml, '<input')
+            && str_contains($taskHtml, 'data-task-state="/"')
+            && str_contains($taskHtml, 'aria-label="Review"'),
         $carve_snippet($taskHtml),
     );
 

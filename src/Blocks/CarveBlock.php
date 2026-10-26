@@ -30,7 +30,8 @@ class CarveBlock
 
     public function registerType(): void
     {
-        wp_register_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], WPCARVE_VERSION);
+        $cssMtime = @filemtime(WPCARVE_DIR . 'assets/css/carve.css');
+        wp_register_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], $cssMtime ? (string)$cssMtime : WPCARVE_VERSION);
         register_block_type(WPCARVE_DIR . 'assets/blocks/carve', [
             'render_callback' => [$this, 'render'],
         ]);
