@@ -5,16 +5,90 @@ per context (`post` / `comment`) from the plugin settings.
 
 ## Content profiles
 
-A profile is carve-php's allow-list of which constructs are permitted. Set
-`post_profile` and `comment_profile` to one of:
+The table covers carve-php's block and inline profile vocabulary. Each cell
+shows the output of a short source sample through `WpCarve\Converter`, including
+WordPress `wp_kses`, with post context except for `comment`. “Literal” means the
+source remains visible as text; “stripped” means the sampled construct disappears.
+The browser request column marks constructs that can make the browser fetch
+media or supporting assets. Links require a reader click and are not marked.
+Remote images load in the post profiles. With optional features enabled, media
+embeds load provider frames, PlantUML fences use Kroki, and math loads local
+KaTeX assets. The `wpcarve_katex_base` filter can point those assets at a CDN.
+The comment converter does not register media embeds or diagram renderers.
 
-| Profile | Use for | Notes |
-| --- | --- | --- |
-| `full` | Trusted authors | Everything carve-php supports, including raw HTML (see below). |
-| `article` | Normal posts (default) | Headings, lists, tables, code, media, admonitions; no raw HTML. |
-| `comment` | User comments (default) | Inline + basic blocks; no raw HTML or risky blocks. |
-| `minimal` | Tight contexts | Inline formatting only. |
-| `none` | Raw | No profile restriction (sanitization still applies). |
+<!-- profile-capabilities:start -->
+| Construct | `full` | `article` | `comment` | `minimal` | `none` | Browser request |
+| --- | --- | --- | --- | --- | --- | --- |
+| `admonition` | renders | renders | literal | literal | renders | No |
+| `paragraph` | renders | renders | renders | renders | renders | No |
+| `heading` | renders | renders | literal | literal | renders | No |
+| `code_block` | renders | renders | renders | literal | renders | Yes |
+| `block_quote` | renders | renders | renders | literal | renders | No |
+| `list` | renders | renders | renders | renders | renders | No |
+| `list_item` | renders | renders | renders | renders | renders | No |
+| `table` | renders | renders | literal | literal | renders | No |
+| `table_row` | renders | renders | literal | literal | renders | No |
+| `table_cell` | renders | renders | literal | literal | renders | No |
+| `thematic_break` | renders | renders | stripped | stripped | renders | No |
+| `div` | renders | renders | literal | literal | renders | No |
+| `directive` | renders | renders | stripped | stripped | renders | No |
+| `block_extension`¹ | renders | renders | literal | literal | renders | No |
+| `raw_block` | renders | literal | literal | literal | renders | Yes |
+| `footnote` | renders | renders | stripped | stripped | renders | No |
+| `frontmatter` | stripped | stripped | stripped | stripped | stripped | No |
+| `definition_list` | renders | renders | literal | literal | renders | No |
+| `definition_term` | renders | renders | literal | literal | renders | No |
+| `definition_description` | renders | renders | literal | literal | renders | No |
+| `section` | renders | renders | literal | literal | renders | No |
+| `line_block` | renders | renders | literal | literal | renders | No |
+| `comment` | stripped | stripped | stripped | stripped | stripped | No |
+| `figure` | renders | renders | literal | literal | renders | Yes |
+| `figure_group` | renders | renders | literal | literal | renders | Yes |
+| `abbreviation_def` | renders | renders | stripped | stripped | renders | No |
+| `link_reference_definition` | renders | renders | renders | literal | renders | No |
+| `citation_definition` | renders | renders | literal | stripped | renders | No |
+| `autolink` | renders | renders | renders | literal | renders | No |
+| `text` | renders | renders | renders | renders | renders | No |
+| `emphasis` | renders | renders | renders | renders | renders | No |
+| `strong` | renders | renders | renders | renders | renders | No |
+| `underline` | renders | renders | renders | renders | renders | No |
+| `strike` | renders | renders | renders | renders | renders | No |
+| `inline_extension` | renders | renders | renders | renders | renders | Yes |
+| `mention` | literal | literal | literal | literal | literal | No |
+| `code` | renders | renders | renders | renders | renders | No |
+| `link` | renders | renders | renders | literal | renders | No |
+| `image` | renders | renders | literal | literal | renders | Yes |
+| `non_breaking_space` | renders | renders | renders | renders | renders | No |
+| `soft_break` | renders | renders | renders | renders | renders | No |
+| `hard_break` | renders | renders | renders | renders | renders | No |
+| `raw_inline` | renders | literal | literal | literal | renders | Yes |
+| `escaped_text` | renders | renders | renders | renders | renders | No |
+| `footnote_ref` | renders | renders | literal | literal | renders | No |
+| `inline_footnote` | renders | renders | literal | literal | renders | No |
+| `heading_ref` | renders | renders | literal | literal | renders | No |
+| `citation_group` | renders | renders | literal | stripped | renders | No |
+| `citation` | renders | renders | literal | stripped | renders | No |
+| `ruby`¹ | renders | renders | literal | literal | renders | No |
+| `small_caps`¹ | renders | renders | literal | literal | renders | No |
+| `caption_number`¹ | renders | renders | literal | literal | renders | No |
+| `span` | renders | renders | literal | literal | renders | No |
+| `superscript` | renders | renders | renders | renders | renders | No |
+| `subscript` | renders | renders | renders | renders | renders | No |
+| `highlight` | renders | renders | renders | literal | renders | No |
+| `insert` | renders | renders | renders | renders | renders | No |
+| `delete` | renders | renders | renders | renders | renders | No |
+| `substitution` | renders | renders | literal | literal | renders | No |
+| `critic_comment` | renders | renders | literal | literal | renders | No |
+| `symbol`¹ | renders | renders | literal | literal | renders | No |
+| `math` | renders | renders | literal | literal | renders | Yes |
+| `abbreviation` | renders | renders | literal | literal | renders | No |
+| `caption` | renders | renders | literal | literal | renders | Yes |
+| `cell_wrap`¹ | renders | renders | renders | renders | renders | No |
+| `literal_inline` | renders | renders | renders | renders | renders | No |
+
+¹ This engine type has no independent source spelling in the fixture set. Its cells follow the carve-php profile definition.
+
+<!-- profile-capabilities:end -->
 
 ## Sanitization
 
