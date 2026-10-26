@@ -7,20 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.12] - 2026-10-26
+## [0.1.11] - 2026-10-26
 
-Task lists retain progress, blocked, and open alias states across the source and visual editors. The browser preview and server renderer use the published Carve engines.
-
-### Improvements
-
-- Progress `[/]`, blocked `[!]`, and open alias `[_]` task markers remain intact when editing and saving (#183, #184).
-- Preview and rendered content follow the current Carve engine and grammar behavior (#182, #184).
-
-**Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.11...0.1.12
-
-## [0.1.11] - 2026-10-23
-
-Torchlight highlighting now handles adjacent code blocks and CSV or TSV fences inside Carve content.
+Task lists keep progress, blocked, and open alias states across the source and visual editors, and Torchlight highlighting handles adjacent code blocks and CSV or TSV fences. The browser preview and server renderer use the published Carve engines.
 
 ### Fixes
 
@@ -28,7 +17,9 @@ Torchlight highlighting now handles adjacent code blocks and CSV or TSV fences i
 
 ### Improvements
 
+- Progress `[/]`, blocked `[!]`, and open alias `[_]` task markers remain intact when editing and saving (#183, #184).
 - CSV and TSV fences color separators and quoted fields, including a CSV fence inside a Carve fence (#175).
+- Preview and rendered content follow the current Carve engine and grammar behavior (#182, #184).
 
 **Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.10...0.1.11
 
@@ -494,7 +485,8 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.10...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.11...HEAD
+[0.1.11]: https://github.com/markup-carve/wp-carve/compare/0.1.10...0.1.11
 [0.1.10]: https://github.com/markup-carve/wp-carve/compare/0.1.9...0.1.10
 [0.1.9]: https://github.com/markup-carve/wp-carve/compare/0.1.8...0.1.9
 [0.1.8]: https://github.com/markup-carve/wp-carve/compare/0.1.7...0.1.8
