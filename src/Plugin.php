@@ -16,6 +16,7 @@ use WpCarve\Admin\ImportExport;
 use WpCarve\Admin\MediaPicker;
 use WpCarve\Admin\PostEditor;
 use WpCarve\Admin\PostMode;
+use WpCarve\Admin\RevisionDiff;
 use WpCarve\Admin\SettingsPage;
 use WpCarve\Blocks\CarveBlock;
 use WpCarve\Blocks\SlidesBlock;
@@ -93,6 +94,7 @@ class Plugin
 
         // --- Admin + assets + CLI ---
         if (is_admin()) {
+            (new RevisionDiff())->register();
             (new SettingsPage())->register();
             // Whole-post Carve mode gets a plain code editor + live preview
             // instead of the rich-text/block editor.
