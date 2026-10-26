@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-10-26
+
+Task lists retain progress, blocked, and open alias states across the source and visual editors. The browser preview and server renderer use the published Carve engines.
+
+### Improvements
+
+- Progress `[/]`, blocked `[!]`, and open alias `[_]` task markers remain intact when editing and saving (#183, #184).
+- Preview and rendered content follow the current Carve engine and grammar behavior (#182, #184).
+
+**Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.11...0.1.12
+
 ## [0.1.11] - 2026-10-23
 
 Torchlight highlighting now handles adjacent code blocks and CSV or TSV fences inside Carve content.
