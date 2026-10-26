@@ -1110,7 +1110,7 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 .wpcarve li > input[type="checkbox"] {
 	appearance: none;
 	-webkit-appearance: none;
-	font-size: inherit;
+	font-size: 16px;
 	margin-right: 0.45em;
 	width: 1em;
 	height: 1em;
@@ -1139,64 +1139,97 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	transform: rotate(45deg);
 }
 
-/* Carve task states beyond open and done use the same marker in rendered
-   content and in the visual editor. The symbol stays visible without color. */
-:is(.wpcarve li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > input[type="checkbox"],
-	.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > label > input:not(:checked)[type="checkbox"]) {
+/* Keep extended task markers consistent in rendered content and the visual editor. */
+:is(.wpcarve li:is([data-task-state="/"], [data-task-state="!"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"]) > input[type="checkbox"],
+	.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="!"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"]) > label > input:not(:checked)[type="checkbox"]) {
 	appearance: none;
 	-webkit-appearance: none;
-	font-size: inherit;
+	font-size: 16px;
 	width: 1em;
 	height: 1em;
-	border: 1.5px solid var(--wpcarve-task-accent, #64748b);
+	border: 1.5px solid #64748b;
 	border-radius: 3px;
-	background: transparent;
+	background-color: transparent;
 	position: relative;
 	opacity: 1;
 	vertical-align: -0.15em;
 }
 
-:is(.wpcarve li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > input[type="checkbox"],
-	.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="-"], [data-task-state=">"], [data-task-state="?"], [data-task-state="!"]) > label > input:not(:checked)[type="checkbox"])::after {
-	position: absolute;
-	inset: -0.15em 0 0;
-	color: var(--wpcarve-task-accent, #64748b);
-	font: 700 0.85em/1 sans-serif;
-	text-align: center;
+:is(.wpcarve li[data-task-state="/"] > input[type="checkbox"],
+	.wpcarve-ve-surface li[data-task-state="/"] > label > input:not(:checked)[type="checkbox"]) {
+	border-color: #3451b2;
+	background-color: rgba(100, 108, 255, 0.14);
+	background-image: linear-gradient(135deg, transparent 38%, #3451b2 39% 61%, transparent 62%);
+	background-position: center;
+	background-size: 70% 70%;
+	background-repeat: no-repeat;
 }
 
-:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="/"] { --wpcarve-task-accent: #2563eb; }
-:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="-"] { --wpcarve-task-accent: #64748b; }
-:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state=">"] { --wpcarve-task-accent: #7c3aed; }
-:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="?"] { --wpcarve-task-accent: #0f766e; }
-:is(.wpcarve, .wpcarve-ve-surface) li[data-task-state="!"] { --wpcarve-task-accent: #b45309; }
-
-:is(.wpcarve li[data-task-state="/"] > input,
-	.wpcarve-ve-surface li[data-task-state="/"] > label > input:not(:checked))::after {
-	content: "";
-	inset: 0 auto 0 0;
-	width: 50%;
-	background: #2563eb;
+:is(.wpcarve li[data-task-state="!"] > input[type="checkbox"],
+	.wpcarve-ve-surface li[data-task-state="!"] > label > input:not(:checked)[type="checkbox"]) {
+	border-color: #b8272c;
+	background-color: rgba(184, 39, 44, 0.1);
+	background-image: linear-gradient(#b8272c, #b8272c), radial-gradient(circle, #b8272c 65%, transparent 70%);
+	background-position: center 30%, center 78%;
+	background-size: 2px 47%, 4px 4px;
+	background-repeat: no-repeat;
 }
-:is(.wpcarve li[data-task-state="-"] > input,
-	.wpcarve-ve-surface li[data-task-state="-"] > label > input:not(:checked))::after { content: "−"; }
-:is(.wpcarve li[data-task-state=">"] > input,
-	.wpcarve-ve-surface li[data-task-state=">"] > label > input:not(:checked))::after { content: ">"; }
-:is(.wpcarve li[data-task-state="?"] > input,
-	.wpcarve-ve-surface li[data-task-state="?"] > label > input:not(:checked))::after { content: "?"; }
-:is(.wpcarve li[data-task-state="!"] > input,
-	.wpcarve-ve-surface li[data-task-state="!"] > label > input:not(:checked))::after {
-	content: "!";
-	font-size: 1em;
+
+:is(.wpcarve li[data-task-state="-"] > input[type="checkbox"],
+	.wpcarve-ve-surface li[data-task-state="-"] > label > input:not(:checked)[type="checkbox"]) {
+	background-image: linear-gradient(#64748b, #64748b);
+	background-position: center;
+	background-size: 65% 2px;
+	background-repeat: no-repeat;
+}
+
+:is(.wpcarve li[data-task-state=">"] > input[type="checkbox"],
+	.wpcarve-ve-surface li[data-task-state=">"] > label > input:not(:checked)[type="checkbox"]) {
+	border-color: #7c3aed;
+	outline: 1px dashed #7c3aed;
+	outline-offset: 2px;
+}
+
+:is(.wpcarve li[data-task-state="?"] > input[type="checkbox"],
+	.wpcarve-ve-surface li[data-task-state="?"] > label > input:not(:checked)[type="checkbox"]) {
+	border-color: #0f766e;
+	background-image: radial-gradient(circle, #0f766e 65%, transparent 70%);
+	background-position: center;
+	background-size: 4px 4px;
+	background-repeat: no-repeat;
 }
 
 @media (forced-colors: active) {
-	:is(.wpcarve li[data-task-state="/"] > input,
-	.wpcarve-ve-surface li[data-task-state="/"] > label > input:not(:checked))::after {
+	:is(.wpcarve li:is([data-task-state="/"], [data-task-state="!"], [data-task-state="-"], [data-task-state="?"]) > input[type="checkbox"],
+		.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="!"], [data-task-state="-"], [data-task-state="?"]) > label > input:not(:checked)[type="checkbox"]) {
+		forced-color-adjust: none;
+		border-color: CanvasText;
+		background-color: Canvas;
+		background-image: none;
+	}
+	:is(.wpcarve li[data-task-state="/"] > input[type="checkbox"],
+		.wpcarve-ve-surface li[data-task-state="/"] > label > input:not(:checked)[type="checkbox"])::after {
 		content: "/";
-		inset: -0.15em 0 0;
-		width: auto;
-		background: none;
+	}
+	:is(.wpcarve li[data-task-state="!"] > input[type="checkbox"],
+		.wpcarve-ve-surface li[data-task-state="!"] > label > input:not(:checked)[type="checkbox"])::after {
+		content: "!";
+	}
+	:is(.wpcarve li[data-task-state="-"] > input[type="checkbox"],
+		.wpcarve-ve-surface li[data-task-state="-"] > label > input:not(:checked)[type="checkbox"])::after {
+		content: "−";
+	}
+	:is(.wpcarve li[data-task-state="?"] > input[type="checkbox"],
+		.wpcarve-ve-surface li[data-task-state="?"] > label > input:not(:checked)[type="checkbox"])::after {
+		content: "?";
+	}
+	:is(.wpcarve li:is([data-task-state="/"], [data-task-state="!"], [data-task-state="-"], [data-task-state="?"]) > input[type="checkbox"],
+		.wpcarve-ve-surface li:is([data-task-state="/"], [data-task-state="!"], [data-task-state="-"], [data-task-state="?"]) > label > input:not(:checked)[type="checkbox"])::after {
+		position: absolute;
+		inset: 0;
+		color: CanvasText;
+		font: 700 12px/13px sans-serif;
+		text-align: center;
 	}
 }
 
