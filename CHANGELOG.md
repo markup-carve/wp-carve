@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-10-26
+
+Carve source is highlighted wherever you write it, task states are styled, each block remembers its tab, and revisions show readable Carve diffs.
+
+### Fixes
+
+- Task checkbox labels survive WordPress sanitization, and nested task boxes keep their own state (#189).
+- A Carve block keeps its open tab when it moves, including into a container, and a new empty block starts in Write (#190).
+
+### Improvements
+
+- Carve source is highlighted in Documents, Gutenberg blocks, Slides, focused blocks and comment Write fields, and Enter, Tab and Shift+Tab continue, nest and outdent list items in every source field (#188).
+- Progress, blocked and the other task states are styled in published content and the visual editor (#189).
+- Each Carve block reopens on its last tab (Write, Split, Preview or Visual) after an editor reload (#189, #190).
+- The revisions screen shows Carve source as a line diff and keeps unchanged blocks aligned (#191).
+
+**Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.11...0.1.12
+
 ## [0.1.11] - 2026-10-26
 
 Task lists keep progress, blocked, and open alias states across the source and visual editors, and Torchlight highlighting handles adjacent code blocks and CSV or TSV fences. The browser preview and server renderer use the published Carve engines.
@@ -485,7 +503,8 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.11...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.12...HEAD
+[0.1.12]: https://github.com/markup-carve/wp-carve/compare/0.1.11...0.1.12
 [0.1.11]: https://github.com/markup-carve/wp-carve/compare/0.1.10...0.1.11
 [0.1.10]: https://github.com/markup-carve/wp-carve/compare/0.1.9...0.1.10
 [0.1.9]: https://github.com/markup-carve/wp-carve/compare/0.1.8...0.1.9
