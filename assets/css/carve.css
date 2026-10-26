@@ -246,6 +246,172 @@
 	overflow-y: hidden;
 }
 
+.wpcarve-highlight-editor,
+.wpcarve-document-workspace {
+	--wpcarve-h-bg: #fff;
+	--wpcarve-h-ink: #1e1e1e;
+	--wpcarve-h-comment: #5f6b7a;
+	--wpcarve-h-blue: #174ea6;
+	--wpcarve-h-purple: #7b3f92;
+	--wpcarve-h-orange: #9a3412;
+	--wpcarve-h-link: #0969da;
+	--wpcarve-h-list: #7057a3;
+	--wpcarve-h-green: #137333;
+	--wpcarve-h-table: #8250df;
+	--wpcarve-h-red: #b42318;
+}
+
+.wpcarve-comment-highlight.is-dark,
+:root[data-theme="dark"] :is(.wpcarve-highlight-editor:not(.wpcarve-comment-highlight), .wpcarve-document-workspace) {
+	--wpcarve-h-bg: #0d1117;
+	--wpcarve-h-ink: #c9d1d9;
+	--wpcarve-h-comment: #9aa4af;
+	--wpcarve-h-blue: #8ab4f8;
+	--wpcarve-h-purple: #d2a8ff;
+	--wpcarve-h-orange: #ffb68a;
+	--wpcarve-h-link: #8ab4f8;
+	--wpcarve-h-list: #c9a7ff;
+	--wpcarve-h-green: #81c995;
+	--wpcarve-h-table: #d2a8ff;
+	--wpcarve-h-red: #ff8a80;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) :is(.wpcarve-highlight-editor:not(.wpcarve-comment-highlight), .wpcarve-document-workspace) {
+		--wpcarve-h-bg: #0d1117;
+		--wpcarve-h-ink: #c9d1d9;
+		--wpcarve-h-comment: #9aa4af;
+		--wpcarve-h-blue: #8ab4f8;
+		--wpcarve-h-purple: #d2a8ff;
+		--wpcarve-h-orange: #ffb68a;
+		--wpcarve-h-link: #8ab4f8;
+		--wpcarve-h-list: #c9a7ff;
+		--wpcarve-h-green: #81c995;
+		--wpcarve-h-table: #d2a8ff;
+		--wpcarve-h-red: #ff8a80;
+	}
+}
+
+.wpcarve-highlight-editor {
+	position: relative;
+	min-width: 0;
+}
+
+.wpcarve-highlight-editor.has-highlight .wpcarve-source {
+	position: relative;
+	z-index: 1;
+	background: transparent !important;
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+	caret-color: var(--wpcarve-h-ink);
+	scrollbar-gutter: stable;
+}
+
+.wpcarve-highlight-editor .wpcarve-source::selection {
+	background: rgba(56, 139, 253, 0.35);
+}
+
+.wpcarve-comment-highlight textarea::selection { background: rgba(56, 139, 253, 0.35); }
+
+.wpcarve-highlight-layer {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid transparent;
+	box-sizing: border-box;
+	font: 13px/1.5 Menlo, Consolas, monospace;
+	tab-size: 2;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	color: var(--wpcarve-h-ink);
+	background: var(--wpcarve-h-bg);
+	overflow-x: hidden;
+	overflow-y: scroll;
+	scrollbar-gutter: stable;
+	scrollbar-color: transparent transparent;
+	pointer-events: none;
+}
+
+.wpcarve-highlight-layer.is-placeholder { opacity: 0.55; }
+
+@media (forced-colors: active) {
+	.wpcarve-highlight-layer { display: none; }
+	.wpcarve-highlight-editor.has-highlight .wpcarve-source,
+	.wpcarve-comment-highlight textarea {
+		color: CanvasText !important;
+		-webkit-text-fill-color: CanvasText !important;
+		caret-color: CanvasText;
+	}
+}
+
+.wpcarve-highlight-label {
+	display: block;
+	font-weight: 600;
+}
+
+.wpcarve-highlight-control .wpcarve-source {
+	display: block;
+	font-weight: 400;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.wpcarve-highlight-control .wpcarve-highlight-editor {
+	margin-top: 8px;
+}
+
+.wpcarve-highlight-control .components-base-control__help {
+	margin: 6px 0 0;
+}
+
+.wpcarve-comment-highlight textarea {
+	position: relative;
+	z-index: 1;
+	display: block;
+	margin: 0;
+	background: transparent !important;
+	scrollbar-gutter: stable;
+}
+
+.wpcarve-highlight-layer .token.comment,
+.wpcarve-document-workspace .wpcarve-token-comment { color: var(--wpcarve-h-comment); }
+.wpcarve-highlight-layer .token.title,
+.wpcarve-highlight-layer .token.bold,
+.wpcarve-document-workspace .wpcarve-token-title,
+.wpcarve-document-workspace .wpcarve-token-bold { color: var(--wpcarve-h-blue); }
+.wpcarve-highlight-layer .token.italic,
+.wpcarve-document-workspace .wpcarve-token-italic { color: var(--wpcarve-h-purple); }
+.wpcarve-highlight-layer .token.code-block,
+.wpcarve-highlight-layer .token.code,
+.wpcarve-document-workspace .wpcarve-token-code-block,
+.wpcarve-document-workspace .wpcarve-token-code { color: var(--wpcarve-h-orange); }
+.wpcarve-highlight-layer .token.url,
+.wpcarve-highlight-layer .token.link,
+.wpcarve-document-workspace .wpcarve-token-url,
+.wpcarve-document-workspace .wpcarve-token-link { color: var(--wpcarve-h-link); }
+.wpcarve-highlight-layer .token.list,
+.wpcarve-highlight-layer .token.blockquote,
+.wpcarve-highlight-layer .token.div,
+.wpcarve-document-workspace .wpcarve-token-list,
+.wpcarve-document-workspace .wpcarve-token-blockquote,
+.wpcarve-document-workspace .wpcarve-token-div { color: var(--wpcarve-h-list); }
+.wpcarve-highlight-layer .token.front-matter,
+.wpcarve-highlight-layer .token.attributes,
+.wpcarve-document-workspace .wpcarve-token-front-matter,
+.wpcarve-document-workspace .wpcarve-token-attributes { color: var(--wpcarve-h-green); }
+.wpcarve-highlight-layer .token:is(.table, .table-separator, .table-continuation, .definition-list),
+.wpcarve-document-workspace :is(.wpcarve-token-table, .wpcarve-token-table-separator, .wpcarve-token-table-continuation, .wpcarve-token-definition-list) { color: var(--wpcarve-h-table); }
+.wpcarve-highlight-layer .token:is(.image, .reference-image, .span, .extension, .include-directive, .citation, .cross-ref, .footnote, .reference-definition, .abbreviation-definition),
+.wpcarve-document-workspace :is(.wpcarve-token-image, .wpcarve-token-reference-image, .wpcarve-token-span, .wpcarve-token-extension, .wpcarve-token-include-directive, .wpcarve-token-citation, .wpcarve-token-cross-ref, .wpcarve-token-footnote, .wpcarve-token-reference-definition, .wpcarve-token-abbreviation-definition) { color: var(--wpcarve-h-link); }
+.wpcarve-highlight-layer .token:is(.math, .literal, .raw-inline),
+.wpcarve-document-workspace :is(.wpcarve-token-math, .wpcarve-token-literal, .wpcarve-token-raw-inline) { color: var(--wpcarve-h-orange); }
+.wpcarve-highlight-layer .token:is(.inserted, .highlight),
+.wpcarve-document-workspace :is(.wpcarve-token-inserted, .wpcarve-token-highlight) { color: var(--wpcarve-h-green); }
+.wpcarve-highlight-layer .token.deleted,
+.wpcarve-document-workspace .wpcarve-token-deleted { color: var(--wpcarve-h-red); }
+
+
 .wpcarve-split .wpcarve-source {
 	overflow-y: auto;
 }

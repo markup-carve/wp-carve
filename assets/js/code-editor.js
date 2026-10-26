@@ -67,6 +67,9 @@
 	if ( cfg.codeEditor && wp && wp.codeEditor && wp.codeEditor.initialize ) {
 		const instance = wp.codeEditor.initialize( textarea, cfg.codeEditor );
 		cm = instance && instance.codemirror;
+		if ( cm && window.wpCarveHighlight ) {
+			window.wpCarveHighlight.markCodeMirror( cm );
+		}
 	}
 
 	const lists = window.wpCarveListContinuation;
@@ -77,7 +80,8 @@
 		const listIndent = ( editor, outdent ) => {
 			const single = ! editor.listSelections || editor.listSelections().length === 1;
 			const next = single
-				? lists.indent( editor.getValue(), editor.indexFromPos( editor.getCursor( 'from' ) ), editor.indexFromPos( editor.getCursor( 'to' ) ), outdent )
+				? ( lists.indent( editor.getValue(), editor.indexFromPos( editor.getCursor( 'from' ) ), editor.indexFromPos( editor.getCursor( 'to' ) ), outdent )
+					|| lists.plainIndent( editor.getValue(), editor.indexFromPos( editor.getCursor( 'from' ) ), editor.indexFromPos( editor.getCursor( 'to' ) ), outdent ) )
 				: null;
 			if ( ! next ) {
 				if ( Pass ) {
@@ -115,6 +119,17 @@
 		} );
 	} else if ( lists ) {
 		textarea.addEventListener( 'keydown', ( event ) => {
+			if ( event.key === 'Tab' ) {
+				const value = textarea.value;
+				const next = lists.indent( value, textarea.selectionStart, textarea.selectionEnd, event.shiftKey );
+				if ( next ) {
+					event.preventDefault();
+					textarea.setRangeText( next.text, next.from, next.to );
+					textarea.setSelectionRange( next.start, next.end );
+					textarea.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+				}
+				return;
+			}
 			if ( ! lists.isPlainEnter( event ) || textarea.selectionStart !== textarea.selectionEnd ) {
 				return;
 			}

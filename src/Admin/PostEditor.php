@@ -118,9 +118,8 @@ class PostEditor
             return;
         }
 
-        // CodeMirror as a plain-text source editor (may be false if the user
-        // disabled the syntax highlighter in their profile - fall back to the
-        // bare textarea, the script handles both).
+        // CodeMirror may be disabled in the user's profile; the source editor
+        // keeps its textarea fallback in that case.
         $codeEditor = wp_enqueue_code_editor(['type' => 'text/plain']);
 
         wp_enqueue_style('wpcarve', WPCARVE_URL . 'assets/css/carve.css', [], $this->assetVersion('assets/css/carve.css'));
@@ -139,6 +138,8 @@ class PostEditor
         if ($codeEditor !== false) {
             $deps[] = 'code-editor';
         }
+        wp_enqueue_script('wpcarve-source-highlight', WPCARVE_URL . 'assets/js/vendor/carve-source-highlight.js', [], $this->assetVersion('assets/js/vendor/carve-source-highlight.js'), true);
+        $deps[] = 'wpcarve-source-highlight';
 
         $engine = WPCARVE_DIR . 'assets/js/vendor/carve.js';
         if (Settings::get('live_preview') && is_readable($engine)) {

@@ -11,7 +11,7 @@ const documentSource = readFileSync(new URL('../../assets/js/code-editor.js', im
 
 const sandbox = { window: {} };
 runInNewContext(listSource, sandbox);
-const { edit, indent, isPlainEnter } = sandbox.window.wpCarveListContinuation;
+const { edit, indent, plainIndent, isPlainEnter } = sandbox.window.wpCarveListContinuation;
 const { parse } = await import('@markup-carve/carve');
 
 // `|` marks the caret. Returns the document after Enter, caret marked, or null
@@ -447,14 +447,23 @@ test('Tab and Shift+Tab in the classic CodeMirror editor nest and un-nest an ite
   assert.equal(cm.caret, 7);
 });
 
-test('Tab in the classic CodeMirror editor passes on prose and on a first item', () => {
+test('Tab in the classic CodeMirror editor indents prose and a first item', () => {
   for (const value of ['text', '- a']) {
     const cm = fakeCodeMirror(value, value.length);
-    const { Pass } = classicEditor(cm);
-    assert.equal(cm.press('Tab'), Pass);
-    assert.equal(cm.press('Shift-Tab'), Pass);
+    classicEditor(cm);
+    assert.equal(cm.press('Tab'), undefined);
+    assert.equal(cm.value, '  ' + value);
+    assert.equal(cm.press('Shift-Tab'), undefined);
     assert.equal(cm.value, value);
   }
+});
+
+test('plain Tab and Shift+Tab move a selected paragraph one level', () => {
+  const source = 'first\nsecond\nthird';
+  const nested = plainIndent(source, 0, 12, false);
+  assert.equal(source.slice(0, nested.from) + nested.text + source.slice(nested.to), '  first\n  second\nthird');
+  const restored = plainIndent('  first\n  second\nthird', nested.start, nested.end, true);
+  assert.equal(restored.text, 'first\nsecond');
 });
 
 test('Enter in the classic CodeMirror editor passes on prose', () => {
