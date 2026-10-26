@@ -51,6 +51,6 @@
         "cs-fix": "phpcbf --colors --parallel=16",
         "stan": "phpstan analyze",
         "test": "phpunit",
-        "profiles-table": "php tools/generate-profile-table.php"
+        "profiles-table": "php scripts/generate-profile-table.php"
     }
 }
