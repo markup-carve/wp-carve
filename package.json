@@ -6,16 +6,18 @@
   "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
   "license": "MIT",
   "scripts": {
-    "build": "npm run build:engine && npm run build:editor",
+    "build": "npm run build:engine && npm run build:editor && npm run build:highlight",
     "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
     "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
+    "build:highlight": "node assets/js/src/build-highlight.mjs",
     "watch": "npm run build:engine -- --watch",
     "test": "npm run test:js",
     "test:js": "node --test tests/js/*.test.mjs"
   },
   "dependencies": {
     "@markup-carve/carve": "0.1.15",
-    "@markup-carve/carve-grammars": "0.1.22"
+    "@markup-carve/carve-grammars": "0.1.22",
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",

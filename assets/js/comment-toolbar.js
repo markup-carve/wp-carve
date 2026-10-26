@@ -70,6 +70,25 @@
 		const cfg = window.wpCarveComment || {};
 		const hasPreview = !! cfg.previewUrl;
 		let current = 'write';
+		let sourceWrap = ta;
+		const lists = window.wpCarveListContinuation;
+		if ( lists ) {
+			ta.addEventListener( 'keydown', function ( event ) {
+				let next = null;
+				if ( lists.isPlainEnter( event ) && ta.selectionStart === ta.selectionEnd ) {
+					next = lists.edit( ta.value, ta.selectionStart );
+				} else if ( event.key === 'Tab' && ! event.altKey && ! event.ctrlKey && ! event.metaKey ) {
+					next = lists.indent( ta.value, ta.selectionStart, ta.selectionEnd, event.shiftKey );
+				}
+				if ( ! next ) {
+					return;
+				}
+				event.preventDefault();
+				ta.setRangeText( next.text, next.from, next.to );
+				ta.setSelectionRange( next.cursor ?? next.start, next.cursor ?? next.end );
+				ta.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+			} );
+		}
 
 		// Formatting toolbar.
 		const bar = document.createElement( 'div' );
@@ -176,7 +195,7 @@
 			writeTab.setAttribute( 'aria-selected', String( isWrite ) );
 			previewTab.classList.toggle( 'is-active', ! isWrite );
 			previewTab.setAttribute( 'aria-selected', String( ! isWrite ) );
-			ta.style.display = isWrite ? '' : 'none';
+			sourceWrap.style.display = isWrite ? '' : 'none';
 			bar.style.display = isWrite ? '' : 'none';
 			pane.hidden = isWrite;
 			if ( isWrite ) {
@@ -196,5 +215,8 @@
 		ta.parentNode.insertBefore( tabs, ta );
 		ta.parentNode.insertBefore( bar, ta );
 		ta.parentNode.insertBefore( pane, ta.nextSibling );
+		if ( window.wpCarveHighlight ) {
+			sourceWrap = window.wpCarveHighlight.attachTextarea( ta );
+		}
 	} );
 } )();

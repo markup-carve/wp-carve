@@ -7,7 +7,8 @@ normal Gutenberg post.
 Create one under **Posts → Add Carve Document**, or import an existing `.crv`,
 Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provides:
 
-- **Write** for the source editor and its formatting toolbar. Strong,
+- **Write** for the source editor and its formatting toolbar. CodeMirror colors
+  Carve syntax when WordPress syntax highlighting is enabled. Strong,
   emphasis, underline and inline code toggle: a second click removes the
   mark rather than doubling the delimiter. Every button leaves the caret where
   the next keystroke belongs, and never selects the markup it just inserted:
@@ -16,9 +17,9 @@ Markdown, Djot, or HTML file under **Tools → Carve Import**. The editor provid
   text it shifts, and a block template puts the caret on its empty body line.
   Enter in a list item continues the list, Enter on an empty item ends it,
   and Tab / Shift+Tab nest an item under the one above or move it back out;
-  the rules are the block editor's (see [Blocks](blocks.md)). Tab needs the
-  code editor: with syntax highlighting turned off in the user profile, the
-  source is a plain textarea and Tab moves focus as usual.
+  the rules are the block editor's (see [Blocks](blocks.md)). If WordPress
+  syntax highlighting is disabled in the user profile, the plain textarea
+  keeps list continuation and nesting. Tab on ordinary text then moves focus.
 - **Split** for viewport-height source and preview panes with bidirectional
   proportional scroll sync (enabled by default and independently toggleable).
   Like the block's Split mode, the preview waits while the cursor line holds

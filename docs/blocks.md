@@ -7,7 +7,7 @@ The plugin registers two blocks under the **Text** category.
 Writes raw Carve and renders it server-side. The editor has four modes, switched
 with the tab bar at the top of the block:
 
-- **Write** - the Carve source in a monospace editor.
+- **Write** - the Carve source with syntax highlighting.
 - **Split** - source and a live preview side by side.
 - **Visual** - a Tiptap WYSIWYG editor (only shown when `visual_editor_mode` is
   enabled; see [Visual editor](visual-editor.md)).
@@ -94,3 +94,8 @@ offers a one-click "Convert to Carve".
 A Carve deck rendered as a progressively-enhanced slide presentation; slides are
 separated by a standalone `---` line. Theme (signal / paper / night) and layout
 (standard / wide / compact) are set in the block inspector.
+The slide source field highlights Carve syntax as you edit.
+
+The focused Admonition, Code Group, and Table with Spans blocks also highlight
+their Carve source while showing a rendered preview below it. Their source
+fields use the same Enter, Tab, and Shift+Tab list behavior as the main block.
