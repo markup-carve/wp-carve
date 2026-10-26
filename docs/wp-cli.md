@@ -3,6 +3,17 @@
 The plugin registers `wp carve migrate` (`WpCarve\CLI\MigrateCommand`, backed by
 `WpCarve\Migration\Migrator`) and `wp carve lint` (`WpCarve\CLI\LintCommand`).
 
+## Deactivation commands
+
+`wp carve backfill` refreshes the saved HTML in existing Carve blocks. Use
+`--post=<id>` to update one post. The plugin must be active.
+
+`wp carve detach` converts Carve blocks to core HTML blocks and keeps a private
+copy of each source. It prints a `wp carve source` command for each copy. Run
+that command with output redirected to a `.crv` file, for example
+`wp carve source --post=123 --index=0 > source.crv`. Use `--post=<id>` to
+convert one post. Download the copies before deactivating the plugin.
+
 ## `wp carve migrate`
 
 Convert existing post content into Carve and flag those posts to render as

@@ -47,6 +47,21 @@ npm install && npm run build   # optional: enables innovation A (instant preview
 
 Activate "Carve Markup", then configure under **Settings → Carve Markup**.
 
+## Before you deactivate
+
+Carve Documents keep readable source in `post_content`, and comments keep it in
+`comment_content`. Carve blocks keep their source in a block attribute and their
+rendered HTML as fallback content. The HTML remains visible after deactivation,
+but editing the Carve source requires the plugin.
+
+Use **Tools → Before you deactivate** to convert Carve blocks to core HTML blocks.
+The tool keeps a private copy of each source and offers separate `.crv`
+downloads while the plugin is active. The same conversion is available through
+`wp carve detach`. Run `wp carve backfill` if older posts need saved HTML
+without conversion.
+For new content that you expect to move between systems with its source, use
+[Carve Documents](docs/carve-documents.md).
+
 ## REST API
 
 | Route | Body | Returns |

@@ -250,6 +250,7 @@ jobs:
         run: |
           npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/checks.php
           npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/fallback.php
+          npx @wordpress/env@11.6.0 --config .wp-env.ci.json run cli wp eval-file wp-content/plugins/carve-markup/tests/integration/detach.php
 
   integration-summary:
     name: WP integration

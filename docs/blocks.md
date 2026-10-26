@@ -99,3 +99,16 @@ The slide source field highlights Carve syntax as you edit.
 The focused Admonition, Code Group, and Table with Spans blocks also highlight
 their Carve source while showing a rendered preview below it. Their source
 fields use the same Enter, Tab, and Shift+Tab list behavior as the main block.
+
+## Before you deactivate
+
+Each Carve block stores its source in the `carve` attribute and rendered HTML
+inside the block. WordPress displays that HTML when the plugin is inactive.
+Existing posts without saved HTML can be updated with `wp carve backfill`.
+
+To keep editing without Carve, use **Tools → Before you deactivate** or
+`wp carve detach` while the plugin is active. The tool replaces each Carve block
+with a core HTML block and keeps a private copy of each source. Download the
+`.crv` files from the tool page before removing the plugin. Carve Documents
+are the portable, source-first mode: their source stays in `post_content`.
+Comments retain their source in `comment_content`.
