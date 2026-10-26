@@ -19,7 +19,9 @@ use WpCarve\Admin\PostMode;
 use WpCarve\Admin\RevisionDiff;
 use WpCarve\Admin\SettingsPage;
 use WpCarve\Blocks\CarveBlock;
+use WpCarve\Blocks\FallbackContent;
 use WpCarve\Blocks\SlidesBlock;
+use WpCarve\CLI\BackfillCommand;
 use WpCarve\CLI\LintCommand;
 use WpCarve\CLI\MigrateCommand;
 use WpCarve\Includes\IncludePolicy;
@@ -76,6 +78,7 @@ class Plugin
         // (live preview) is wired in the block's editor script.
         (new CarveBlock($this->converter))->register();
         (new SlidesBlock($this->converter))->register();
+        (new FallbackContent())->register();
 
         // --- Innovations ---
         // Runs on every save, before the render cache reads the bit.
@@ -112,6 +115,7 @@ class Plugin
         if (defined('WP_CLI') && WP_CLI) {
             WP_CLI::add_command('carve', new MigrateCommand());
             WP_CLI::add_command('carve lint', new LintCommand());
+            WP_CLI::add_command('carve backfill', new BackfillCommand());
         }
     }
 
