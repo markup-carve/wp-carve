@@ -40,7 +40,9 @@ final class Deactivate
         if (isset($_GET['converted'])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Redirect status only.
             $count = (int)$_GET['converted'];
-            echo '<div class="notice notice-success"><p>' . esc_html(sprintf(__('Converted %d Carve block(s).', 'carve-markup'), $count)) . '</p></div>';
+            /* translators: %d: number of converted Carve blocks. */
+            $message = sprintf(__('Converted %d Carve block(s).', 'carve-markup'), $count);
+            echo '<div class="notice notice-success"><p>' . esc_html($message) . '</p></div>';
         }
         echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
         wp_nonce_field('wpcarve_detach');

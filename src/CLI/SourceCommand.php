@@ -27,6 +27,7 @@ final class SourceCommand
         if (!is_array($archives) || !isset($archives[$index])) {
             WP_CLI::error('Source copy not found.');
         }
-        fwrite(STDOUT, $archives[$index]['source']);
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Raw Carve source is streamed to CLI stdout, not HTML.
+        echo $archives[$index]['source'];
     }
 }

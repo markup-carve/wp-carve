@@ -66,7 +66,7 @@ final class DeactivationConverter
                 delete_post_meta($postId, '_wpcarve_archived_sources');
             }
 
-            throw new RuntimeException($error);
+            throw new RuntimeException(esc_html($error));
         }
 
         return ['blocks' => count($sources), 'archives' => $archives];
