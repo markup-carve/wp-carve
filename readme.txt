@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.11
+Stable tag: 0.1.12
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.12 =
+* Progress, blocked, and open alias task markers remain intact in source and visual editing.
+* Preview and rendered content use current published Carve engines.
 
 = 0.1.11 =
 * Fixed: with Torchlight highlighting on, a code fence right after another one inside a section keeps its code lines unindented.
