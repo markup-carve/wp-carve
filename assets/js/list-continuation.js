@@ -549,6 +549,41 @@
 		};
 	}
 
+	function plainIndent( text, start, end, outdent ) {
+		const original = text.split( '\n' );
+		const lines = original.slice();
+		const lineOf = ( offset ) => text.slice( 0, offset ).split( '\n' ).length - 1;
+		const first = lineOf( start );
+		const last = end > start && text[ end - 1 ] === '\n' ? lineOf( end ) - 1 : lineOf( end );
+		const changes = [];
+		for ( let at = first; at <= last; at++ ) {
+			const cut = outdent ? Math.min( 2, leading( lines[ at ] ) ) : 0;
+			if ( outdent && ! cut ) {
+				continue;
+			}
+			lines[ at ] = outdent ? lines[ at ].slice( cut ) : '  ' + lines[ at ];
+			changes.push( { at: at, cut: cut, delta: outdent ? -cut : 2 } );
+		}
+		if ( ! changes.length ) {
+			return null;
+		}
+		const offsetIn = ( rows, row, column ) => rows.slice( 0, row ).reduce( ( sum, line ) => sum + line.length + 1, 0 ) + column;
+		const map = ( offset ) => {
+			const row = lineOf( offset );
+			const column = offset - offsetIn( original, row, 0 );
+			const change = changes.find( ( entry ) => entry.at === row );
+			const mapped = change ? Math.max( 0, column + ( column >= change.cut ? change.delta : -column ) ) : column;
+			return offsetIn( lines, row, mapped );
+		};
+		return {
+			from: offsetIn( original, first, 0 ),
+			to: offsetIn( original, last, original[ last ].length ),
+			text: lines.slice( first, last + 1 ).join( '\n' ),
+			start: map( start ),
+			end: map( end ),
+		};
+	}
+
 	// Shift+Enter and every other chord keep the editor's own newline, and an
 	// Enter that commits an IME composition belongs to the IME.
 	function isPlainEnter( event ) {
@@ -560,6 +595,7 @@
 	window.wpCarveListContinuation = {
 		edit: edit,
 		indent: indent,
+		plainIndent: plainIndent,
 		isPlainEnter: isPlainEnter,
 		isBareMarker: isBareMarker,
 		holdsPreview: holdsPreview,

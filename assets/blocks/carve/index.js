@@ -38,6 +38,77 @@
 		return s.charAt( 0 ).toUpperCase() + s.slice( 1 );
 	}
 
+	let highlightFieldId = 0;
+	function HighlightedTextarea( { label, help, value, onChange, rows, placeholder } ) {
+		const inputRef = useRef( null );
+		const layerRef = useRef( null );
+		const idRef = useRef( null );
+		const highlightedRef = useRef( { text: null, html: '' } );
+		if ( ! idRef.current ) {
+			idRef.current = 'wpcarve-highlight-field-' + ++highlightFieldId;
+		}
+		const highlighter = window.wpCarveHighlight;
+		const textToHighlight = value || placeholder || '';
+		if ( highlighter && highlightedRef.current.text !== textToHighlight ) {
+			highlightedRef.current = { text: textToHighlight, html: highlighter.highlightHtml( textToHighlight ) };
+		}
+		function onKeyDown( event ) {
+			const lists = window.wpCarveListContinuation;
+			const input = inputRef.current;
+			if ( ! lists || ! input ) {
+				return;
+			}
+			let next = null;
+			if ( lists.isPlainEnter( event.nativeEvent || event ) && input.selectionStart === input.selectionEnd ) {
+				next = lists.edit( value, input.selectionStart );
+			} else if ( event.key === 'Tab' && ! event.altKey && ! event.ctrlKey && ! event.metaKey ) {
+				next = lists.indent( value, input.selectionStart, input.selectionEnd, event.shiftKey );
+			}
+			if ( ! next ) {
+				return;
+			}
+			event.preventDefault();
+			const updated = value.slice( 0, next.from ) + next.text + value.slice( next.to );
+			onChange( updated );
+			window.requestAnimationFrame( () => {
+				if ( inputRef.current ) {
+					inputRef.current.focus();
+					inputRef.current.setSelectionRange( next.cursor ?? next.start, next.cursor ?? next.end );
+				}
+			} );
+		}
+		return el( 'div', { className: 'wpcarve-highlight-control' },
+			el( 'label', { className: 'wpcarve-highlight-label', htmlFor: idRef.current }, label ),
+			el( 'div', { className: 'wpcarve-highlight-editor' + ( highlighter ? ' has-highlight' : '' ) },
+				highlighter && el( 'pre', {
+					ref: layerRef,
+					className: 'wpcarve-highlight-layer' + ( ! value && placeholder ? ' is-placeholder' : '' ),
+					'aria-hidden': 'true',
+					dangerouslySetInnerHTML: { __html: highlightedRef.current.html + '\n' },
+				} ),
+				el( 'textarea', {
+					ref: inputRef,
+					id: idRef.current,
+					'aria-describedby': help ? idRef.current + '-help' : undefined,
+					className: 'wpcarve-source',
+					value, rows,
+					placeholder: highlighter ? undefined : placeholder,
+					'aria-placeholder': highlighter ? placeholder : undefined,
+					spellCheck: false,
+					onChange: ( event ) => onChange( event.target.value ),
+					onKeyDown,
+					onScroll: () => {
+						if ( layerRef.current ) {
+							layerRef.current.scrollTop = inputRef.current.scrollTop;
+							layerRef.current.scrollLeft = inputRef.current.scrollLeft;
+						}
+					},
+				} ),
+			),
+			help && el( 'p', { id: idRef.current + '-help', className: 'components-base-control__help' }, help ),
+		);
+	}
+
 	// Innovation A: prefer the in-browser Carve engine for instant preview.
 	// `window.wpCarveEngine` is set by the optional carve-js module bundle
 	// (assets/js/vendor/carve.js). Falls back to the REST render endpoint.
@@ -499,6 +570,11 @@
 		const blockRef = useRef( null );
 		const blockProps = useBlockProps( { className: 'wpcarve-block', ref: blockRef } );
 		const source = attributes.carve || '';
+		const highlighter = window.wpCarveHighlight;
+		const highlightedRef = useRef( { text: null, html: '' } );
+		if ( highlighter && highlightedRef.current.text !== source ) {
+			highlightedRef.current = { text: source, html: highlighter.highlightHtml( source ) };
+		}
 
 		const hasVisual = !! cfg.visualEditor;
 		const startMode = hasVisual && cfg.startMode === 'visual' ? 'visual' : 'write';
@@ -526,6 +602,7 @@
 		const [ movingToDocument, setMovingToDocument ] = useState( false );
 		const [ moveError, setMoveError ] = useState( '' );
 		const taRef = useRef( null );
+		const highlightRef = useRef( null );
 		const insertSelectionRef = useRef( null );
 		const previewRef = useRef( null );
 		const timer = useRef( null );
@@ -925,18 +1002,6 @@
 			return head + '\n' + body;
 		}
 
-		function outdentLines() {
-			const { value, start, end } = sel();
-			const lineStart = value.lastIndexOf( '\n', start - 1 ) + 1;
-			const seg = value.slice( lineStart, end );
-			const replaced = seg
-				.split( '\n' )
-				.map( ( l ) => l.replace( /^ {1,2}/, '' ) )
-				.join( '\n' );
-			const next = value.slice( 0, lineStart ) + replaced + value.slice( end );
-			setVal( next, lineStart, lineStart + replaced.length );
-		}
-
 		function onKeyDown( e ) {
 			const lists = window.wpCarveListContinuation;
 			if ( lists && lists.isPlainEnter( e.nativeEvent || e ) ) {
@@ -956,15 +1021,12 @@
 			// Tab / Shift+Tab nest or un-nest the selected list items, and
 			// indent-outdent any other line by two spaces.
 			if ( e.key === 'Tab' ) {
-				e.preventDefault();
 				const { value, start, end } = sel();
-				const next = lists ? lists.indent( value, start, end, e.shiftKey ) : null;
+				const next = lists && ( lists.indent( value, start, end, e.shiftKey )
+					|| lists.plainIndent( value, start, end, e.shiftKey ) );
 				if ( next ) {
+					e.preventDefault();
 					setVal( value.slice( 0, next.from ) + next.text + value.slice( next.to ), next.start, next.end );
-				} else if ( e.shiftKey ) {
-					outdentLines();
-				} else {
-					linePrefix( '  ' );
 				}
 				return;
 			}
@@ -1266,6 +1328,10 @@
 
 		// In Split mode, scrolling the source scrolls the preview proportionally.
 		function syncScroll() {
+			if ( highlightRef.current && taRef.current ) {
+				highlightRef.current.scrollTop = taRef.current.scrollTop;
+				highlightRef.current.scrollLeft = taRef.current.scrollLeft;
+			}
 			if ( mode !== 'split' ) {
 				return;
 			}
@@ -1278,7 +1344,7 @@
 			pv.scrollTop = ratio * Math.max( 0, pv.scrollHeight - pv.clientHeight );
 		}
 
-		const sourceField = el( 'textarea', {
+		const sourceInput = el( 'textarea', {
 			ref: taRef,
 			className: 'wpcarve-source',
 			'aria-label': __( 'Carve source', 'carve-markup' ),
@@ -1292,6 +1358,17 @@
 			onSelect: () => releaseHold( false ),
 			onBlur: () => releaseHold( true ),
 		} );
+		const sourceField = highlighter
+			? el( 'div', { className: 'wpcarve-highlight-editor has-highlight' },
+				el( 'pre', {
+					ref: highlightRef,
+					className: 'wpcarve-highlight-layer',
+					'aria-hidden': 'true',
+					dangerouslySetInnerHTML: { __html: highlightedRef.current.html + '\n' },
+				} ),
+				sourceInput,
+			)
+			: sourceInput;
 
 		const previewField = previewError
 			? el( Notice, { status: 'error', isDismissible: false }, previewError )
@@ -1616,14 +1693,13 @@
 		return el(
 			'div',
 			useBlockProps( { className: 'wpcarve-native-block' } ),
-			el( TextareaControl, {
+			el( HighlightedTextarea, {
 				label: labels[ name ],
 				help: help[ name ],
 				value: attributes.carve || '',
 				placeholder: examples[ name ],
 				onChange: ( carve ) => setAttributes( { carve } ),
 				rows: 10,
-				__nextHasNoMarginBottom: true,
 			} ),
 			el( 'div', {
 				className: 'wpcarve wpcarve-preview',
@@ -1687,13 +1763,12 @@
 					} )
 				)
 			),
-			el( TextareaControl, {
+			el( HighlightedTextarea, {
 				label: __( 'Carve slide source', 'carve-markup' ),
 				help: __( 'Separate slides with a standalone --- line.', 'carve-markup' ),
 				value: attributes.carve || '',
 				onChange: ( carve ) => setAttributes( { carve } ),
 				rows: 14,
-				__nextHasNoMarginBottom: true,
 			} ),
 			el(
 				'div',

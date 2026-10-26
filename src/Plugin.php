@@ -428,6 +428,8 @@ class Plugin
         $deps[] = MediaPicker::HANDLE;
         $deps[] = InlineToggle::register();
         $deps[] = ListContinuation::register();
+        wp_enqueue_script('wpcarve-source-highlight', WPCARVE_URL . 'assets/js/vendor/carve-source-highlight.js', [], $this->assetVersion('assets/js/vendor/carve-source-highlight.js'), true);
+        $deps[] = 'wpcarve-source-highlight';
         wp_enqueue_script(
             'wpcarve-editor',
             WPCARVE_URL . 'assets/blocks/carve/index.js',
@@ -689,7 +691,8 @@ class Plugin
 
         // Comment toolbar (independent of whether the post itself is Carve).
         if (Settings::get('enable_comments') && comments_open()) {
-            wp_enqueue_script('wpcarve-comment-toolbar', WPCARVE_URL . 'assets/js/comment-toolbar.js', [InlineToggle::register()], $this->assetVersion('assets/js/comment-toolbar.js'), true);
+            wp_enqueue_script('wpcarve-source-highlight', WPCARVE_URL . 'assets/js/vendor/carve-source-highlight.js', [], $this->assetVersion('assets/js/vendor/carve-source-highlight.js'), true);
+            wp_enqueue_script('wpcarve-comment-toolbar', WPCARVE_URL . 'assets/js/comment-toolbar.js', [InlineToggle::register(), ListContinuation::register(), 'wpcarve-source-highlight'], $this->assetVersion('assets/js/comment-toolbar.js'), true);
             wp_localize_script('wpcarve-comment-toolbar', 'wpCarveComment', [
                 'previewUrl' => rest_url('carve/v1/preview-comment'),
                 'previewLabel' => __('Preview', 'carve-markup'),
