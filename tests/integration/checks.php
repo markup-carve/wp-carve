@@ -609,6 +609,41 @@ $carve_check(
     $carve_snippet($carve_svg_script),
 );
 
+// --- Revision comparison -------------------------------------------------------
+require_once ABSPATH . 'wp-admin/includes/revision.php';
+$carve_revision_post_id = wp_insert_post(['post_title' => 'Revision comparison', 'post_status' => 'draft']);
+$carve_revision_from = clone get_post($carve_revision_post_id);
+$carve_revision_to = clone $carve_revision_from;
+$carve_revision_from->post_content = '<!-- wp:paragraph --><p>Old intro</p><!-- /wp:paragraph -->'
+    . '<!-- wp:carve/markup ' . wp_json_encode(['carve' => "## Status\n\n- [ ] Draft"]) . ' /-->';
+$carve_revision_to->post_content = '<!-- wp:paragraph --><p>New intro</p><!-- /wp:paragraph -->'
+    . '<!-- wp:carve/markup ' . wp_json_encode(['carve' => "## Status\n\n- [x] Draft\n- [/] Review"]) . ' /-->';
+$carve_revision_fields = (new \WpCarve\Admin\RevisionDiff())->filter(
+    [['id' => 'post_content', 'name' => 'Content', 'diff' => 'raw serialized block']],
+    $carve_revision_from,
+    $carve_revision_to,
+);
+$carve_revision_content = $carve_revision_fields[0]['diff'] ?? '';
+$carve_revision_source = $carve_revision_fields[1]['diff'] ?? '';
+$carve_revision_content_text = wp_strip_all_tags($carve_revision_content);
+$carve_check(
+    'revision comparison keeps ordinary blocks readable',
+    str_contains($carve_revision_content_text, 'Old intro')
+        && str_contains($carve_revision_content_text, 'New intro')
+        && !str_contains($carve_revision_content_text, 'raw serialized block')
+        && !str_contains($carve_revision_content_text, 'Review'),
+    $carve_snippet($carve_revision_content),
+);
+$carve_check(
+    'revision comparison shows Carve source by line',
+    ($carve_revision_fields[1]['id'] ?? '') === 'wpcarve_source_1'
+        && str_contains($carve_revision_source, 'Review')
+        && str_contains($carve_revision_source, 'Draft')
+        && !str_contains($carve_revision_source, 'wp:carve'),
+    $carve_snippet($carve_revision_source),
+);
+wp_delete_post($carve_revision_post_id, true);
+
 // --- Summary ------------------------------------------------------------------
 fwrite(STDOUT, "\n");
 if ($carve_failures !== []) {
