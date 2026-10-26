@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.11
+Stable tag: 0.1.12
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,6 +39,12 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.12 =
+* Carve source is highlighted in every Carve editor field, and Enter, Tab and Shift+Tab continue, nest and outdent list items.
+* Task states are styled in published content and the visual editor, and task checkbox labels survive sanitization.
+* Each Carve block reopens on its last tab after a reload and keeps it when moved.
+* The revisions screen shows Carve source as a line diff.
 
 = 0.1.11 =
 * Progress, blocked, and open alias task markers remain intact in source and visual editing.
