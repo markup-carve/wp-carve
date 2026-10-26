@@ -12,6 +12,7 @@ use WP_CLI;
 use WP_Post;
 use WP_Query;
 use WpCarve\Admin\BulkMigrate;
+use WpCarve\Admin\Deactivate;
 use WpCarve\Admin\ImportExport;
 use WpCarve\Admin\MediaPicker;
 use WpCarve\Admin\PostEditor;
@@ -22,8 +23,10 @@ use WpCarve\Blocks\CarveBlock;
 use WpCarve\Blocks\FallbackContent;
 use WpCarve\Blocks\SlidesBlock;
 use WpCarve\CLI\BackfillCommand;
+use WpCarve\CLI\DetachCommand;
 use WpCarve\CLI\LintCommand;
 use WpCarve\CLI\MigrateCommand;
+use WpCarve\CLI\SourceCommand;
 use WpCarve\Includes\IncludePolicy;
 use WpCarve\Ingest\PasteController;
 use WpCarve\Meta\FrontmatterMeta;
@@ -104,6 +107,7 @@ class Plugin
             (new PostEditor($this->converter))->register();
             (new ImportExport())->register();
             (new BulkMigrate())->register();
+            (new Deactivate())->register();
         }
         add_action('enqueue_block_editor_assets', [$this, 'enqueueEditorAssets']);
         add_action('enqueue_block_assets', [$this, 'enqueueEditorCanvasStyles']);
@@ -116,6 +120,8 @@ class Plugin
             WP_CLI::add_command('carve', new MigrateCommand());
             WP_CLI::add_command('carve lint', new LintCommand());
             WP_CLI::add_command('carve backfill', new BackfillCommand());
+            WP_CLI::add_command('carve detach', new DetachCommand());
+            WP_CLI::add_command('carve source', new SourceCommand());
         }
     }
 
