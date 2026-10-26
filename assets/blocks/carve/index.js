@@ -565,10 +565,10 @@
 		);
 	}
 
-	function editorModeKey( clientId ) {
-		const postId = wp.data?.select( 'core/editor' )?.getCurrentPostId() ||
+	function editorModeKey( clientId, select ) {
+		const postId = select( 'core/editor' )?.getCurrentPostId() ||
 			( window.location?.search || '' ).match( /[?&]post=(\d+)/ )?.[ 1 ];
-		const blocks = wp.data?.select( 'core/block-editor' );
+		const blocks = select( 'core/block-editor' );
 		if ( ! postId || ! clientId || ! blocks?.getBlockOrder ) {
 			return '';
 		}
@@ -587,6 +587,16 @@
 		return 'wpcarve:editor-mode:' + postId + ':' + path.join( '.' );
 	}
 
+	function sourceSignature( source ) {
+		let hash = 2166136261;
+		for ( let index = 0; index < source.length; index++ ) {
+			hash = Math.imul( hash ^ source.charCodeAt( index ), 16777619 );
+		}
+		return source.length + ':' + ( hash >>> 0 ).toString( 16 );
+	}
+
+	const modesByClientId = new Map();
+
 	function Edit( props ) {
 		const { attributes, setAttributes, clientId } = props;
 		const blockRef = useRef( null );
@@ -600,12 +610,18 @@
 
 		const hasVisual = !! cfg.visualEditor;
 		const startMode = hasVisual && cfg.startMode === 'visual' ? 'visual' : 'write';
-		const modeKey = editorModeKey( clientId );
+		const modeKey = wp.data.useSelect( ( select ) => editorModeKey( clientId, select ), [ clientId ] );
+		const signature = sourceSignature( source );
 		function initialMode() {
+			const current = modesByClientId.get( clientId );
+			if ( [ 'write', 'split', 'preview' ].includes( current ) || ( hasVisual && current === 'visual' ) ) {
+				return current;
+			}
 			try {
-				const saved = modeKey && window.sessionStorage.getItem( modeKey );
-				if ( [ 'write', 'split', 'preview' ].includes( saved ) || ( hasVisual && saved === 'visual' ) ) {
-					return saved;
+				const saved = source && modeKey && JSON.parse( window.sessionStorage.getItem( modeKey ) );
+				if ( saved?.signature === signature &&
+					( [ 'write', 'split', 'preview' ].includes( saved.mode ) || ( hasVisual && saved.mode === 'visual' ) ) ) {
+					return saved.mode;
 				}
 			} catch ( error ) {
 				// Storage may be disabled; keep the configured start mode.
@@ -617,6 +633,9 @@
 			initialModeRef.current = initialMode();
 		}
 		const [ mode, setMode ] = useState( initialModeRef.current );
+		useEffect( () => {
+			modesByClientId.set( clientId, mode );
+		}, [ clientId, mode ] );
 		const [ html, setHtml ] = useState( '' );
 		const [ previewError, setPreviewError ] = useState( '' );
 		const [ ingest, setIngest ] = useState( null );
@@ -652,11 +671,11 @@
 				return;
 			}
 			try {
-				window.sessionStorage.setItem( modeKey, mode );
+				window.sessionStorage.setItem( modeKey, JSON.stringify( { mode, signature } ) );
 			} catch ( error ) {
 				// The editor still works when browser storage is disabled.
 			}
-		}, [ modeKey, mode ] );
+		}, [ modeKey, mode, signature ] );
 
 		useEffect( () => {
 			const syncFullscreen = () => {
