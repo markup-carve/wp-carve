@@ -14,6 +14,10 @@ Write posts, pages and comments in Carve markup: a visual editor, live preview, 
 
 Carve is a lightweight markup language for documents and the web. This plugin renders Carve to HTML in WordPress, powered by the markup-carve/carve-php engine.
 
+Watch the WordPress demo:
+
+https://www.youtube.com/watch?v=FT_IMW8ABng
+
 Features: per-post "Render as Carve" mode, a [carve] shortcode, a Gutenberg block with a visual (WYSIWYG) editor, comment support, content profiles, table of contents, heading permalinks, smart quotes, Mermaid, and WP-CLI migration.
 
 Beyond a typical markup plugin:
