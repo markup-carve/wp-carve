@@ -307,7 +307,7 @@ function blockEditor(source, caret) {
       'RangeControl', 'TextControl', 'Modal', 'ToolbarGroup', 'ToolbarButton', 'ToolbarDropdownMenu',
     ].map(name => [name, name])),
     i18n: { __: text => text },
-    data: { select: () => null },
+    data: { select: () => null, useSelect: callback => callback(() => null) },
   };
   const window = { wp, wpCarve: {}, requestAnimationFrame: callback => callback() };
   runInNewContext(toggleSource, { window });
