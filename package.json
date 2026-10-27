@@ -10,9 +10,11 @@
     "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
     "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
     "build:highlight": "node assets/js/src/build-highlight.mjs",
+    "palette:build": "node scripts/sync-syntax-palette.mjs",
+    "palette:check": "node scripts/sync-syntax-palette.mjs --check",
     "watch": "npm run build:engine -- --watch",
     "test": "npm run test:js",
-    "test:js": "node --test tests/js/*.test.mjs"
+    "test:js": "npm run palette:check && node --test tests/js/*.test.mjs"
   },
   "dependencies": {
     "@markup-carve/carve": "^0.1.15",

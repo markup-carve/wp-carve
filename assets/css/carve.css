@@ -2668,3 +2668,83 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	padding: 1rem;
 	font-size: 0.875rem;
 }
+
+/* BEGIN generated Carve syntax palette */
+.wpcarve-highlight-editor, .wpcarve-document-workspace {
+  --wpcarve-syntax-background: #ffffff;
+  --wpcarve-syntax-foreground: #24292f;
+  --wpcarve-syntax-code-background: #f6f8fa;
+  --wpcarve-syntax-definition: #6f42c1;
+  --wpcarve-syntax-list: #735c0f;
+  --wpcarve-syntax-task: #1a7f37;
+  --wpcarve-syntax-language: #0969da;
+  --wpcarve-syntax-muted: #57606a;
+  --wpcarve-syntax-table-boundary: #959da5;
+  --wpcarve-syntax-table-header: #005cc5;
+  --wpcarve-syntax-table-operator: #e36209;
+  --wpcarve-syntax-table-span: #6f42c1;
+  --wpcarve-syntax-table-continuation: #22863a;
+}
+.wpcarve-comment-highlight.is-dark,
+:root[data-theme="dark"] :is(.wpcarve-highlight-editor:not(.wpcarve-comment-highlight), .wpcarve-document-workspace) {
+  --wpcarve-syntax-background: #0d1117;
+  --wpcarve-syntax-foreground: #c9d1d9;
+  --wpcarve-syntax-code-background: #0d1117;
+  --wpcarve-syntax-definition: #d2a8ff;
+  --wpcarve-syntax-list: #f2cc60;
+  --wpcarve-syntax-task: #3fb950;
+  --wpcarve-syntax-language: #79c0ff;
+  --wpcarve-syntax-muted: #8b949e;
+  --wpcarve-syntax-table-boundary: #6a737d;
+  --wpcarve-syntax-table-header: #79b8ff;
+  --wpcarve-syntax-table-operator: #ffab70;
+  --wpcarve-syntax-table-span: #b392f0;
+  --wpcarve-syntax-table-continuation: #85e89d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) :is(.wpcarve-highlight-editor:not(.wpcarve-comment-highlight), .wpcarve-document-workspace) {
+    --wpcarve-syntax-background: #0d1117;
+    --wpcarve-syntax-foreground: #c9d1d9;
+    --wpcarve-syntax-code-background: #0d1117;
+    --wpcarve-syntax-definition: #d2a8ff;
+    --wpcarve-syntax-list: #f2cc60;
+    --wpcarve-syntax-task: #3fb950;
+    --wpcarve-syntax-language: #79c0ff;
+    --wpcarve-syntax-muted: #8b949e;
+    --wpcarve-syntax-table-boundary: #6a737d;
+    --wpcarve-syntax-table-header: #79b8ff;
+    --wpcarve-syntax-table-operator: #ffab70;
+    --wpcarve-syntax-table-span: #b392f0;
+    --wpcarve-syntax-table-continuation: #85e89d;
+  }
+}
+
+.wpcarve-highlight-layer .token.list,
+.wpcarve-document-workspace .wpcarve-token-list { color: var(--wpcarve-syntax-list); }
+.wpcarve-highlight-layer .token.list .token.constant,
+.wpcarve-document-workspace .wpcarve-token-list.wpcarve-token-constant { color: var(--wpcarve-syntax-task); }
+.wpcarve-highlight-layer .token.definition-list,
+.wpcarve-document-workspace .wpcarve-token-definition-list { color: inherit; }
+.wpcarve-highlight-layer .token.definition-term,
+.wpcarve-highlight-layer .token.definition-list > .token.punctuation,
+.wpcarve-document-workspace .wpcarve-token-definition-term,
+.wpcarve-document-workspace .wpcarve-token-definition-list.wpcarve-token-punctuation { color: var(--wpcarve-syntax-definition); }
+.wpcarve-highlight-layer .token.code-block > .token.language,
+.wpcarve-document-workspace .wpcarve-token-code-block.wpcarve-token-language { color: var(--wpcarve-syntax-language); }
+.wpcarve-highlight-layer .token.code-block > .token.punctuation,
+.wpcarve-document-workspace .wpcarve-token-code-block.wpcarve-token-punctuation { color: var(--wpcarve-syntax-muted); }
+.wpcarve-highlight-layer .token.table,
+.wpcarve-document-workspace .wpcarve-token-table { color: inherit; }
+.wpcarve-highlight-layer .token.table-boundary,
+.wpcarve-highlight-layer .token.table-separator,
+.wpcarve-document-workspace :is(.wpcarve-token-table-boundary, .wpcarve-token-table-separator) { color: var(--wpcarve-syntax-table-boundary); }
+.wpcarve-highlight-layer .token.table-header,
+.wpcarve-document-workspace .wpcarve-token-table-header { color: var(--wpcarve-syntax-table-header); font-weight: 650; }
+.wpcarve-highlight-layer :is(.token.table-operator, .token.table-alignment),
+.wpcarve-document-workspace :is(.wpcarve-token-table-operator, .wpcarve-token-table-alignment) { color: var(--wpcarve-syntax-table-operator); font-weight: 650; }
+.wpcarve-highlight-layer .token.table-span,
+.wpcarve-document-workspace .wpcarve-token-table-span { color: var(--wpcarve-syntax-table-span); font-weight: 650; }
+.wpcarve-highlight-layer :is(.token.table-continuation-marker, .token.table-continuation),
+.wpcarve-document-workspace :is(.wpcarve-token-table-continuation-marker, .wpcarve-token-table-continuation) { color: var(--wpcarve-syntax-table-continuation); font-weight: 650; }
+.wpcarve-document-workspace .wpcarve-token-table-boundary { color: var(--wpcarve-syntax-table-boundary); }
+/* END generated Carve syntax palette */
