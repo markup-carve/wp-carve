@@ -50,7 +50,6 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 * The profile guide lists measured capabilities for each content profile.
 * Untrusted Carve renders have configurable budgets on the Advanced settings tab.
 * The editor, published code fences and Torchlight share one light and dark Carve color palette.
-* The plugin directory and GitHub README link to a WordPress demo.
 
 = 0.1.12 =
 * Carve source is highlighted in every Carve editor field, and Enter, Tab and Shift+Tab continue, nest and outdent list items.
