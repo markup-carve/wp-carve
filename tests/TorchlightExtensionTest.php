@@ -70,6 +70,15 @@ class TorchlightExtensionTest extends TestCase
         $this->assertStringNotContainsString(';;', $html);
     }
 
+    public function testDefaultThemesUseSharedCarveMarkerColors(): void
+    {
+        $html = $this->render("````carve\n:: Term\n: Description\n\n- [x] Done\n\n```php\n<?php echo 1;\n```\n````", 'github-light', 'github-dark');
+
+        $this->assertStringContainsString('#735c0f', $html);
+        $this->assertStringContainsString('--phiki-dark-color: #f2cc60', $html);
+        $this->assertStringContainsString('style="color: #6f42c1;--phiki-dark-color: #d2a8ff;">::</span>', $html);
+    }
+
     public function testSingleThemeStaysSingle(): void
     {
         $html = $this->render("```carve\n*bold*\n```", 'github-light');

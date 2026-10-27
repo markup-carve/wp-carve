@@ -265,6 +265,33 @@ class TorchlightExtension implements ExtensionInterface
             ['scope' => ['markup.underline.link.image.carve'], 'settings' => ['foreground' => '#032f62']],
             ['scope' => ['entity.name.section.carve'], 'settings' => ['foreground' => '#005cc5']],
         ];
+        if (in_array($base, ['github-light', 'github-dark'], true)) {
+            $palette = self::syntaxPalette($dark);
+            if ($palette !== []) {
+                $shared = [
+                    ['scope' => ['punctuation.definition.list.unnumbered.carve', 'punctuation.definition.list.numbered.carve', 'punctuation.definition.list.carve'], 'settings' => ['foreground' => $palette['list']]],
+                    ['scope' => ['punctuation.definition.list.definition.carve', 'entity.name.tag.definition.term.carve', 'punctuation.definition.list.continuation.carve'], 'settings' => ['foreground' => $palette['definition']]],
+                    ['scope' => ['constant.language.checkbox.carve', 'constant.language.checkbox.done.carve'], 'settings' => ['foreground' => $palette['task']]],
+                    ['scope' => ['punctuation.definition.checkbox.carve', 'punctuation.definition.fenced.carve'], 'settings' => ['foreground' => $palette['muted']]],
+                    ['scope' => ['fenced_code.block.language.carve', 'entity.name.abbreviation.carve', 'constant.other.raw.format.carve'], 'settings' => ['foreground' => $palette['language']]],
+                    ['scope' => ['punctuation.separator.table.carve'], 'settings' => ['foreground' => $palette['tableBoundary']]],
+                    ['scope' => ['keyword.operator.table.header.carve'], 'settings' => ['foreground' => $palette['tableHeader']]],
+                    ['scope' => ['keyword.operator.table.alignment.carve'], 'settings' => ['foreground' => $palette['tableOperator']]],
+                    ['scope' => ['keyword.operator.table.rowspan.carve', 'keyword.operator.table.colspan.carve'], 'settings' => ['foreground' => $palette['tableSpan']]],
+                    ['scope' => ['keyword.operator.table.continuation.carve'], 'settings' => ['foreground' => $palette['tableContinuation']]],
+                ];
+                $replacementScopes = array_merge(...array_column($shared, 'scope'));
+                foreach ($overlay as $index => $rule) {
+                    $remaining = array_values(array_diff($rule['scope'], $replacementScopes));
+                    if ($remaining === []) {
+                        unset($overlay[$index]);
+                    } else {
+                        $overlay[$index]['scope'] = $remaining;
+                    }
+                }
+                $overlay = array_merge(array_values($overlay), $shared);
+            }
+        }
         $data['tokenColors'] = array_merge($data['tokenColors'] ?? [], $overlay);
         $name = $base . '-carve';
 
@@ -275,6 +302,42 @@ class TorchlightExtension implements ExtensionInterface
         }
 
         return $this->carveThemes[$base] = $name;
+    }
+
+    /**
+     * Load the copied syntax palette for the selected theme.
+     *
+     * @return array<string, string>
+     */
+    private static function syntaxPalette(bool $dark): array
+    {
+        static $palettes;
+        if ($palettes === null) {
+            $file = dirname(__DIR__, 2) . '/assets/syntax-palette.json';
+            $json = is_file($file) ? file_get_contents($file) : false;
+            $palettes = $json === false ? [] : json_decode($json, true);
+            if (!is_array($palettes)) {
+                $palettes = [];
+            }
+        }
+
+        $colors = $palettes[$dark ? 'dark' : 'light'] ?? [];
+        if (!is_array($colors)) {
+            return [];
+        }
+        $result = [];
+        foreach ($colors as $key => $value) {
+            if (is_string($key) && is_string($value)) {
+                $result[$key] = $value;
+            }
+        }
+        foreach (['list', 'definition', 'task', 'muted', 'language', 'tableBoundary', 'tableHeader', 'tableOperator', 'tableSpan', 'tableContinuation'] as $key) {
+            if (!isset($result[$key])) {
+                return [];
+            }
+        }
+
+        return $result;
     }
 
     /**
