@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-10-27
+
+Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets.
+
+### Fixes
+
+- Carve blocks save fallback HTML so published content remains visible when the plugin is inactive (#198).
+
+### Improvements
+
+- Deactivation offers to convert Carve blocks to standard WordPress blocks, with a WP-CLI command for the same conversion (#199).
+- The profile guide shows measured capabilities for each content profile (#200).
+- Untrusted Carve renders have configurable budgets on the Advanced settings tab (#201, #202).
+- The plugin directory and GitHub README link to a WordPress demo (#193).
+
+**Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.12...0.1.13
+
 ## [0.1.12] - 2026-10-26
 
 Carve source is highlighted wherever you write it, task states are styled, each block remembers its tab, and revisions show readable Carve diffs.
@@ -503,7 +520,8 @@ Initial release.
 - Render caching at save time and a REST endpoint for headless WordPress.
 - WP-CLI migration command.
 
-[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.12...HEAD
+[Unreleased]: https://github.com/markup-carve/wp-carve/compare/0.1.13...HEAD
+[0.1.13]: https://github.com/markup-carve/wp-carve/compare/0.1.12...0.1.13
 [0.1.12]: https://github.com/markup-carve/wp-carve/compare/0.1.11...0.1.12
 [0.1.11]: https://github.com/markup-carve/wp-carve/compare/0.1.10...0.1.11
 [0.1.10]: https://github.com/markup-carve/wp-carve/compare/0.1.9...0.1.10
