@@ -79,7 +79,8 @@ class SettingsPage
             if (is_bool($default)) {
                 $out[$key] = !empty($input[$key]);
             } elseif (is_int($default)) {
-                $out[$key] = (int)($input[$key] ?? $default);
+                $value = (int)($input[$key] ?? $default);
+                $out[$key] = str_starts_with($key, 'untrusted_max_') ? max(1, $value) : $value;
             } elseif ($key === 'include_root') {
                 // Stored verbatim: trimming or normalizing could turn a refused
                 // relative root into an accepted absolute one.
@@ -137,6 +138,11 @@ class SettingsPage
         $this->toggle($s, 'enable_comments', __('Comments', 'carve-markup'), __('Render comments as Carve (uses the comment profile).', 'carve-markup'));
         $this->toggle($s, 'enable_shortcode', __('[carve] shortcode', 'carve-markup'), __('Render Carve inside a [carve] shortcode.', 'carve-markup'));
         $this->toggle($s, 'enable_excerpts', __('Excerpts', 'carve-markup'), __('Render excerpts as Carve.', 'carve-markup'));
+        $this->gridEnd();
+        $this->group(__('Untrusted content budgets', 'carve-markup'));
+        $this->grid();
+        $this->number($s, 'untrusted_max_bytes', __('Maximum source bytes', 'carve-markup'), __('Maximum Carve source size for comments and shortcodes. Larger input is shown as escaped text.', 'carve-markup'));
+        $this->number($s, 'untrusted_max_nesting', __('Maximum nesting', 'carve-markup'), __('Maximum engine nesting depth for comments and shortcodes. Deeper input is shown as escaped text.', 'carve-markup'));
         $this->gridEnd();
         $this->group(__('Content profiles', 'carve-markup'));
         $this->grid();

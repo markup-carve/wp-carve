@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use LengthException;
 use WP_CLI;
 use WP_Post;
 use WP_Query;
@@ -67,6 +68,8 @@ class Plugin
         if (!empty($settings['enable_comments'])) {
             add_filter('comment_text', [$this, 'renderComment'], 9);
             add_filter('preprocess_comment', [$this, 'storeRawComment']);
+            add_action('manage_comments_custom_column', [$this, 'showCommentBudget'], 10, 2);
+            add_filter('manage_edit-comments_columns', [$this, 'addCommentBudgetColumn']);
         }
 
         // Whole-post "render as Carve" mode (per-post meta toggle).
@@ -133,7 +136,7 @@ class Plugin
         $raw = self::restoreShortcodeSource($content);
         $safe = self::safeForAuthor((int)get_post_field('post_author', get_the_ID()));
 
-        return $this->wrap($this->converter->toHtml($raw, 'post', null, $safe));
+        return $this->renderUntrusted($raw, 'post', $safe);
     }
 
     /**
@@ -219,7 +222,66 @@ class Plugin
             return $text;
         }
 
-        return $this->wrap($this->converter->toHtml($raw, 'comment'));
+        $reason = '';
+        $html = $this->renderUntrusted($raw, 'comment', null, $reason);
+        $storedReason = get_comment_meta((int)$comment->comment_ID, '_wpcarve_budget', true);
+        if ($reason !== '' && $storedReason !== $reason) {
+            update_comment_meta((int)$comment->comment_ID, '_wpcarve_budget', $reason);
+        } elseif ($reason === '' && $storedReason !== '') {
+            delete_comment_meta((int)$comment->comment_ID, '_wpcarve_budget');
+        }
+
+        return $html;
+    }
+
+    /**
+     * Render a bounded untrusted source.
+     *
+     * @param-out string $reason
+     */
+    private function renderUntrusted(string $raw, string $context, ?bool $safe = null, ?string &$reason = null): string
+    {
+        $maxBytes = max(1, (int)Settings::get('untrusted_max_bytes'));
+        $maxNesting = max(1, (int)Settings::get('untrusted_max_nesting'));
+        $reason = '';
+        if (strlen($raw) > $maxBytes) {
+            $reason = 'source_size';
+        } else {
+            try {
+                return $this->wrap($this->converter->toHtml($raw, $context, null, $safe, maxNesting: $maxNesting));
+            } catch (LengthException $exception) {
+                $reason = str_starts_with($exception->getMessage(), 'Input length') ? 'source_size' : 'render_depth';
+            }
+        }
+
+        return $this->wrap(esc_html($raw));
+    }
+
+    /**
+     * Add the comment budget column.
+     *
+     * @param array<string, string> $columns
+     *
+     * @return array<string, string>
+     */
+    public function addCommentBudgetColumn(array $columns): array
+    {
+        $columns['wpcarve_budget'] = __('Carve budget', 'carve-markup');
+
+        return $columns;
+    }
+
+    public function showCommentBudget(string $column, int $commentId): void
+    {
+        if ($column !== 'wpcarve_budget') {
+            return;
+        }
+        $reason = get_comment_meta($commentId, '_wpcarve_budget', true);
+        if ($reason === 'source_size') {
+            echo esc_html__('Source exceeds the size budget.', 'carve-markup');
+        } elseif ($reason === 'render_depth') {
+            echo esc_html__('Source exceeds the nesting budget.', 'carve-markup');
+        }
     }
 
     /**
