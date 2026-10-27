@@ -139,11 +139,6 @@ class SettingsPage
         $this->toggle($s, 'enable_shortcode', __('[carve] shortcode', 'carve-markup'), __('Render Carve inside a [carve] shortcode.', 'carve-markup'));
         $this->toggle($s, 'enable_excerpts', __('Excerpts', 'carve-markup'), __('Render excerpts as Carve.', 'carve-markup'));
         $this->gridEnd();
-        $this->group(__('Untrusted content budgets', 'carve-markup'));
-        $this->grid();
-        $this->number($s, 'untrusted_max_bytes', __('Maximum source bytes', 'carve-markup'), __('Maximum Carve source size for comments and shortcodes. Larger input is shown as escaped text.', 'carve-markup'));
-        $this->number($s, 'untrusted_max_nesting', __('Maximum nesting', 'carve-markup'), __('Maximum engine nesting depth for comments and shortcodes. Deeper input is shown as escaped text.', 'carve-markup'));
-        $this->gridEnd();
         $this->group(__('Content profiles', 'carve-markup'));
         $this->grid();
         $this->select($s, 'post_profile', __('Post profile', 'carve-markup'), $profiles, __('Feature set allowed in posts and pages. Only Full permits raw HTML (via =html blocks), which is still sanitized through wp_kses; Article, Comment and Minimal render raw HTML as escaped text.', 'carve-markup'));
@@ -230,6 +225,11 @@ class SettingsPage
         $this->toggle($s, 'frontmatter_meta', __('Frontmatter to meta', 'carve-markup'), __('Map frontmatter to post meta and SEO fields.', 'carve-markup'));
         $this->toggle($s, 'render_cache', __('Render cache', 'carve-markup'), __('Cache rendered HTML on save.', 'carve-markup'));
         $this->text($s, 'include_root', __('Include root', 'carve-markup'), __('Absolute server directory that {{ file.crv }} include directives may read from. Only posts last saved by a user who can post unfiltered HTML expand them. Empty disables includes.', 'carve-markup'));
+        $this->gridEnd();
+        $this->group(__('Untrusted content budgets', 'carve-markup'));
+        $this->grid();
+        $this->number($s, 'untrusted_max_bytes', __('Maximum source bytes', 'carve-markup'), __('Maximum Carve source size for comments and shortcodes. Larger input is shown as escaped text.', 'carve-markup'));
+        $this->number($s, 'untrusted_max_nesting', __('Maximum nesting', 'carve-markup'), __('Maximum engine nesting depth for comments and shortcodes. Deeper input is shown as escaped text.', 'carve-markup'));
         $this->gridEnd();
         $this->group(__('Attribution & source', 'carve-markup'), __('Shown only on public, singular Carve posts and pages. Publishing source can reveal comments or metadata that rendered HTML omits.', 'carve-markup'));
         $this->grid();
