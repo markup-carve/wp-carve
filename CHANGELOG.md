@@ -20,7 +20,7 @@ Carve blocks retain rendered content when the plugin is unavailable, and deactiv
 - Deactivation offers to convert Carve blocks to standard WordPress blocks, with a WP-CLI command for the same conversion (#199).
 - The profile guide shows measured capabilities for each content profile (#200).
 - Untrusted Carve renders have configurable budgets on the Advanced settings tab (#201, #202).
-- The plugin directory and GitHub README link to a WordPress demo (#193).
+- Editor highlighting, published code fences and Torchlight use the shared Carve light and dark syntax palette (#203).
 
 **Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.12...0.1.13
 
