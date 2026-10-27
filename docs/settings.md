@@ -21,6 +21,8 @@ Markup**.
 | --- | --- | --- |
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. Only `full` permits raw HTML (still sanitized via `wp_kses`); the others escape it. |
 | `comment_profile` | `comment` | Content profile for comments. |
+| `untrusted_max_bytes` | `65536` | Maximum source bytes for comments and shortcodes. Larger input appears as escaped text. |
+| `untrusted_max_nesting` | `4` | Maximum engine nesting depth for comments and shortcodes. Deeper input appears as escaped text. |
 | `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
 | `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). |
 | `abbreviations` | `''` | Site-wide abbreviations, one `KEY: expansion` per line; matching words get an `<abbr>` tooltip everywhere. |

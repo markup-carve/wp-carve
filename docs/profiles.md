@@ -203,3 +203,7 @@ focused lines. Carve does not support Djot-style language strings like
 
 To register further carve-php extensions of your own, use the
 `wpcarve_converter` action - see [Hooks](hooks.md).
+
+## Budgets
+
+Comments and `[carve]` shortcodes use the untrusted content budgets. The default source limit is 65,536 bytes, above ordinary comment sizes and below carve-php's 100,000-byte comment preset limit. The default nesting limit is four levels, matching that preset. Change either value under Settings > Carve Markup. Input that exceeds a budget appears as escaped source in the normal Carve wrapper. Comment moderation shows whether source size or nesting caused the fallback. The fallback is evaluated on each render, so raising a limit takes effect without clearing the post render cache.

@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use LengthException;
 use MarkupCarve\Carve\CarveConverter;
 use MarkupCarve\Carve\Event\RenderEvent;
 use MarkupCarve\Carve\Extension\CitationsExtension;
@@ -96,6 +97,9 @@ class Converter
      * @param \WpCarve\Includes\IncludeReport|null $includes Expands include directives
      *   against the configured root and records the outcome. Pass one only once
      *   IncludePolicy has allowed it.
+     * @param int|null $maxNesting Maximum engine profile nesting for this render.
+     *
+     * @throws \LengthException When the nesting budget is exceeded.
      */
     public function toHtml(
         string $carve,
@@ -105,6 +109,7 @@ class Converter
         ?array $bibliography = null,
         string $citationMode = 'numbered',
         ?IncludeReport $includes = null,
+        ?int $maxNesting = null,
     ): string {
         if (trim($carve) === '') {
             return '';
@@ -124,9 +129,27 @@ class Converter
         // the editor context renders the source alone.
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $converter = $this->converterFor($context, $profileOverride, $safe, $bibliography, $citationMode);
-        $html = $includes !== null && $context !== 'editor' && $context !== 'comment'
-            ? $this->convertWithIncludes($converter, $abbrevDefs . $carve, $includes)
-            : $converter->convert($abbrevDefs . $carve);
+        $profile = $converter->getProfile();
+        $previousNesting = $profile?->getMaxNesting();
+        if ($maxNesting !== null && $profile !== null) {
+            $profile->setMaxNesting($maxNesting);
+        }
+        try {
+            $html = $includes !== null && $context !== 'editor' && $context !== 'comment'
+                ? $this->convertWithIncludes($converter, $abbrevDefs . $carve, $includes)
+                : $converter->convert($abbrevDefs . $carve);
+            if ($maxNesting !== null) {
+                foreach ($converter->getProfileViolations() as $violation) {
+                    if ($violation->reason === 'max_nesting_exceeded') {
+                        throw new LengthException('Nesting budget exceeded');
+                    }
+                }
+            }
+        } finally {
+            if ($maxNesting !== null && $profile !== null && $previousNesting !== null) {
+                $profile->setMaxNesting($previousNesting);
+            }
+        }
 
         // JSON diagram configs (chart, vega-lite) ship in a script tag the
         // engine emits - but wp_kses strips every script tag, and wptexturize
