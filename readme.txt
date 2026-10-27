@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.12
+Stable tag: 0.1.13
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -43,6 +43,13 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.13 =
+* Carve blocks save fallback HTML, keeping published content visible when the plugin is inactive.
+* Deactivation can convert Carve blocks to standard WordPress blocks; WP-CLI can run the same conversion.
+* The profile guide lists measured capabilities for each content profile.
+* Untrusted Carve renders have configurable budgets on the Advanced settings tab.
+* The plugin directory and GitHub README link to a WordPress demo.
 
 = 0.1.12 =
 * Carve source is highlighted in every Carve editor field, and Enter, Tab and Shift+Tab continue, nest and outdent list items.
