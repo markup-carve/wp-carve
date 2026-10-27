@@ -49,6 +49,7 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 * Deactivation can convert Carve blocks to standard WordPress blocks; WP-CLI can run the same conversion.
 * The profile guide lists measured capabilities for each content profile.
 * Untrusted Carve renders have configurable budgets on the Advanced settings tab.
+* The editor, published code fences and Torchlight share one light and dark Carve color palette.
 * The plugin directory and GitHub README link to a WordPress demo.
 
 = 0.1.12 =
