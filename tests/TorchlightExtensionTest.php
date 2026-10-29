@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpCarve\Test;
 
 use MarkupCarve\Carve\CarveConverter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WpCarve\Extension\TorchlightExtension;
 
@@ -16,6 +17,32 @@ class TorchlightExtensionTest extends TestCase
         $converter->addExtension(new TorchlightExtension(theme: $theme, showLineNumbers: false, themeDark: $dark));
 
         return $converter->convert($carve);
+    }
+
+    /**
+     * @return array<string, array{string, bool}>
+     */
+    public static function diffFenceShapeProvider(): array
+    {
+        $body = "``` php\n- old();\n+ fresh();\n```\n";
+
+        return [
+            'pre class' => ["{.diff}\n" . $body, true],
+            'captioned figure class' => ["{#lst-a .diff}\n" . $body . "^ Listing #: x\n", true],
+            'captioned diffs' => ["{.diffs}\n" . $body . "^ x\n", false],
+            'captioned side-diff' => ["{.side-diff}\n" . $body . "^ x\n", false],
+            'pre side-diff' => ["{.side-diff}\n" . $body, false],
+            'captioned without class' => [$body . "^ x\n", false],
+        ];
+    }
+
+    #[DataProvider('diffFenceShapeProvider')]
+    public function testDiffMarkersAreStrippedForBothFenceShapes(string $carve, bool $isDiff): void
+    {
+        $html = $this->render($carve, 'github-light');
+
+        $this->assertSame($isDiff, str_contains($html, 'has-diff'), $html);
+        $this->assertSame($isDiff, str_contains($html, '<span class="diff-marker">+</span>'), $html);
     }
 
     public function testCarveOverlayUsesDarkPaletteOnDarkBaseTheme(): void

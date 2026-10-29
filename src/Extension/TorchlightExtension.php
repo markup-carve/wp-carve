@@ -12,6 +12,7 @@ use MarkupCarve\Carve\CarveConverter;
 use MarkupCarve\Carve\Event\RenderEvent;
 use MarkupCarve\Carve\Extension\ExtensionInterface;
 use MarkupCarve\Carve\Node\Block\CodeBlock;
+use MarkupCarve\Carve\Node\Block\Figure;
 use Phiki\Theme\Theme;
 use Throwable;
 use Torchlight\Engine\Engine;
@@ -92,7 +93,7 @@ class TorchlightExtension implements ExtensionInterface
             // operator in C), and Converter::presentLanguageDiff cannot run
             // afterwards because the lines are spans by then.
             $diffMarkers = [];
-            if ($block->hasClass('diff')) {
+            if (self::isDiffBlock($block)) {
                 [$code, $diffMarkers] = self::stripDiffMarkers($code);
             }
             $attrs = $block->getAttributes();
@@ -359,6 +360,22 @@ class TorchlightExtension implements ExtensionInterface
         $b = hexdec(substr($hex, 4, 2));
 
         return (0.2126 * $r + 0.7152 * $g + 0.0722 * $b) / 255 < 0.5;
+    }
+
+    /**
+     * A captioned fence's attribute line belongs to its figure, so the
+     * `diff` class sits on the wrapping figure, not on the code block.
+     */
+    private static function isDiffBlock(CodeBlock $block): bool
+    {
+        if ($block->hasClass('diff')) {
+            return true;
+        }
+        $parent = $block->getParent();
+
+        return $parent instanceof Figure
+            && $parent->hasClass('diff')
+            && in_array($block, $parent->getTargets(), true);
     }
 
     /**
