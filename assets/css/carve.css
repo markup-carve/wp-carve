@@ -2679,6 +2679,8 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
   --wpcarve-syntax-task: #1a7f37;
   --wpcarve-syntax-language: #0969da;
   --wpcarve-syntax-muted: #57606a;
+  --wpcarve-syntax-caption-marker: #bc4c00;
+  --wpcarve-syntax-caption-text: #57606a;
   --wpcarve-syntax-table-boundary: #959da5;
   --wpcarve-syntax-table-header: #005cc5;
   --wpcarve-syntax-table-operator: #e36209;
@@ -2695,6 +2697,8 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
   --wpcarve-syntax-task: #3fb950;
   --wpcarve-syntax-language: #79c0ff;
   --wpcarve-syntax-muted: #8b949e;
+  --wpcarve-syntax-caption-marker: #ffab70;
+  --wpcarve-syntax-caption-text: #8b949e;
   --wpcarve-syntax-table-boundary: #6a737d;
   --wpcarve-syntax-table-header: #79b8ff;
   --wpcarve-syntax-table-operator: #ffab70;
@@ -2711,6 +2715,8 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
     --wpcarve-syntax-task: #3fb950;
     --wpcarve-syntax-language: #79c0ff;
     --wpcarve-syntax-muted: #8b949e;
+    --wpcarve-syntax-caption-marker: #ffab70;
+    --wpcarve-syntax-caption-text: #8b949e;
     --wpcarve-syntax-table-boundary: #6a737d;
     --wpcarve-syntax-table-header: #79b8ff;
     --wpcarve-syntax-table-operator: #ffab70;
@@ -2733,6 +2739,10 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 .wpcarve-document-workspace .wpcarve-token-code-block.wpcarve-token-language { color: var(--wpcarve-syntax-language); }
 .wpcarve-highlight-layer .token.code-block > .token.punctuation,
 .wpcarve-document-workspace .wpcarve-token-code-block.wpcarve-token-punctuation { color: var(--wpcarve-syntax-muted); }
+.wpcarve-highlight-layer .token.caption,
+.wpcarve-document-workspace .wpcarve-token-caption { color: var(--wpcarve-syntax-caption-text); font-style: italic; }
+.wpcarve-highlight-layer .token.caption > .token.punctuation,
+.wpcarve-document-workspace .wpcarve-token-caption.wpcarve-token-punctuation { color: var(--wpcarve-syntax-caption-marker); font-weight: 700; font-style: normal; }
 .wpcarve-highlight-layer .token.table,
 .wpcarve-document-workspace .wpcarve-token-table { color: inherit; }
 .wpcarve-highlight-layer .token.table-boundary,

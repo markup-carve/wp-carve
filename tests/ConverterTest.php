@@ -56,6 +56,36 @@ class ConverterTest extends TestCase
         $this->assertStringNotContainsString('diff-marker', $html);
     }
 
+    /**
+     * @return array<string, array{string, bool}>
+     */
+    public static function diffFenceShapeProvider(): array
+    {
+        $body = "```js\n- old();\n+ fresh();\n```\n";
+
+        return [
+            'pre class' => ["{.diff}\n" . $body, true],
+            'captioned figure class' => ["{#lst-a .diff}\n" . $body . "^ Listing #: x\n", true],
+            'captioned among other classes' => ["{.wide .diff}\n" . $body . "^ x\n", true],
+            'captioned diffs' => ["{.diffs}\n" . $body . "^ x\n", false],
+            'captioned side-diff' => ["{.side-diff}\n" . $body . "^ x\n", false],
+            'pre side-diff' => ["{.side-diff}\n" . $body, false],
+            'captioned without class' => [$body . "^ x\n", false],
+        ];
+    }
+
+    #[DataProvider('diffFenceShapeProvider')]
+    public function testDiffPresentationAcceptsBothFenceShapes(string $carve, bool $isDiff): void
+    {
+        $html = (new Converter([]))->toHtml($carve);
+
+        $this->assertSame($isDiff, str_contains($html, 'has-diff'), $html);
+        $this->assertSame($isDiff, str_contains($html, '<span class="diff-marker">+</span> fresh();'), $html);
+        if (str_contains($carve, '^ ')) {
+            $this->assertStringContainsString('<figcaption>', $html);
+        }
+    }
+
     public function testRendersHeadingAndEmphasis(): void
     {
         $converter = new Converter([]);

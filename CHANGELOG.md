@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixes
+
+- Captioned `{.diff}` fences get diff rows, with and without Torchlight; the class sits on the figure.
+- Editor highlighting colors the caption marker and caption text with the shared palette's caption roles.
+
 ## [0.1.13] - 2026-10-27
 
 Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets.

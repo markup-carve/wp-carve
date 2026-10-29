@@ -11,9 +11,10 @@ const sample = `<div class="wpcarve-highlight-editor"><div class="wpcarve-highli
   <span id="definition" class="token definition-term">:: Term</span>
   <span class="token code-block"><span id="language" class="token language">php</span><span id="fence" class="token punctuation">&#96;&#96;&#96;</span></span>
   <span class="token table-header"><span id="boundary" class="token table-boundary">|</span></span>
-</div></div><div class="wpcarve-document-workspace"><span id="workspaceBoundary" class="wpcarve-token-table wpcarve-token-table-header wpcarve-token-table-boundary">|</span></div>`;
+  <span id="caption" class="token caption title"><span id="captionMarker" class="token punctuation">^</span> Listing</span>
+</div></div><div class="wpcarve-document-workspace"><span id="workspaceBoundary" class="wpcarve-token-table wpcarve-token-table-header wpcarve-token-table-boundary">|</span><span id="workspaceCaptionMarker" class="wpcarve-token-caption wpcarve-token-title wpcarve-token-punctuation">^</span><span id="workspaceCaption" class="wpcarve-token-caption wpcarve-token-title"> Listing</span></div>`;
 
-const targets = { list: 'list', task: 'task', definition: 'definition', language: 'language', fence: 'muted', boundary: 'tableBoundary', workspaceBoundary: 'tableBoundary' };
+const targets = { list: 'list', task: 'task', definition: 'definition', language: 'language', fence: 'muted', boundary: 'tableBoundary', workspaceBoundary: 'tableBoundary', caption: 'captionText', captionMarker: 'captionMarker', workspaceCaption: 'captionText', workspaceCaptionMarker: 'captionMarker' };
 
 const browser = await chromium.launch();
 try {

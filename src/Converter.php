@@ -227,23 +227,30 @@ class Converter
      * Present a `{.diff}` language fence: `<pre class="diff"><code class="language-x">`
      * with the leading `+`/`-`/space left as text. Each line is wrapped as
      * `<span class="line diff add|remove">` with a `<span class="diff-marker">`,
-     * matching the carve-grammars class contract. A block whose code was already
-     * highlighted into spans (Torchlight) is left untouched.
+     * matching the carve-grammars class contract. A captioned fence carries the
+     * class on its `<figure>` instead (`<figure class="diff"><pre><code ...>`).
+     * A block whose code was already highlighted into spans (Torchlight) is
+     * left untouched.
      */
     private static function presentLanguageDiff(string $html): string
     {
         return (string)preg_replace_callback(
-            '/<pre class="([^"]*)"><code class="(language-[^"]*)">(.*?)<\/code><\/pre>/s',
+            '/(<figure\b[^>]*>\s*)?<pre(?: class="([^"]*)")?><code class="(language-[^"]*)">(.*?)<\/code><\/pre>/s',
             static function (array $m): string {
+                $figure = $m[1];
+                $preClasses = $m[2];
+                $figureClasses = preg_match('/\sclass="([^"]*)"/', $figure, $fm) === 1 ? $fm[1] : '';
                 // Present only a fence carrying the exact `diff` class token (not
                 // `diff-example` etc.) whose code is not already highlighted into
                 // spans (Torchlight, which is left as-is - see the method docblock).
-                if (!in_array('diff', explode(' ', $m[1]), true) || str_contains($m[3], '<span')) {
+                $isDiff = in_array('diff', explode(' ', $preClasses), true)
+                    || in_array('diff', explode(' ', $figureClasses), true);
+                if (!$isDiff || str_contains($m[4], '<span')) {
                     return $m[0];
                 }
                 // Drop only the renderer's single structural terminal newline, so
                 // intentional trailing blank lines survive like an ordinary fence.
-                $code = substr($m[3], -1) === "\n" ? substr($m[3], 0, -1) : $m[3];
+                $code = substr($m[4], -1) === "\n" ? substr($m[4], 0, -1) : $m[4];
                 $out = '';
                 foreach (explode("\n", $code) as $line) {
                     $marker = $line !== '' && in_array($line[0], ['+', '-', ' '], true) ? $line[0] : '';
@@ -253,7 +260,7 @@ class Converter
                     $out .= '<span class="' . $lineClass . '">' . $markerSpan . $body . '</span>' . "\n";
                 }
 
-                return '<pre class="' . $m[1] . ' has-diff"><code class="' . $m[2] . '">' . rtrim($out, "\n") . '</code></pre>';
+                return $figure . '<pre class="' . trim($preClasses . ' has-diff') . '"><code class="' . $m[3] . '">' . rtrim($out, "\n") . '</code></pre>';
             },
             $html,
         ) ?? $html;

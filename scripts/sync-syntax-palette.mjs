@@ -38,6 +38,10 @@ ${vars(palette.dark).split('\n').map((line) => `  ${line}`).join('\n')}
 .wpcarve-document-workspace .wpcarve-token-code-block.wpcarve-token-language { color: var(--wpcarve-syntax-language); }
 .wpcarve-highlight-layer .token.code-block > .token.punctuation,
 .wpcarve-document-workspace .wpcarve-token-code-block.wpcarve-token-punctuation { color: var(--wpcarve-syntax-muted); }
+.wpcarve-highlight-layer .token.caption,
+.wpcarve-document-workspace .wpcarve-token-caption { color: var(--wpcarve-syntax-caption-text); font-style: italic; }
+.wpcarve-highlight-layer .token.caption > .token.punctuation,
+.wpcarve-document-workspace .wpcarve-token-caption.wpcarve-token-punctuation { color: var(--wpcarve-syntax-caption-marker); font-weight: 700; font-style: normal; }
 .wpcarve-highlight-layer .token.table,
 .wpcarve-document-workspace .wpcarve-token-table { color: inherit; }
 .wpcarve-highlight-layer .token.table-boundary,
