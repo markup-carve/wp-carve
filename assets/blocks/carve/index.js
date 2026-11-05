@@ -1325,7 +1325,7 @@
 							{ title: __( 'Auto (URL)', 'carve-markup' ), onClick: () => openInsertDialog( 'media' ) },
 						],
 					} ),
-					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: () => blockInsert( '---' ) } )
+					el( ToolbarButton, { icon: 'minus', title: __( 'Divider', 'carve-markup' ), onClick: () => blockInsert( '***' ) } )
 				),
 				el(
 					ToolbarGroup,

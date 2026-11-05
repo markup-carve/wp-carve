@@ -97,7 +97,7 @@ function sourceEditor(source, start, end, options) {
     + '<button title="Table" data-wpcarve-action="block" data-wpcarve-open="" data-wpcarve-close="" data-wpcarve-insert="|= H |= V |&#10;| a | b |"></button>'
     + '</div>'
     + '<select class="wpcarve-more-insert"><option value=""></option><option value="footnote"></option>'
-    + '<option value="math"></option><option value="citation"></option><option value="---"></option></select>'
+    + '<option value="math"></option><option value="citation"></option><option value="***"></option></select>'
     + '<textarea id="content"></textarea>';
   const textarea = document.getElementById('content');
   textarea.value = source;
@@ -237,10 +237,10 @@ for (const [flavour, options] of flavours) {
 
   test(`${flavour}: a divider leaves a collapsed caret after the template`, () => {
     const editor = sourceEditor(DOC, BOLD, BOLD + 4, options);
-    editor.more('---');
+    editor.more('***');
     const caret = editor.caret();
     assert.equal(caret[0], caret[1]);
-    assert.equal(editor.source().slice(caret[0] - 3, caret[0]), '---');
+    assert.equal(editor.source().slice(caret[0] - 3, caret[0]), '***');
   });
 }
 
