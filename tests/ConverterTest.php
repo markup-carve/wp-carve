@@ -320,6 +320,28 @@ class ConverterTest extends TestCase
         $this->assertStringNotContainsString('class="list-table"', $html);
     }
 
+    public function testBracedCellAlignmentSurvivesThePostRender(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("|={<} Item |={>} Price |\n| Tea | 3.50 |\n| Cake |{~} n/a |\n");
+
+        $this->assertStringContainsString('<th scope="col" style="text-align: right;">Price</th>', $html);
+        $this->assertStringContainsString('<td style="text-align: right;">3.50</td>', $html);
+        $this->assertStringContainsString('<td style="text-align: center;">n/a</td>', $html);
+        $this->assertStringNotContainsString('{', $html);
+    }
+
+    public function testAFirstLineDashRunWithoutCloserIsFrontmatterToTheEnd(): void
+    {
+        $converter = new Converter([]);
+
+        $html = $converter->toHtml("---\ntitle: Draft\n\nNot a paragraph.\n");
+
+        $this->assertStringNotContainsString('<hr', $html);
+        $this->assertStringNotContainsString('Not a paragraph.', $html);
+    }
+
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
     {
         if (!class_exists(\Torchlight\Engine\Engine::class)) {

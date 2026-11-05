@@ -42,7 +42,15 @@ block.
 
 |= Col A |= Col B |
 | cell    | cell    |
+
+|={<} Item |={>} Price |
+| Tea      | 3.50      |
+| Cake     |{~} n/a    |
 ```
+
+Column alignment goes in braces right after the header marker (`|={<}`,
+`|={~}`, `|={>}`); a body cell overrides its column with `|{>}`. The glued
+0.1.13 spelling (`|=>`, `|<`) still reads but is deprecated.
 
 Fenced code uses backticks or tildes with a language after the fence:
 
