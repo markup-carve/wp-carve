@@ -230,7 +230,7 @@ class PostEditor
             __('Admonition', 'carve-markup') => "::: note\n\n:::",
             __('Disclosure', 'carve-markup') => "::: details \"Summary\"\n\n:::",
             __('Media embed', 'carve-markup') => 'media',
-            __('Divider', 'carve-markup') => '---',
+            __('Divider', 'carve-markup') => '***',
             __('Footnote', 'carve-markup') => 'footnote',
             __('Inline math', 'carve-markup') => 'math',
             __('Citation', 'carve-markup') => 'citation',

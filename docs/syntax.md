@@ -40,9 +40,8 @@ block.
 > Blockquote
 ^ Attribution caption
 
-| Col A | Col B |
-|-------|-------|
-| cell  | cell  |
+|= Col A |= Col B |
+| cell    | cell    |
 ```
 
 Fenced code uses backticks or tildes with a language after the fence:

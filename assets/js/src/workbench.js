@@ -58,7 +58,7 @@ export function analyzeDocument( source, engine, bibliographyJson = '' ) {
 	const diagnostics = [];
 	try {
 		ast = engine.parse( source, { extensions: [ engine.citations() ] } );
-		diagnostics.push( ...engine.lintCarve( source ).map( ( item ) => ( { ...item, severity: 'warning' } ) ) );
+		diagnostics.push( ...engine.lintCarve( source ).map( ( item ) => ( { ...item, severity: item.severity ?? 'warning' } ) ) );
 	} catch ( error ) {
 		diagnostics.push( { line: 1, column: 1, rule: 'parse-error', message: error.message, severity: 'error' } );
 	}

@@ -29,3 +29,15 @@ test('produces structural rather than line-oriented changes', () => {
 	const changes = semanticChanges('# Old', '# New', engine)
 	assert.ok(changes.some((change) => change.type === 'text' || change.type === 'heading'))
 })
+
+test('keeps the severity the engine linter assigns and defaults the rest to warning', () => {
+	const stub = {
+		...engine,
+		lintCarve: () => [
+			{ line: 1, column: 1, rule: 'thematic-break-spelling', message: 'hint', severity: 'Hint' },
+			{ line: 2, column: 1, rule: 'plain', message: 'plain' },
+		],
+	}
+	const severities = analyzeDocument('Text', stub).diagnostics.map((d) => [d.rule, d.severity])
+	assert.deepEqual(severities, [['thematic-break-spelling', 'Hint'], ['plain', 'warning']])
+})
