@@ -314,9 +314,14 @@
 			}
 			marker = value + item.delimiter;
 		}
-		const prefix = '\n' + item.indent + marker + item.separator + ( item.task ? '[ ] ' : '' );
+		const prefix = '\n' + item.indent + marker + separatorFor( marker, item.separator ) + ( item.task ? '[ ] ' : '' );
 
 		return { from: cursor, to: cursor, text: prefix, cursor: cursor + prefix.length };
+	}
+
+	// A letter or roman marker with `.` needs two spaces before its text (carve#4811).
+	function separatorFor( marker, separator ) {
+		return /^[a-zA-Z]+\.$/.test( marker ) && separator.length < 2 ? '  ' : separator;
 	}
 
 	function markerOf( item ) {
@@ -445,11 +450,13 @@
 		}
 		const end = itemEnd( lines, index, item );
 		const oldPrefix = item.indent.length + markerOf( item ).length;
+		const pad = separatorFor( marker, item.separator ).length - item.separator.length;
 		const newPrefix = column + marker.length;
-		const delta = newPrefix - oldPrefix;
+		const delta = newPrefix + pad - oldPrefix;
 		const saved = lines.slice( index, end + 1 );
 		const local = [ { index: index, cut: oldPrefix, delta: delta } ];
-		lines[ index ] = ' '.repeat( column ) + marker + lines[ index ].slice( oldPrefix );
+		const rest = lines[ index ].slice( oldPrefix ).replace( /^(\{[^{}\n]*\})?( +)/, ( all, attributes, spaces ) => ( attributes || '' ) + spaces + ' '.repeat( pad ) );
+		lines[ index ] = ' '.repeat( column ) + marker + rest;
 		for ( let at = index + 1; at <= end; at++ ) {
 			const indent = leading( lines[ at ] );
 			if ( ! lines[ at ].trim() || indent <= item.indent.length ) {

@@ -32,16 +32,17 @@ const CONTINUES = [
   ['decimal paren', '1) one|', '1) one\n2) |'],
   ['decimal past nine', '9. nine|', '9. nine\n10. |'],
   ['zero-padded decimal', '09. nine|', '09. nine\n10. |'],
-  ['lower alpha', 'a. one|', 'a. one\nb. |'],
+  ['lower alpha', 'a.  one|', 'a.  one\nb.  |'],
   ['upper alpha paren', 'A) one|', 'A) one\nB) |'],
-  ['lone i is roman', 'i. one|', 'i. one\nii. |'],
-  ['upper roman', 'III. three|', 'III. three\nIV. |'],
-  ['roman after iv', 'iv. four|', 'iv. four\nv. |'],
-  ['v in a roman list stays roman', 'iv. four\nv. five|', 'iv. four\nv. five\nvi. |'],
-  ['lone v is alpha', 'v. one|', 'v. one\nw. |'],
-  ['c then d is alpha', 'c. one\nd. two|', 'c. one\nd. two\ne. |'],
-  ['i then ii is roman for x', 'i. a\nii. b\niii. c\niv. d\nv. e\nvi. f\nvii. g\nviii. h\nix. i|',
-    'i. a\nii. b\niii. c\niv. d\nv. e\nvi. f\nvii. g\nviii. h\nix. i\nx. |'],
+  ['a one-space alpha item continues with two spaces', 'a. one|', 'a. one\nb.  |'],
+  ['lone i is roman', 'i.  one|', 'i.  one\nii.  |'],
+  ['upper roman', 'III.  three|', 'III.  three\nIV.  |'],
+  ['roman after iv', 'iv.  four|', 'iv.  four\nv.  |'],
+  ['v in a roman list stays roman', 'iv.  four\nv.  five|', 'iv.  four\nv.  five\nvi.  |'],
+  ['lone v is alpha', 'v.  one|', 'v.  one\nw.  |'],
+  ['c then d is alpha', 'c.  one\nd.  two|', 'c.  one\nd.  two\ne.  |'],
+  ['i then ii is roman for x', 'i.  a\nii.  b\niii.  c\niv.  d\nv.  e\nvi.  f\nvii.  g\nviii.  h\nix.  i|',
+    'i.  a\nii.  b\niii.  c\niv.  d\nv.  e\nvi.  f\nvii.  g\nviii.  h\nix.  i\nx.  |'],
   ['bare dot', '. one|', '. one\n. |'],
   ['open task', '- [ ] one|', '- [ ] one\n- [ ] |'],
   ['checked task resets', '- [x] one|', '- [x] one\n- [ ] |'],
@@ -59,11 +60,11 @@ const CONTINUES = [
   ['mid-item splits the rest into the next item', '- one| two', '- one\n- | two'],
   ['nested ordered under a bullet', '- top\n  1. one|', '- top\n  1. one\n  2. |'],
   ['task box on an ordered item is content', '1. [ ] one|', '1. [ ] one\n2. |'],
-  ['i then j is alpha from the first item', 'i. one|\nj. two', 'i. one\nj. |\nj. two'],
-  ['c then ci is roman from the first item', 'c. one|\nci. two', 'c. one\nci. |\nci. two'],
-  ['a case change starts a new roman list', 'a. one\nb. two\nI. three|', 'a. one\nb. two\nI. three\nII. |'],
+  ['i then j is alpha from the first item', 'i.  one|\nj.  two', 'i.  one\nj.  |\nj.  two'],
+  ['c then ci is roman from the first item', 'c.  one|\nci.  two', 'c.  one\nci.  |\nci.  two'],
+  ['a case change starts a new roman list', 'a.  one\nb.  two\nI.  three|', 'a.  one\nb.  two\nI.  three\nII.  |'],
   ['an item after a loose continuation paragraph', '- one\n\n  more\n- two|', '- one\n\n  more\n- two\n- |'],
-  ['roman across a lazy line', 'iv. four\nlazy\nv. five|', 'iv. four\nlazy\nv. five\nvi. |'],
+  ['roman across a lazy line', 'iv.  four\nlazy\nv.  five|', 'iv.  four\nlazy\nv.  five\nvi.  |'],
   ['an item under a thematic break', '---\n- one|', '---\n- one\n- |'],
   ['a heading between paragraph text and the item', 'text\n# Title\n- one|', 'text\n# Title\n- one\n- |'],
   ['an item under a heading', '# Title\n- one|', '# Title\n- one\n- |'],
@@ -193,10 +194,10 @@ const MOVES = [
   ['joining a child list takes the next ordinal', '1. a\n   1. x\n2. y|', false, '1. a\n   1. x\n   2. y|', 'y', 2, 2],
   ['joining a child list across its lazy line', '1. a\n   1. x\nmore\n2. y|', false, '1. a\n   1. x\nmore\n   2. y|', 'y', 2, 2],
   ['paren delimiter is kept', '1) a\n2) b|', false, '1) a\n   1) b|', 'b', 2, 1],
-  ['alpha restarts at a', 'a. x\nb. y|', false, 'a. x\n   a. y|', 'y', 2, 1],
-  ['upper alpha restarts at A', 'A. x\nB. y|', false, 'A. x\n   A. y|', 'y', 2, 1],
-  ['roman restarts at i', 'i. x\nii. y|', false, 'i. x\n   i. y|', 'y', 2, 1],
-  ['upper roman restarts at I', 'I. x\nII. y|', false, 'I. x\n   I. y|', 'y', 2, 1],
+  ['alpha restarts at a', 'a.  x\nb.  y|', false, 'a.  x\n    a.  y|', 'y', 2, 1],
+  ['upper alpha restarts at A', 'A.  x\nB.  y|', false, 'A.  x\n    A.  y|', 'y', 2, 1],
+  ['roman restarts at i', 'i.  x\nii.  y|', false, 'i.  x\n    i.  y|', 'y', 2, 1],
+  ['upper roman restarts at I', 'I.  x\nII.  y|', false, 'I.  x\n    I.  y|', 'y', 2, 1],
   ['bare dot stays a bare dot', '. a\n. b|', false, '. a\n  . b|', 'b', 2, 1],
   ['task box comes along', '- [ ] a\n- [x] b|', false, '- [ ] a\n  - [x] b|', 'b', 2, null],
   ['continuation lines and children move with the item', '- a\n- b|\n  more\n  - c', false, '- a\n  - b|\n    more\n    - c', 'c', 3, null],
@@ -210,7 +211,9 @@ const MOVES = [
   ['outdent past nine widens the marker and keeps the children', '9. a\n   1. b|\n      - c', true, '9. a\n10. b|\n    - c', 'c', 2, null],
   ['outdent a third level', '- a\n  - b\n    - c|', true, '- a\n  - b\n  - c|', 'c', 2, null],
   ['outdent a bare marker', '- a\n  - |', true, '- a\n- |', 'new', 1, null],
-  ['outdent into an alpha list', 'a. x\n   1. y|', true, 'a. x\nb. y|', 'y', 1, 2],
+  ['outdent into an alpha list', 'a.  x\n    1. y|', true, 'a.  x\nb.  y|', 'y', 1, 2],
+  ['outdent into an alpha list keeps attributes glued', 'a.  x\n    1.{.k} y|', true, 'a.  x\nb.{.k}  y|', 'y', 1, 2],
+  ['an alpha item moves with its numbered child', 'a.  x\nb.  y|\n    1. z', false, 'a.  x\n    a.  y|\n        1. z', 'z', 3, 1],
   ['selection nests each item once', '1. a\n2. |b\n3. c|', false, '1. a\n   1. |b\n   2. c|', 'c', 2, 2],
   ['selection skips an item that cannot move', '- |a\n- b|', false, '- |a\n  - b|', 'b', 2, null],
   ['selection moves a child once with its parent', '- a\n- |b\n  - c|', false, '- a\n  - |b\n    - c|', 'c', 3, null],
@@ -429,11 +432,11 @@ function classicEditor(cm) {
 }
 
 test('Enter in the classic CodeMirror editor continues an ordered list', () => {
-  const cm = fakeCodeMirror('a. one', 6);
+  const cm = fakeCodeMirror('a.  one', 7);
   classicEditor(cm);
   assert.equal(cm.pressEnter(), undefined);
-  assert.equal(cm.value, 'a. one\nb. ');
-  assert.equal(cm.caret, 10);
+  assert.equal(cm.value, 'a.  one\nb.  ');
+  assert.equal(cm.caret, 12);
 });
 
 test('Tab and Shift+Tab in the classic CodeMirror editor nest and un-nest an item', () => {
