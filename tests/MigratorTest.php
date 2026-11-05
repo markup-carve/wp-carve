@@ -59,10 +59,13 @@ class MigratorTest extends TestCase
     {
         wpcarve_test_set_post(4, ['post_content' => "# Heading\n\n[carve]more[/carve]"]);
 
-        $analysis = (new Migrator())->analyze(4);
+        $migrator = new Migrator();
+        $analysis = $migrator->analyze(4);
 
-        $this->assertFalse($analysis['can_auto_migrate']);
-        $this->assertSame('fidelity-unverified', $analysis['report']['diagnostics'][0]['code']);
+        $this->assertSame('markdown', $analysis['source']);
+        $this->assertTrue($analysis['can_auto_migrate']);
+        $migrator->migrate(4);
+        $this->assertStringContainsString('[carve]more[/carve]', (string)get_post(4)->post_content);
     }
 
     public function testMarkdownIsDetected(): void

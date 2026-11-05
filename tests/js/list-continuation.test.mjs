@@ -34,7 +34,6 @@ const CONTINUES = [
   ['zero-padded decimal', '09. nine|', '09. nine\n10. |'],
   ['lower alpha', 'a.  one|', 'a.  one\nb.  |'],
   ['upper alpha paren', 'A) one|', 'A) one\nB) |'],
-  ['a one-space alpha item continues with two spaces', 'a. one|', 'a. one\nb.  |'],
   ['lone i is roman', 'i.  one|', 'i.  one\nii.  |'],
   ['upper roman', 'III.  three|', 'III.  three\nIV.  |'],
   ['roman after iv', 'iv.  four|', 'iv.  four\nv.  |'],
@@ -96,6 +95,9 @@ for (const [name, before, after] of ENDS) {
 
 const LEAVES = [
   ['plus is the continuation marker', '+ one|'],
+  ['one space after a letter dot is prose', 'a. one|'],
+  ['one space after a roman dot is prose', 'iv. four|'],
+  ['initials are prose', 'J. R. R. Tolkien|'],
   ['lone plus', '+|'],
   ['parenthesized number', '(1) one|'],
   ['bare paren', ') one|'],
@@ -251,17 +253,19 @@ test('the engine keeps a paragraph after the list outside it once an item nests'
   assert.deepEqual(parse(after).children.map(block => block.type), ['list', 'paragraph']);
 });
 
-test('an under-indented lazy line stays paragraph text of the moved item', () => {
+test('a block line short of the content column stays after the list when the item moves', () => {
   for (const [before, after] of [
     ['1. a\n2. b|\n # outside', '1. a\n   1. b|\n # outside'],
     ['9. a\n10. b|\n   # outside', '9. a\n   1. b|\n  # outside'],
   ]) {
     assert.equal(tab(before), after);
-    const list = parse(after.replace('|', '')).children;
-    assert.equal(list.length, 1);
-    const child = list[0].items[0].children[1];
-    assert.deepEqual(child.items[0].children.map(block => block.type), ['paragraph']);
+    const blocks = parse(after.replace('|', '')).children;
+    assert.deepEqual(blocks.map(block => block.type), ['list', 'heading']);
   }
+});
+
+test('lazy paragraph text short of the content column still moves with the item', () => {
+  assert.equal(tab('1. a\n2. b|\n lazy'), '1. a\n   1. b|\n lazy');
 });
 
 test('Shift+Tab leaves a block between the marker and content columns a block', () => {
