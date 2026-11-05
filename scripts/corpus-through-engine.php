@@ -80,7 +80,15 @@ function declaredCorpusSize(string $corpusDir): int
     $examplesDir = $corpusDir . '/../../resources/examples';
     $declared = 0;
 
-    foreach (['core.md', 'extensions.md', 'edge-cases.md'] as $page) {
+    $pages = ['core.md', 'extensions.md', 'edge-cases.md'];
+    // carve#4132 split edge-cases.md into one NNNN-slug.md file per section.
+    if (!file_exists($examplesDir . '/edge-cases.md') && is_dir($examplesDir . '/edge-cases')) {
+        $sections = glob($examplesDir . '/edge-cases/[0-9]*.md') ?: [];
+        sort($sections);
+        $pages = ['core.md', 'extensions.md', ...array_map(fn (string $file): string => 'edge-cases/' . basename($file), $sections)];
+    }
+
+    foreach ($pages as $page) {
         $path = $examplesDir . '/' . $page;
         if (!file_exists($path)) {
             // Not a soft skip. Without this page there is no independent

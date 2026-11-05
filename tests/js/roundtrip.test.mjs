@@ -123,3 +123,12 @@ for (const [name, carve] of Object.entries(CASES)) {
 		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(carve)}\n  serialized: ${JSON.stringify(roundTrip(carve))}`);
 	});
 }
+
+test('a rule inserted in the visual editor is written as ***', () => {
+	const doc = { type: 'doc', content: [
+		{ type: 'paragraph', content: [ { type: 'text', text: 'Above.' } ] },
+		{ type: 'horizontalRule' },
+		{ type: 'paragraph', content: [ { type: 'text', text: 'Below.' } ] },
+	] };
+	assert.equal(serializeToCarve(doc), 'Above.\n\n***\n\nBelow.');
+});

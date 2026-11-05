@@ -60,6 +60,10 @@
 		if ( match[ 4 ] === ')' && value === undefined ) {
 			return null;
 		}
+		// One space after a letter or roman `.` marker is prose, like `J. R. R.` (carve#4811).
+		if ( value && match[ 4 ] === '.' && /^[a-zA-Z]+$/.test( value ) && match[ 6 ].length < 2 ) {
+			return null;
+		}
 		if ( value && value.length > 1 && /^[a-zA-Z]+$/.test( value ) ) {
 			const sameCase = value === value.toLowerCase() || value === value.toUpperCase();
 			if ( ! sameCase || ! fromRoman( value ) ) {
@@ -249,9 +253,10 @@
 	// whitespace, under any quote markers. `+` and `* * *` are not markers.
 	function isBareMarker( line ) {
 		const body = line.replace( /^[ \t]*(?:>[ \t]*)*/, '' ).replace( /[ \t]+$/, '' );
-		const item = body ? matchItem( body + ' ' ) : null;
+		// Two spaces, so a bare letter or roman `a.` still reads as a marker.
+		const item = body ? matchItem( body + '  ' ) : null;
 
-		return !! item && item.length === body.length + 1;
+		return !! item && item.length === body.length + 2;
 	}
 
 	// Whether a preview should wait while the cursor sits at offset `cursor`.
