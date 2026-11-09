@@ -82,7 +82,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-25T16:42:22+00:00"
+            "time": "2026-08-25T16:42:22+00:00",
+            "published-time": "2026-08-25T16:44:40+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -390,7 +391,8 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-10-25T21:28:26+00:00"
+            "time": "2026-10-25T21:28:26+00:00",
+            "published-time": "2026-10-25T23:23:19+00:00"
         },
         {
             "name": "markup-carve/carve-php",
@@ -525,7 +527,8 @@
                 "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
                 "source": "https://github.com/markup-carve/carve-php-media-embed"
             },
-            "time": "2026-10-23T12:48:36+00:00"
+            "time": "2026-10-23T12:48:36+00:00",
+            "published-time": "2026-10-23T12:55:44+00:00"
         },
         {
             "name": "nette/schema",
@@ -859,7 +862,8 @@
             "support": {
                 "source": "https://github.com/php-fig/http-client"
             },
-            "time": "2023-09-23T14:17:50+00:00"
+            "time": "2023-09-23T14:17:50+00:00",
+            "published-time": "2023-09-23T14:18:12+00:00"
         },
         {
             "name": "psr/http-factory",
@@ -914,7 +918,8 @@
             "support": {
                 "source": "https://github.com/php-fig/http-factory"
             },
-            "time": "2024-04-15T12:06:14+00:00"
+            "time": "2024-04-15T12:06:14+00:00",
+            "published-time": "2024-05-10T07:32:19+00:00"
         },
         {
             "name": "psr/http-message",
@@ -967,7 +972,8 @@
             "support": {
                 "source": "https://github.com/php-fig/http-message/tree/2.0"
             },
-            "time": "2023-04-04T09:54:51+00:00"
+            "time": "2023-04-04T09:54:51+00:00",
+            "published-time": "2023-04-04T09:55:35+00:00"
         },
         {
             "name": "psr/simple-cache",
@@ -1018,7 +1024,8 @@
             "support": {
                 "source": "https://github.com/php-fig/simple-cache/tree/3.0.0"
             },
-            "time": "2021-10-29T13:26:27+00:00"
+            "time": "2021-10-29T13:26:27+00:00",
+            "published-time": "2021-10-29T13:27:19+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -4125,5 +4132,5 @@
     "platform-overrides": {
         "php": "8.2.10"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
