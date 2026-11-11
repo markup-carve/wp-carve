@@ -37,6 +37,10 @@ block.
 
 1. Ordered list
 
+a.  Letter list (two spaces after a letter or roman marker)
+
+***
+
 > Blockquote
 ^ Attribution caption
 
@@ -51,6 +55,10 @@ block.
 Column alignment goes in braces right after the header marker (`|={<}`,
 `|={~}`, `|={>}`); a body cell overrides its column with `|{>}`. The glued
 0.1.13 spelling (`|=>`, `|<`) still reads but is deprecated.
+
+A letter or roman marker with a dot needs two spaces (`a.  item`), so prose such
+as `J. R. R. Tolkien` stays a paragraph. The editor writes thematic breaks as
+`***`.
 
 Fenced code uses backticks or tildes with a language after the fence:
 
@@ -109,6 +117,7 @@ $focusMe();              // [tl! focus]
 | `:: term`<br>`:  definition` (two spaces) | definition list |
 | `::: list-table` + nested list | table from list rows (attrs like `{header-rows=1}` on the preceding line) |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
+| `---` on the first line, no closer | frontmatter to the end of the post (write `***` for a break) |
 
 Extensions like table of contents, heading permalinks, smart quotes, Mermaid and
 Torchlight are toggled in [Settings](settings.md). For the exact, pinned

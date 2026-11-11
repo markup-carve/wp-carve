@@ -88,7 +88,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 238519a293bab960dc5dc4e49a5e02bcac940160
+          ref: 143df0bf96c322643f73c6b4b4217843b8d4cc06
           path: carve-freeze
 
       - name: Setup PHP

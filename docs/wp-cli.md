@@ -106,5 +106,9 @@ WARN   #9  Release notes  [visual editor simplifies: -]
 | `WARN` | carve-php's document linter reported at least one finding. It runs every engine rule, with the extensions the front end renders with, and line numbers refer to the stored source. With media embeds on, it also reports `media-embed-unresolved` and `media-embed-provider-not-allowed` for a `:youtube[...]` or `:media[...]` directive that renders no embed. |
 | visual editor simplifies | Generated markup present on the front end but intentionally omitted from the visual-editor seed - a table of contents, heading permalinks, diagrams, or abbreviations. These are render-time output, not part of the source, so the Visual editor shows the plain source instead (it never freezes into the post). Not a problem - just so you know what differs. |
 
+A finding can be silenced in the source with a Carve lint comment:
+`%% carve-lint-disable-next-line <rule>` for the next line,
+`%% carve-lint-disable-line <rule>` for its own line, or a `%% carve-lint-disable <rule>` … `%% carve-lint-enable <rule>` range.
+
 It writes nothing; use it before or after a migration to spot content that fails
 to render.

@@ -79,6 +79,7 @@ function declaredCorpusSize(string $corpusDir): int
 {
     $examplesDir = $corpusDir . '/../../resources/examples';
     $declared = 0;
+    $inputs = [];
 
     $pages = ['core.md', 'extensions.md', 'edge-cases.md'];
     // carve#4132 split edge-cases.md into one NNNN-slug.md file per section.
@@ -99,7 +100,9 @@ function declaredCorpusSize(string $corpusDir): int
             exit(1);
         }
 
-        $declared += countDeclaredPairs((string)file_get_contents($path));
+        $source = (string)file_get_contents($path);
+        $declared += countDeclaredPairs($source);
+        $inputs += declaredPairInputs($source);
     }
 
     if ($declared === 0) {
@@ -107,7 +110,8 @@ function declaredCorpusSize(string $corpusDir): int
         exit(1);
     }
 
-    return $declared;
+    // The generator writes one fixture per distinct input.
+    return count($inputs);
 }
 
 /**

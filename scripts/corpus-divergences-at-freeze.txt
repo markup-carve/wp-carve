@@ -1,7 +1,7 @@
 # Documents the shipped engine renders differently from its pinned spec corpus.
 #
-#   corpus  markup-carve/carve 238519a2 (main before the 0.1.14 tag), 4387 documents
-#   engine  markup-carve/carve-php main f528aac (before its next release)
+#   corpus  markup-carve/carve 143df0bf (main after carve#5921, the 0.1.14 cut), 4619 documents
+#   engine  markup-carve/carve-php main 83531ad (to publish as 0.1.17)
 #
 # PRE-RELEASE MEASUREMENT. Both ends are unreleased mains. Re-measure when the
 # spec tag and the carve-php release publish, and move the corpus ref in ci.yml
@@ -36,18 +36,14 @@
 # The `(none)` below is not a comment. It states the zero, so that a
 # baseline which failed to load - which is also a file with no names - stays
 # distinguishable from one that renders clean.
-556-a-closed-block-leaves-no-frame-for-the-line-below-14.crv
-806-a-marker-folds-into-the-paragraph-a-first-block-plus-took-3.crv
-867-an-indented-comment-block-in-a-line-block-leaves-nothing-2.crv
-867-an-indented-comment-block-in-a-line-block-leaves-nothing-4.crv
-867-an-indented-comment-block-in-a-line-block-leaves-nothing.crv
-872-a-table-writes-one-col-per-column-entry-2.crv
-872-a-table-writes-one-col-per-column-entry.crv
-872-the-third-confirmation-round-s-model-findings-5.crv
-873-a-plus-after-an-attached-block-reaches-its-host-through-quote-prefixes-2.crv
-882-attributed-bracket-spans-share-the-inline-cap.crv
-947-a-quote-s-next-is-not-payload-of-an-item-fence-the-last-block-left-open-2.crv
-947-a-quote-s-next-is-not-payload-of-an-item-fence-the-last-block-left-open-3.crv
-947-a-quote-s-next-is-not-payload-of-an-item-fence-the-last-block-left-open-4.crv
-947-a-quote-s-next-is-not-payload-of-an-item-fence-the-last-block-left-open.crv
-948-a-fence-a-quote-s-attached-block-opens-ends-with-its-container.crv
+
+1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written-2.crv
+1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written-4.crv
+1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written.crv
+1071-a-tabbed-verse-line-keeps-the-lead-its-frames-leave-3.crv
+1071-a-tabbed-verse-line-keeps-the-lead-its-frames-leave-4.crv
+1071-a-tabbed-verse-line-keeps-the-lead-its-frames-leave.crv
+1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame-2.crv
+1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame-3.crv
+1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame-4.crv
+1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame.crv

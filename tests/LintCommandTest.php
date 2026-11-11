@@ -98,6 +98,16 @@ class LintCommandTest extends TestCase
         $this->assertStringStartsWith('1:7 media-embed-unresolved ', $findings[0]);
     }
 
+    public function testSuppressionCommentsSilenceTheNamedRule(): void
+    {
+        $source = "%% carve-lint-disable-next-line markdown-strong-double-star\nThis is **bold** text.\n";
+
+        $this->assertSame([], LintCommand::engineFindings(new Converter([]), [$source])['findings']);
+
+        $findings = LintCommand::engineFindings(new Converter(['media_embed_enabled' => true]), ["%% carve-lint-disable-next-line media-embed-unresolved\nWatch :media[]\n"])['findings'];
+        $this->assertSame([], $findings);
+    }
+
     public function testEmptySourceIsNotLinted(): void
     {
         $this->assertSame([], (new Converter([]))->lint("  \n"));
