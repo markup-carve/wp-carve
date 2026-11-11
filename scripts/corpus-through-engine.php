@@ -68,8 +68,9 @@ require __DIR__ . '/lib/declared-pairs.php';
  *
  * So the reference is the corpus's SOURCE: tests/corpus is generated from the
  * `::: compare` blocks in resources/examples/{core,extensions,edge-cases}.md,
- * one pair per `carve` fence in a block, and the generator refuses to write a
- * corpus where the two disagree. Both live in the same checkout, so this costs
+ * one pair per distinct `carve` fence input (the generator writes a repeated
+ * input once, carve#5244), and the generator refuses to write a corpus where
+ * the two disagree. Both live in the same checkout, so this costs
  * no second clone.
  *
  * This is the approach the sibling repositories arrived at, ported rather than
@@ -78,7 +79,7 @@ require __DIR__ . '/lib/declared-pairs.php';
 function declaredCorpusSize(string $corpusDir): int
 {
     $examplesDir = $corpusDir . '/../../resources/examples';
-    $declared = 0;
+    $inputs = [];
 
     $pages = ['core.md', 'extensions.md', 'edge-cases.md'];
     // carve#4132 split edge-cases.md into one NNNN-slug.md file per section.
@@ -99,8 +100,9 @@ function declaredCorpusSize(string $corpusDir): int
             exit(1);
         }
 
-        $declared += countDeclaredPairs((string)file_get_contents($path));
+        array_push($inputs, ...declaredPairInputs((string)file_get_contents($path)));
     }
+    $declared = count(array_unique($inputs));
 
     if ($declared === 0) {
         fwrite(STDERR, "::error::the corpus source pages under {$examplesDir} declare no ::: compare blocks at all; that is a wiring problem, not a corpus of size zero\n");
@@ -241,7 +243,7 @@ foreach ($sources as $source) {
 $declared = declaredCorpusSize($corpusDir);
 if (count($pairs) !== $declared) {
     fwrite(STDERR, sprintf(
-        "::error::%d corpus pairs found in %s, but the spec's example pages declare %d. Every carve example in a ::: compare block in "
+        "::error::%d corpus pairs found in %s, but the spec's example pages declare %d. Every distinct carve example in a ::: compare block in "
         . "resources/examples/{core,extensions,edge-cases}.md becomes one corpus pair, so a difference means the corpus "
         . "checked out here is not the one those pages describe - a truncated or stale checkout, or a corpus that needs "
         . "regenerating. It does not mean this run was clean.\n",

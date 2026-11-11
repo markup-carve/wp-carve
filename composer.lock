@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "646b0e0647d5602ddf1a75e1f929b74e",
+    "content-hash": "27986131ff600438cdd6505c623c7242",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -354,12 +354,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "93a88a97c5f78b10f0031562bf5650c5bc4f7704"
+                "reference": "53c9e26e941c9b72654f141e54a38430da5dea23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/93a88a97c5f78b10f0031562bf5650c5bc4f7704",
-                "reference": "93a88a97c5f78b10f0031562bf5650c5bc4f7704",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/53c9e26e941c9b72654f141e54a38430da5dea23",
+                "reference": "53c9e26e941c9b72654f141e54a38430da5dea23",
                 "shasum": ""
             },
             "require": {
@@ -398,12 +398,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "f528aaca2dd277ed52c0c8843ffdd77fa87f875d"
+                "reference": "83531ad57ee13280615e81f1a8f26309cb3525b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/f528aaca2dd277ed52c0c8843ffdd77fa87f875d",
-                "reference": "f528aaca2dd277ed52c0c8843ffdd77fa87f875d",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/83531ad57ee13280615e81f1a8f26309cb3525b8",
+                "reference": "83531ad57ee13280615e81f1a8f26309cb3525b8",
                 "shasum": ""
             },
             "require": {
@@ -513,7 +513,7 @@
                     "url": "https://github.com/dereuromark"
                 }
             ],
-            "time": "2026-11-09T21:51:35+00:00"
+            "time": "2026-11-11T11:47:39+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",

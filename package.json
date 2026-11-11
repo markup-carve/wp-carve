@@ -17,9 +17,14 @@
     "test:js": "npm run palette:check && node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#78593547309cad34ec1086dbb28fa62b722abf4c",
-    "@markup-carve/carve-grammars": "git+https://github.com/markup-carve/carve-grammars.git#93a88a97c5f78b10f0031562bf5650c5bc4f7704",
+    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#7ba2cace87a5b3a1c64bc8c22d4268020f2787e0",
+    "@markup-carve/carve-grammars": "git+https://github.com/markup-carve/carve-grammars.git#53c9e26e941c9b72654f141e54a38430da5dea23",
     "prismjs": "^1.30.0"
+  },
+  "overrides": {
+    "@markup-carve/carve-grammars": {
+      "@markup-carve/carve": "$@markup-carve/carve"
+    }
   },
   "devDependencies": {
     "@tiptap/core": "^2.11.0",
