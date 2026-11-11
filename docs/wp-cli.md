@@ -55,6 +55,11 @@ auto-migrated:
 | `markdown` | yes | Markdown-looking source; converted via `MarkdownToCarve`. |
 | `html` | yes | HTML source; converted via `HtmlToCarve`. |
 
+Markdown GitHub alerts (`> [!NOTE]`) become Carve admonitions and HTML comment
+blocks become Carve comments. The HTML importer reads only `data-carve-*`
+carrier attributes; the older `data-djot-*` prefix is treated as an ordinary
+`data-*` attribute.
+
 The plugin's own `[carve]` shortcode does **not** count as a blocking
 shortcode. Migrated posts get `_wpcarve_enabled = 1` so the `the_content`
 filter renders them as Carve.
@@ -108,3 +113,10 @@ WARN   #9  Release notes  [visual editor simplifies: -]
 
 It writes nothing; use it before or after a migration to spot content that fails
 to render.
+
+A finding can be silenced in the source with a Carve comment naming the rule:
+`%% carve-lint-disable-next-line heading-level-skip` before the line,
+`%% carve-lint-disable-line <rule>` on it, or a `%% carve-lint-disable <rule>`
+... `%% carve-lint-enable <rule>` pair around a range. Rule names are the
+canonical ids; the retired alias `a11y/heading-jump` no longer matches
+`heading-level-skip`.

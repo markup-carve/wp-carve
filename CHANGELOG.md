@@ -7,18 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixes
-
-- Captioned `{.diff}` fences get diff rows, with and without Torchlight; the class sits on the figure.
-- Editor highlighting colors the caption marker and caption text with the shared palette's caption roles.
-
 ## [0.1.13] - 2026-10-27
 
-Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets.
+Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the Carve 0.1.14 engines.
+
+### Breaking
+
+- Carve 0.1.14 engines (carve-php 0.1.17, carve 0.1.16, carve-grammars with braced alignment and first-line frontmatter): a `---` on the first line with no closer makes the rest of the post frontmatter; letter and roman markers such as `a.` need two spaces; a definition term is one line; `+` follows one attach rule; `***` is the canonical thematic break. Some documents render differently (#210).
+- Migration and paste import read only `data-carve-*` carriers; `data-djot-*` attributes stay ordinary attributes (markup-carve/carve#5735, #210).
+- `wp carve lint` no longer accepts the `a11y/heading-jump` alias in suppression comments; use `heading-level-skip`. Retired rule ids such as `raw-block-syntax` are gone (markup-carve/carve#5735, #210).
 
 ### Fixes
 
 - Carve blocks save fallback HTML so published content remains visible when the plugin is inactive (#198).
+- Captioned `{.diff}` fences get diff rows, with and without Torchlight; the class sits on the figure (#207).
+- Editor highlighting colors the caption marker and caption text with the shared palette's caption roles (#207).
+- The Divider buttons insert `***`, so a divider at the top of a post no longer opens frontmatter, and the workbench keeps a lint finding's severity (#208).
+- Enter after a one-space letter or roman line such as `J. R. R. Tolkien` stays a plain newline, and the list helpers write two spaces after letter and roman markers (#209, #210).
 
 ### Improvements
 
@@ -26,6 +31,9 @@ Carve blocks retain rendered content when the plugin is unavailable, and deactiv
 - The profile guide shows measured capabilities for each content profile (#200).
 - Untrusted Carve renders have configurable budgets on the Advanced settings tab (#201, #202).
 - Editor highlighting, published code fences and Torchlight use the shared Carve light and dark syntax palette (#203).
+- Braced table cell alignment (`|={>} Price |`) renders, is highlighted in every editor and keeps its spelling through the visual editor (#210).
+- Lint suppression comments (`%% carve-lint-disable-next-line <rule>` and friends) silence `wp carve lint` findings, and new authoring rules report Markdown habits (#210).
+- CSV and TSV table includes select records with `@rows` and columns with `@cols`; Markdown migration turns GitHub alerts into admonitions and HTML comments into Carve comments (#210).
 
 **Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.12...0.1.13
 

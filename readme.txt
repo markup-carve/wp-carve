@@ -50,6 +50,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 * The profile guide lists measured capabilities for each content profile.
 * Untrusted Carve renders have configurable budgets on the Advanced settings tab.
 * The editor, published code fences and Torchlight share one light and dark Carve color palette.
+* Changed: the server renderer, preview and editors use the Carve 0.1.14 engines. A `---` on the first line with no closer makes the rest of the post frontmatter, letter and roman list markers need two spaces, and some documents render differently.
+* Changed: migration reads only `data-carve-*` carriers, and lint suppression comments accept only the canonical `heading-level-skip`, not `a11y/heading-jump`.
+* New: braced table cell alignment (`|={>}`), lint suppression comments, and `@rows` / `@cols` on CSV and TSV table includes. Markdown migration turns GitHub alerts into admonitions.
+* Fixed: captioned diff fences get diff rows, divider buttons insert `***`, and Enter after a line like `J. R. R. Tolkien` no longer starts a list.
 
 = 0.1.12 =
 * Carve source is highlighted in every Carve editor field, and Enter, Tab and Shift+Tab continue, nest and outdent list items.

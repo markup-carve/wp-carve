@@ -94,6 +94,15 @@ the `_wpcarve_include_trusted` post meta and is written by the save alone; REST,
 `{{ sample.php @region:demo @code:php }}` inserts only the lines between its
 `#region demo` and `#endregion demo` markers.
 
+A `{table}` line above a CSV or TSV include renders the data as a table.
+`@rows:N-M` selects parsed records, the header being record 1, and
+`@cols:"Name,Other"` keeps the named columns in that order:
+
+```text
+{table}
+{{ plans.csv @code:csv @rows:1-5 @cols:"Plan,Seats" }}
+```
+
 The root is used exactly as stored. A relative or missing root expands nothing
 and reports `include-root-refused`. Targets outside the root, through `..` or a
 symlink, are refused by carve-php.

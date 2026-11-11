@@ -36,6 +36,9 @@ block.
 - [x] Task, checked
 
 1. Ordered list
+a.  Letter list (two spaces after `a.`)
+
+***
 
 > Blockquote
 ^ Attribution caption
@@ -51,6 +54,12 @@ block.
 Column alignment goes in braces right after the header marker (`|={<}`,
 `|={~}`, `|={>}`); a body cell overrides its column with `|{>}`. The glued
 0.1.13 spelling (`|=>`, `|<`) still reads but is deprecated.
+
+A letter or roman marker with a dot (`a.`, `iv.`) needs two spaces before the
+text, so a line like `J. R. R. Tolkien` stays a paragraph. A thematic break is
+written `***`. Do not start a post with `---` as a rule: a `---` on the first
+line opens frontmatter, and with no closing `---` the rest of the post is
+frontmatter.
 
 Fenced code uses backticks or tildes with a language after the fence:
 
@@ -101,12 +110,12 @@ $focusMe();              // [tl! focus]
 
 | Syntax | Result |
 | --- | --- |
-| `@alice` | mention span (needs `mentions_enabled`; otherwise literal text) |
+| `@alice` | mention span (needs `mentions_enabled`; otherwise literal text); the name needs an ASCII letter |
 | `#release-1.0` | tag span (needs `mentions_enabled`; otherwise literal text) |
 | `$` ` `…` ` ` / `$$` blocks | math (KaTeX on the front end) |
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
-| `:: term`<br>`:  definition` (two spaces) | definition list |
+| `:: term`<br>`:  definition` (two spaces) | definition list; the term is one line |
 | `::: list-table` + nested list | table from list rows (attrs like `{header-rows=1}` on the preceding line) |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
 

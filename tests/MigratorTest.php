@@ -103,6 +103,24 @@ class MigratorTest extends TestCase
         $this->assertSame(2, $report['schemaVersion']);
     }
 
+    public function testMigrateTurnsAGitHubAlertIntoAnAdmonition(): void
+    {
+        wpcarve_test_set_post(8, ['post_content' => "# Heading\n\n> [!NOTE]\n> Read **this** first.\n"]);
+
+        (new Migrator())->migrate(8, true);
+
+        $this->assertStringContainsString("::: note\nRead *this* first.\n:::", get_post(8)->post_content);
+    }
+
+    public function testMigrateReadsNoDjotCarrier(): void
+    {
+        wpcarve_test_set_post(9, ['post_content' => '<p>See <span data-djot-ref="n1">x</span>.</p>']);
+
+        (new Migrator())->migrate(9, true);
+
+        $this->assertStringContainsString('{data-djot-ref=n1}', get_post(9)->post_content);
+    }
+
     public function testMigrateReturnsNullForBlockPostWithoutForce(): void
     {
         wpcarve_test_set_post(8, ['post_content' => '<!-- wp:paragraph --><p>x</p><!-- /wp:paragraph -->']);

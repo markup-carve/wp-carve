@@ -132,3 +132,10 @@ test('a rule inserted in the visual editor is written as ***', () => {
 	] };
 	assert.equal(serializeToCarve(doc), 'Above.\n\n***\n\nBelow.');
 });
+
+test('braced cell alignment keeps its braced spelling through the visual editor', () => {
+	const carve = '|={<} Item |={>} Price |\n| Tea | 3.50 |\n| Cake |{~} n/a |';
+	const out = roundTrip(carve);
+	assert.equal(normHtml(carveToHtml(out)), normHtml(carveToHtml(carve)));
+	assert.doesNotMatch(out, /\|=?[<>~]/, `deprecated alignment prefix written: ${JSON.stringify(out)}`);
+});

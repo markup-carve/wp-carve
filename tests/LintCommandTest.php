@@ -54,6 +54,17 @@ class LintCommandTest extends TestCase
         $this->assertCount(1, $matching);
     }
 
+    public function testASuppressionCommentSilencesOnlyTheCanonicalRuleName(): void
+    {
+        $skip = static fn (string $directive): array => array_filter(
+            LintCommand::engineFindings(new Converter([]), ["# A\n\n{$directive}\n### C\n"])['findings'],
+            static fn (string $finding): bool => str_contains($finding, 'heading-level-skip'),
+        );
+
+        $this->assertSame([], $skip('%% carve-lint-disable-next-line heading-level-skip'));
+        $this->assertCount(1, $skip('%% carve-lint-disable-next-line a11y/heading-jump'));
+    }
+
     public function testLabelsEachSourceWhenAPostHoldsSeveral(): void
     {
         $findings = LintCommand::engineFindings(new Converter([]), [
