@@ -48,7 +48,7 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 * Breaking: a `---` on the first line with no closer is frontmatter to the end of the post; write `***` for a thematic break.
 * Breaking: letter and roman list markers with a dot need two spaces (`a.  item`), so initials such as `J. R. R.` stay prose.
 * Breaking: migration reads only `data-carve-*` carriers, and lint suppression accepts only `heading-level-skip`, not `a11y/heading-jump`.
-* Changed: the server renderer, preview and editors use the carve 0.1.14 engines (carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.23), so some documents render differently.
+* Changed: the server renderer, preview and editors use the carve 0.1.14 engines (carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.24), so some documents render differently.
 * Rendering, preview, highlighting and the visual editor follow the carve 0.1.14 spec, including braced table cell alignment (`|={>}`).
 * `wp carve lint` honors `%% carve-lint-disable` suppression comments.
 * CSV and TSV table includes can select rows and columns, and Markdown migration turns GitHub alerts into admonitions.
