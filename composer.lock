@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8275a671dd021e965c62aee83168b505",
+    "content-hash": "40fcdf89e5f655f324e950188f53f15c",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -350,22 +350,21 @@
         },
         {
             "name": "markup-carve/carve-grammars",
-            "version": "dev-main",
+            "version": "v0.1.23",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "2f95ad29d20c112d5e010ef0a24da5bad39ab5a2"
+                "reference": "31089cb935826a6a672b77892258debfdd1f5300"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/2f95ad29d20c112d5e010ef0a24da5bad39ab5a2",
-                "reference": "2f95ad29d20c112d5e010ef0a24da5bad39ab5a2",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/31089cb935826a6a672b77892258debfdd1f5300",
+                "reference": "31089cb935826a6a672b77892258debfdd1f5300",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.1"
             },
-            "default-branch": true,
             "type": "library",
             "license": [
                 "MIT"
@@ -390,7 +389,7 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-11-12T10:47:07+00:00"
+            "time": "2026-11-12T15:41:11+00:00"
         },
         {
             "name": "markup-carve/carve-php",
@@ -4113,18 +4112,9 @@
             "time": "2025-05-07T01:16:12+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "markup-carve/carve-grammars",
-            "version": "dev-main",
-            "alias": "0.1.23",
-            "alias_normalized": "0.1.23.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "markup-carve/carve-grammars": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
