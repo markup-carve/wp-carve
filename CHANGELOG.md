@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.13] - 2026-11-12
 
-Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.16, carve-grammars 0.1.23 and carve-php-media-embed 0.1.7.
+Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.23 and carve-php-media-embed 0.1.7.
 
 ### Breaking
 
