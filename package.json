@@ -8,7 +8,7 @@
   "scripts": {
     "build": "npm run build:engine && npm run build:editor && npm run build:highlight",
     "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
-    "build:editor": "esbuild assets/js/tiptap/visual-editor.js --alias:@markup-carve/carve=./node_modules/@markup-carve/carve/dist/index.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
+    "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
     "build:highlight": "node assets/js/src/build-highlight.mjs",
     "palette:build": "node scripts/sync-syntax-palette.mjs",
     "palette:check": "node scripts/sync-syntax-palette.mjs --check",
@@ -17,8 +17,8 @@
     "test:js": "npm run palette:check && node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "git+https://github.com/markup-carve/carve-js.git#7ba2cace87a5b3a1c64bc8c22d4268020f2787e0",
-    "@markup-carve/carve-grammars": "git+https://github.com/markup-carve/carve-grammars.git#93a88a97c5f78b10f0031562bf5650c5bc4f7704",
+    "@markup-carve/carve": "^0.1.16",
+    "@markup-carve/carve-grammars": "git+https://github.com/markup-carve/carve-grammars.git#2f95ad29d20c112d5e010ef0a24da5bad39ab5a2",
     "prismjs": "^1.30.0"
   },
   "devDependencies": {

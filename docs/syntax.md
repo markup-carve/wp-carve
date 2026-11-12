@@ -109,12 +109,12 @@ $focusMe();              // [tl! focus]
 
 | Syntax | Result |
 | --- | --- |
-| `@alice` | mention span (needs `mentions_enabled`; otherwise literal text) |
+| `@alice` | mention span (needs `mentions_enabled`; otherwise literal text); the name needs an ASCII letter |
 | `#release-1.0` | tag span (needs `mentions_enabled`; otherwise literal text) |
 | `$` ` `…` ` ` / `$$` blocks | math (KaTeX on the front end) |
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
-| `:: term`<br>`:  definition` (two spaces) | definition list |
+| `:: term`<br>`:  definition` (two spaces) | definition list; the term is one line |
 | `::: list-table` + nested list | table from list rows (attrs like `{header-rows=1}` on the preceding line) |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
 | `---` on the first line, no closer | frontmatter to the end of the post (write `***` for a break) |

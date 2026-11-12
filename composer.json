@@ -11,9 +11,9 @@
     ],
     "require": {
         "php": ">=8.2",
-        "markup-carve/carve-grammars": "dev-main#93a88a97c5f78b10f0031562bf5650c5bc4f7704",
-        "markup-carve/carve-php": "dev-main#83531ad57ee13280615e81f1a8f26309cb3525b8 as 0.1.17",
-        "markup-carve/carve-php-media-embed": "dev-main#522ec93eec6669bfed57905b136ad209f4ec4c63",
+        "markup-carve/carve-grammars": "dev-main#2f95ad29d20c112d5e010ef0a24da5bad39ab5a2 as 0.1.23",
+        "markup-carve/carve-php": "^0.1.17",
+        "markup-carve/carve-php-media-embed": "^0.1.7",
         "torchlight/engine": "^1.0"
     },
     "prefer-stable": true,
@@ -54,14 +54,6 @@
         "profiles-table": "php scripts/generate-profile-table.php"
     },
     "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/markup-carve/carve-php"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/markup-carve/carve-php-media-embed"
-        },
         {
             "type": "vcs",
             "url": "https://github.com/markup-carve/carve-grammars"

@@ -1,12 +1,10 @@
 # Documents the shipped engine renders differently from its pinned spec corpus.
 #
-#   corpus  markup-carve/carve 143df0bf (main after carve#5921, the 0.1.14 cut), 4619 documents
-#   engine  markup-carve/carve-php main 83531ad (to publish as 0.1.17)
+#   corpus  markup-carve/carve 0.1.14 (51c56315), 4631 documents
+#   engine  markup-carve/carve-php 0.1.17
 #
-# PRE-RELEASE MEASUREMENT. Both ends are unreleased mains. Re-measure when the
-# spec tag and the carve-php release publish, and move the corpus ref in ci.yml
-# to the tag in the same change. Each name below is declared in carve's
-# resources/engine-target-drift.txt as a carve-php port still pending.
+# Each name below is declared in carve 0.1.14's resources/engine-target-drift.txt
+# as a next-minor carve-php port: 1070-4 (carve#5940), 1076-5 (carve#5978).
 #
 # BOTH ENDS MOVED TOGETHER AGAIN for carve-php 0.1.10 and carve 0.1.7. Left at
 # the 0.1.5 corpus, the newer engine reported 12 documents as divergences
@@ -37,13 +35,5 @@
 # baseline which failed to load - which is also a file with no names - stays
 # distinguishable from one that renders clean.
 
-1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written-2.crv
 1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written-4.crv
-1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written.crv
-1071-a-tabbed-verse-line-keeps-the-lead-its-frames-leave-3.crv
-1071-a-tabbed-verse-line-keeps-the-lead-its-frames-leave-4.crv
-1071-a-tabbed-verse-line-keeps-the-lead-its-frames-leave.crv
-1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame-2.crv
-1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame-3.crv
-1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame-4.crv
-1073-a-verse-lead-under-an-indented-opener-is-measured-per-frame.crv
+1076-a-line-that-ends-a-span-in-an-item-s-description-leaves-the-item-s-paragraph-open-5.crv
