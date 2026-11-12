@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.13] - 2026-11-12
 
-Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.23 and carve-php-media-embed 0.1.7.
+Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.24 and carve-php-media-embed 0.1.7.
 
 ### Breaking
 
@@ -31,7 +31,7 @@ Carve blocks retain rendered content when the plugin is unavailable, and deactiv
 - Editor highlighting, published code fences and Torchlight use the shared Carve light and dark syntax palette (#203).
 - The Divider button and toolbar insert `***`, and the workbench keeps the engine's lint severity (#208).
 - Rendering, preview and the visual editor follow the carve 0.1.14 spec: braced table cell alignment (`|={>}`), the one `+` attach rule and the block layout rulings (#206, #212).
-- Editor highlighting follows the 0.1.14 grammars, including braced cell alignment and an unclosed first-line `---` (markup-carve/carve-grammars#828, #212); the grammars come from the published carve-grammars 0.1.23 (#215).
+- Editor highlighting follows the 0.1.14 grammars, including braced cell alignment and an unclosed first-line `---` (markup-carve/carve-grammars#828, #212); the grammars come from the published carve-grammars 0.1.24, so paths and snake_case words such as `/usr/local/` and `_my_var_` are no longer emphasis (#215, #216).
 - `wp carve lint` honors `%% carve-lint-disable` suppression comments and reports the new carve-php lint rules (#212).
 - CSV and TSV table includes select records and columns with the `rows` and `cols` include options (#212).
 - Markdown migration turns GitHub alerts into admonitions and HTML comments into Carve comments (#212).
