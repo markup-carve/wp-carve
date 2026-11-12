@@ -55,6 +55,11 @@ auto-migrated:
 | `markdown` | yes | Markdown-looking source; converted via `MarkdownToCarve`. |
 | `html` | yes | HTML source; converted via `HtmlToCarve`. |
 
+Markdown GitHub alerts (`> [!NOTE]`) become Carve admonitions and HTML comment
+blocks become Carve comments. The HTML importer reads only `data-carve-*`
+carrier attributes; the older `data-djot-*` prefix is treated as an ordinary
+`data-*` attribute.
+
 The plugin's own `[carve]` shortcode does **not** count as a blocking
 shortcode. Migrated posts get `_wpcarve_enabled = 1` so the `the_content`
 filter renders them as Carve.
@@ -105,6 +110,12 @@ WARN   #9  Release notes  [visual editor simplifies: -]
 | `ERROR` | The source threw during render, or rendered empty (broken Carve). |
 | `WARN` | carve-php's document linter reported at least one finding. It runs every engine rule, with the extensions the front end renders with, and line numbers refer to the stored source. With media embeds on, it also reports `media-embed-unresolved` and `media-embed-provider-not-allowed` for a `:youtube[...]` or `:media[...]` directive that renders no embed. |
 | visual editor simplifies | Generated markup present on the front end but intentionally omitted from the visual-editor seed - a table of contents, heading permalinks, diagrams, or abbreviations. These are render-time output, not part of the source, so the Visual editor shows the plain source instead (it never freezes into the post). Not a problem - just so you know what differs. |
+
+A finding can be silenced in the source with a Carve lint comment:
+`%% carve-lint-disable-next-line <rule>` for the next line,
+`%% carve-lint-disable-line <rule>` for its own line, or a `%% carve-lint-disable <rule>` … `%% carve-lint-enable <rule>` range.
+Rule names are the canonical ids; the retired alias `a11y/heading-jump` no
+longer matches `heading-level-skip`.
 
 It writes nothing; use it before or after a migration to spot content that fails
 to render.

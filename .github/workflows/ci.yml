@@ -81,13 +81,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Use the published spec 0.1.13 corpus. A moving corpus would test an
-      # upstream change rather than this plugin's locked renderer.
+      # The carve 0.1.14 tag. A moving corpus would test an upstream change
+      # rather than this plugin's locked renderer.
       - name: Check out the corpus at the spec freeze
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 236ec12b5ac5ad9aba5ce034cbcb9aec2f2dd20c
+          ref: 51c5631541efb60faad51f81ac7dbf881150b757 # 0.1.14
           path: carve-freeze
 
       - name: Setup PHP

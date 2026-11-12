@@ -123,6 +123,19 @@ class IncludePolicyTest extends TestCase
         $this->assertStringNotContainsString('hidden', $html);
     }
 
+    public function testTrustedSaveSelectsTableIncludeRowsAndColumns(): void
+    {
+        file_put_contents($this->root . '/plans.csv', "Plan,Seats,Price\nStarter,1,5\nTeam,10,40\nOffice,50,150\n");
+        $this->saveAs(self::ADMIN, 13, "{table}\n{{ plans.csv @code:csv @rows:1-3 @cols:\"Plan,Seats\" }}\n");
+
+        $html = $this->renderPost(13);
+
+        $this->assertStringContainsString('<th scope="col">Plan</th><th scope="col">Seats</th>', $html);
+        $this->assertStringContainsString('<td>Team</td><td>10</td>', $html);
+        $this->assertStringNotContainsString('Office', $html);
+        $this->assertStringNotContainsString('Price', $html);
+    }
+
     public function testUntrustedSaveLeavesTheDirectiveLiteral(): void
     {
         $this->saveAs(self::AUTHOR, 11, "{{ chapter.crv }}\n");

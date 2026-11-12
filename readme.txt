@@ -45,6 +45,12 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 == Changelog ==
 
 = 0.1.13 =
+* Breaking: a `---` on the first line with no closer is frontmatter to the end of the post; write `***` for a thematic break.
+* Breaking: letter and roman list markers with a dot need two spaces (`a.  item`), so initials such as `J. R. R.` stay prose.
+* Rendering, preview and the visual editor follow the carve 0.1.14 spec, including braced table cell alignment (`|={>}`).
+* `wp carve lint` honors `%% carve-lint-disable` suppression comments.
+* The Divider button inserts `***`.
+* Captioned diff fences get diff rows, and editor highlighting colors captions.
 * Carve blocks save fallback HTML, keeping published content visible when the plugin is inactive.
 * Deactivation can convert Carve blocks to standard WordPress blocks; WP-CLI can run the same conversion.
 * The profile guide lists measured capabilities for each content profile.

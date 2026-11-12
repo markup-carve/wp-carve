@@ -7,18 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixes
-
-- Captioned `{.diff}` fences get diff rows, with and without Torchlight; the class sits on the figure.
-- Editor highlighting colors the caption marker and caption text with the shared palette's caption roles.
-
 ## [0.1.13] - 2026-10-27
 
-Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets.
+Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and visual editor move to the carve 0.1.14 engines.
+
+### Breaking
+
+- A `---` on the first line with no closer is frontmatter to the end of the post; write `***` for a thematic break (markup-carve/carve#5016).
+- A letter or roman marker with a dot needs two spaces (`a.  item`), so `J. R. R. Tolkien` stays prose; Enter no longer continues such a line as a list (markup-carve/carve#4811, #209, #212).
+- Lint rule ids `fence-delimiter-indentation`, `raw-block-syntax` and the alias `a11y/heading-jump` are gone (use `heading-level-skip`); importers no longer read `data-djot-*` carriers (markup-carve/carve#5735).
 
 ### Fixes
 
 - Carve blocks save fallback HTML so published content remains visible when the plugin is inactive (#198).
+- Captioned `{.diff}` fences get diff rows, with and without Torchlight; the class sits on the figure (#207).
+- Editor highlighting colors the caption marker and caption text with the shared palette's caption roles (#207).
 
 ### Improvements
 
@@ -26,6 +29,9 @@ Carve blocks retain rendered content when the plugin is unavailable, and deactiv
 - The profile guide shows measured capabilities for each content profile (#200).
 - Untrusted Carve renders have configurable budgets on the Advanced settings tab (#201, #202).
 - Editor highlighting, published code fences and Torchlight use the shared Carve light and dark syntax palette (#203).
+- The Divider button and toolbar insert `***`, and the workbench keeps the engine's lint severity (#208).
+- Rendering, preview and the visual editor follow the carve 0.1.14 spec: braced table cell alignment (`|={>}`), the one `+` attach rule and the block layout rulings (#210, #212).
+- `wp carve lint` honors `%% carve-lint-disable` suppression comments and reports the new carve-php lint rules (#212).
 
 **Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.12...0.1.13
 

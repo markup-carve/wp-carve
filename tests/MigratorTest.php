@@ -59,10 +59,13 @@ class MigratorTest extends TestCase
     {
         wpcarve_test_set_post(4, ['post_content' => "# Heading\n\n[carve]more[/carve]"]);
 
-        $analysis = (new Migrator())->analyze(4);
+        $migrator = new Migrator();
+        $analysis = $migrator->analyze(4);
 
-        $this->assertFalse($analysis['can_auto_migrate']);
-        $this->assertSame('fidelity-unverified', $analysis['report']['diagnostics'][0]['code']);
+        $this->assertSame('markdown', $analysis['source']);
+        $this->assertTrue($analysis['can_auto_migrate']);
+        $migrator->migrate(4);
+        $this->assertStringContainsString('[carve]more[/carve]', (string)get_post(4)->post_content);
     }
 
     public function testMarkdownIsDetected(): void
@@ -98,6 +101,24 @@ class MigratorTest extends TestCase
         $this->assertSame(1, $GLOBALS['_wpcarve_test_meta'][7]['_wpcarve_enabled']);
         $report = json_decode(stripslashes($GLOBALS['_wpcarve_test_meta'][7]['_wpcarve_import_report']), true);
         $this->assertSame(2, $report['schemaVersion']);
+    }
+
+    public function testMigrateTurnsAGitHubAlertIntoAnAdmonition(): void
+    {
+        wpcarve_test_set_post(8, ['post_content' => "# Heading\n\n> [!NOTE]\n> Read **this** first.\n"]);
+
+        (new Migrator())->migrate(8, true);
+
+        $this->assertStringContainsString("::: note\nRead *this* first.\n:::", get_post(8)->post_content);
+    }
+
+    public function testMigrateReadsNoDjotCarrier(): void
+    {
+        wpcarve_test_set_post(9, ['post_content' => '<p>See <span data-djot-ref="n1">x</span>.</p>']);
+
+        (new Migrator())->migrate(9, true);
+
+        $this->assertStringContainsString('{data-djot-ref=n1}', get_post(9)->post_content);
     }
 
     public function testMigrateReturnsNullForBlockPostWithoutForce(): void

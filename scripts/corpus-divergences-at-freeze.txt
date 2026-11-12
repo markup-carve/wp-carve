@@ -1,11 +1,10 @@
 # Documents the shipped engine renders differently from its pinned spec corpus.
 #
-#   corpus  markup-carve/carve 236ec12b5ac5, 3064 documents (the engine's tests/spec)
-#   engine  markup-carve/carve-php 0.1.16 20d920713845, from composer.lock
+#   corpus  markup-carve/carve 0.1.14 (51c56315), 4631 documents
+#   engine  markup-carve/carve-php 0.1.17
 #
-# The list is empty. The locked engine renders every document at this freeze
-# without a divergence. The earlier pin movements below explain the history
-# of this comparison.
+# Each name below is declared in carve 0.1.14's resources/engine-target-drift.txt
+# as a next-minor carve-php port: 1070-4 (carve#5940), 1076-5 (carve#5978).
 #
 # BOTH ENDS MOVED TOGETHER AGAIN for carve-php 0.1.10 and carve 0.1.7. Left at
 # the 0.1.5 corpus, the newer engine reported 12 documents as divergences
@@ -35,4 +34,6 @@
 # The `(none)` below is not a comment. It states the zero, so that a
 # baseline which failed to load - which is also a file with no names - stays
 # distinguishable from one that renders clean.
-(none)
+
+1070-a-lazy-comment-opener-is-measured-where-its-brace-is-written-4.crv
+1076-a-line-that-ends-a-span-in-an-item-s-description-leaves-the-item-s-paragraph-open-5.crv

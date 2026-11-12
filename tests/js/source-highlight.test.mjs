@@ -23,3 +23,15 @@ test( 'CodeMirror ranges retain the source offsets through nested tokens', () =>
 		assert.ok( range.to <= source.length );
 	}
 } );
+
+test( 'braced cell alignment is highlighted as table alignment', () => {
+	const source = '|={>} Qty |\n|{<} 12 |\n';
+	const ranges = highlightRanges( source );
+	const aligned = ranges.filter( ( range ) => range.scopes.includes( 'table-alignment' ) ).map( ( range ) => source.slice( range.from, range.to ) );
+	assert.deepEqual( aligned, [ '>', '<' ] );
+} );
+
+test( 'a first-line dash run without a closer highlights the rest as front matter', () => {
+	const ranges = highlightRanges( '---\ntitle: Draft\n\n# Not a heading\n' );
+	assert.ok( ! ranges.some( ( range ) => range.scopes.includes( 'title' ) ) );
+} );

@@ -123,3 +123,19 @@ for (const [name, carve] of Object.entries(CASES)) {
 		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(carve)}\n  serialized: ${JSON.stringify(roundTrip(carve))}`);
 	});
 }
+
+test('a rule inserted in the visual editor is written as ***', () => {
+	const doc = { type: 'doc', content: [
+		{ type: 'paragraph', content: [ { type: 'text', text: 'Above.' } ] },
+		{ type: 'horizontalRule' },
+		{ type: 'paragraph', content: [ { type: 'text', text: 'Below.' } ] },
+	] };
+	assert.equal(serializeToCarve(doc), 'Above.\n\n***\n\nBelow.');
+});
+
+test('braced cell alignment keeps its braced spelling through the visual editor', () => {
+	const carve = '|={<} Item |={>} Price |\n| Tea | 3.50 |\n| Cake |{~} n/a |';
+	const out = roundTrip(carve);
+	assert.equal(normHtml(carveToHtml(out)), normHtml(carveToHtml(carve)));
+	assert.doesNotMatch(out, /\|=?[<>~]/, `deprecated alignment prefix written: ${JSON.stringify(out)}`);
+});

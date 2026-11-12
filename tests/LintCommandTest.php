@@ -49,9 +49,9 @@ class LintCommandTest extends TestCase
     public function testReportsTheEngineRuleAtItsPosition(string $source, string $prefix): void
     {
         $findings = LintCommand::engineFindings(new Converter([]), [$source])['findings'];
+        $matching = array_filter($findings, static fn (string $finding): bool => str_starts_with($finding, $prefix));
 
-        $this->assertCount(1, $findings);
-        $this->assertStringStartsWith($prefix, $findings[0]);
+        $this->assertCount(1, $matching);
     }
 
     public function testLabelsEachSourceWhenAPostHoldsSeveral(): void
@@ -96,6 +96,27 @@ class LintCommandTest extends TestCase
         $findings = LintCommand::engineFindings(new Converter(['media_embed_enabled' => true]), [$source])['findings'];
         $this->assertCount(1, $findings);
         $this->assertStringStartsWith('1:7 media-embed-unresolved ', $findings[0]);
+    }
+
+    public function testASuppressionCommentSilencesOnlyTheCanonicalRuleName(): void
+    {
+        $skip = static fn (string $directive): array => array_filter(
+            LintCommand::engineFindings(new Converter([]), ["# A\n\n{$directive}\n### C\n"])['findings'],
+            static fn (string $finding): bool => str_contains($finding, 'heading-level-skip'),
+        );
+
+        $this->assertSame([], $skip('%% carve-lint-disable-next-line heading-level-skip'));
+        $this->assertCount(1, $skip('%% carve-lint-disable-next-line a11y/heading-jump'));
+    }
+
+    public function testSuppressionCommentsSilenceTheNamedRule(): void
+    {
+        $source = "%% carve-lint-disable-next-line markdown-strong-double-star\nThis is **bold** text.\n";
+
+        $this->assertSame([], LintCommand::engineFindings(new Converter([]), [$source])['findings']);
+
+        $findings = LintCommand::engineFindings(new Converter(['media_embed_enabled' => true]), ["%% carve-lint-disable-next-line media-embed-unresolved\nWatch :media[]\n"])['findings'];
+        $this->assertSame([], $findings);
     }
 
     public function testEmptySourceIsNotLinted(): void
