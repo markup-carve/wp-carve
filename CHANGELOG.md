@@ -7,15 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.13] - 2026-10-27
+## [0.1.13] - 2026-11-12
 
-Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and visual editor move to the carve 0.1.14 engines.
+Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.16 and carve-php-media-embed 0.1.7.
 
 ### Breaking
 
 - A `---` on the first line with no closer is frontmatter to the end of the post; write `***` for a thematic break (markup-carve/carve#5016).
 - A letter or roman marker with a dot needs two spaces (`a.  item`), so `J. R. R. Tolkien` stays prose; Enter no longer continues such a line as a list (markup-carve/carve#4811, #209, #212).
-- Lint rule ids `fence-delimiter-indentation`, `raw-block-syntax` and the alias `a11y/heading-jump` are gone (use `heading-level-skip`); importers no longer read `data-djot-*` carriers (markup-carve/carve#5735).
+- Lint rule ids `fence-delimiter-indentation`, `raw-block-syntax` and the alias `a11y/heading-jump` are gone (use `heading-level-skip`); migration and paste import no longer read `data-djot-*` carriers (markup-carve/carve#5735, #212).
 
 ### Fixes
 
@@ -30,8 +30,11 @@ Carve blocks retain rendered content when the plugin is unavailable, and deactiv
 - Untrusted Carve renders have configurable budgets on the Advanced settings tab (#201, #202).
 - Editor highlighting, published code fences and Torchlight use the shared Carve light and dark syntax palette (#203).
 - The Divider button and toolbar insert `***`, and the workbench keeps the engine's lint severity (#208).
-- Rendering, preview and the visual editor follow the carve 0.1.14 spec: braced table cell alignment (`|={>}`), the one `+` attach rule and the block layout rulings (#210, #212).
+- Rendering, preview and the visual editor follow the carve 0.1.14 spec: braced table cell alignment (`|={>}`), the one `+` attach rule and the block layout rulings (#206, #212).
+- Editor highlighting follows the 0.1.14 grammars, including braced cell alignment and an unclosed first-line `---` (markup-carve/carve-grammars#828, #212).
 - `wp carve lint` honors `%% carve-lint-disable` suppression comments and reports the new carve-php lint rules (#212).
+- CSV and TSV table includes select records and columns with the `rows` and `cols` include options (#212).
+- Markdown migration turns GitHub alerts into admonitions and HTML comments into Carve comments (#212).
 
 **Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.12...0.1.13
 
