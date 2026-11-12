@@ -17,8 +17,8 @@
     "test:js": "npm run palette:check && node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "^0.1.16",
-    "@markup-carve/carve-grammars": "git+https://github.com/markup-carve/carve-grammars.git#2f95ad29d20c112d5e010ef0a24da5bad39ab5a2",
+    "@markup-carve/carve": "^0.1.17",
+    "@markup-carve/carve-grammars": "^0.1.23",
     "prismjs": "^1.30.0"
   },
   "devDependencies": {
