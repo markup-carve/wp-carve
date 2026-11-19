@@ -841,12 +841,18 @@ class Converter
             '/<a href="(https?:\/\/[^"]+)"([^>]*)>/i',
             static function (array $m) use ($internal, $newTab, $nofollow): string {
                 $host = parse_url(html_entity_decode($m[1]), PHP_URL_HOST);
-                if (!is_string($host) || in_array(strtolower($host), array_map('strtolower', $internal), true) || str_contains($m[2], ' rel=')) {
+                if (!is_string($host) || in_array(strtolower($host), array_map('strtolower', $internal), true)) {
                     return $m[0];
                 }
-                $rel = array_filter(['noopener', 'noreferrer', $nofollow ? 'nofollow' : '']);
+                $attrs = $m[2];
+                $authored = preg_match('/ rel="([^"]*)"/', $attrs, $rm) === 1 ? preg_split('/\s+/', trim($rm[1])) ?: [] : [];
+                $rel = array_values(array_unique(array_filter(array_merge($authored, ['noopener', 'noreferrer', $nofollow ? 'nofollow' : '']))));
+                $attrs = (string)preg_replace('/ rel="[^"]*"/', '', $attrs) . ' rel="' . implode(' ', $rel) . '"';
+                if ($newTab && !str_contains($attrs, ' target=')) {
+                    $attrs .= ' target="_blank"';
+                }
 
-                return '<a href="' . $m[1] . '"' . $m[2] . ($newTab ? ' target="_blank"' : '') . ' rel="' . implode(' ', $rel) . '">';
+                return '<a href="' . $m[1] . '"' . $attrs . '>';
             },
             $html,
         );

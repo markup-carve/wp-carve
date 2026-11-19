@@ -77,6 +77,16 @@ class LinkingSettingsTest extends TestCase
         $this->assertStringContainsString('target="_blank"', $html);
     }
 
+    public function testExternalLinkSettingsMergeWithAnAuthoredRel(): void
+    {
+        $settings = ['external_links' => true, 'external_links_new_tab' => true, 'external_links_nofollow' => true];
+        $html = (new Converter($settings))->toHtml('[a](https://elsewhere.test/x){rel=ugc}');
+
+        $this->assertStringContainsString('rel="ugc noopener noreferrer nofollow"', $html);
+        $this->assertStringContainsString('target="_blank"', $html);
+        $this->assertSame(1, substr_count($html, 'rel="'));
+    }
+
     public function testExternalLinksCanAddNofollow(): void
     {
         $html = (new Converter(['external_links' => true, 'external_links_nofollow' => true]))
