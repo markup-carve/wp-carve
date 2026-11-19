@@ -1,7 +1,7 @@
 /**
- * The visual editor inserts NODES, so the proof that it produces the same
- * Carve source as the two source editors has to run the real carve-grammars
- * serializer over the node tree the block builds.
+ * The visual editor inserts a pick as the source the source editors write, read
+ * by the carve-grammars editor kit, so the proof runs the real editor: insert,
+ * then write the document back.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ import { Window } from 'happy-dom';
 const win = new Window({ url: 'http://localhost/' });
 globalThis.window = win;
 globalThis.document = win.document;
-for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'getComputedStyle', 'MutationObserver']) {
+for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'getComputedStyle', 'MutationObserver', 'requestAnimationFrame', 'cancelAnimationFrame']) {
 	if (globalThis[k] === undefined && win[k] !== undefined) {
 		try {
 			globalThis[k] = win[k];
@@ -22,9 +22,7 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 	}
 }
 
-const { Editor } = await import('@tiptap/core');
-const { CarveKit, serializeToCarve } = await import('@markup-carve/carve-grammars/tiptap').catch(() => ({}));
-const KIT_PENDING = CarveKit ? false : 'Pending carve-grammars#906: carve-grammars 0.2 has no Tiptap editor kit (CarveKit, serializeToCarve) yet.';
+const { initVisualEditor } = await import('../../assets/js/tiptap/visual-editor.js');
 
 const pickerSource = readFileSync(new URL('../../assets/js/media-picker.js', import.meta.url), 'utf8');
 
@@ -48,49 +46,32 @@ const attachment = {
 	},
 };
 
-/** The node tree assets/blocks/carve/index.js builds from a pick. */
-function visualNodes(chosen) {
-	const attrs = { src: chosen.url, alt: chosen.alt };
-	if (chosen.className) {
-		attrs.class = chosen.className;
-	}
-	if (!chosen.caption) {
-		return { type: 'paragraph', content: [{ type: 'image', attrs }] };
-	}
-
-	return {
-		type: 'carveFigure',
-		content: [
-			{ type: 'paragraph', content: [{ type: 'image', attrs }] },
-			{ type: 'carveCaption', content: [{ type: 'text', text: chosen.caption }] },
-		],
-	};
-}
-
-function serialize(node) {
-	const editor = new Editor({
-		extensions: [CarveKit.configure({})],
-		content: { type: 'doc', content: [node] },
-	});
-	const out = serializeToCarve(editor.getJSON()).trim();
+/** What the block does with a pick in Visual mode (insertVisualImage), then the document it writes. */
+async function serialize(chosen) {
+	const el = document.createElement('div');
+	document.body.appendChild(el);
+	const editor = await initVisualEditor(el, '');
+	editor.insertCarve(media.toSource(chosen));
+	const out = editor.getCarve().trim();
 	editor.destroy();
+	el.remove();
 
 	return out;
 }
 
-test('a sized visual pick serializes to the same source the source editors write', { skip: KIT_PENDING }, () => {
+test('a sized visual pick serializes to the same source the source editors write', async () => {
 	const chosen = media.pick(attachment, 'large');
 
-	assert.equal(serialize(visualNodes(chosen)), media.toSource(chosen));
+	assert.equal(await serialize(chosen), media.toSource(chosen));
 	assert.equal(
-		serialize(visualNodes(chosen)),
+		await serialize(chosen),
 		'![A release timeline](https://site.test/wp-content/uploads/2025/10/timeline-1-1024x585.png){.wp-image-3000}'
 	);
 });
 
-test('a captioned visual pick serializes the caption as a caption line', { skip: KIT_PENDING }, () => {
+test('a captioned visual pick serializes the caption as a caption line', async () => {
 	const chosen = media.pick({ ...attachment, caption: 'Carve releases through 2025' }, 'full');
-	const written = serialize(visualNodes(chosen));
+	const written = await serialize(chosen);
 
 	assert.equal(
 		written,

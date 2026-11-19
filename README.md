@@ -105,9 +105,6 @@ These features wait for an engine API and keep their settings meanwhile:
 - **Plain-text excerpts** go through the writer registry's `text` target once
   carve-php registers it ([carve-php#5235](https://github.com/markup-carve/carve-php/issues/5235));
   until then they are derived from the HTML render.
-- **Visual editor**: carve-grammars 0.2 has no Tiptap kit yet
-  ([carve-grammars#906](https://github.com/markup-carve/carve-grammars/issues/906)),
-  so the editor round-trips through HTML.
 
 ## Documentation
 
