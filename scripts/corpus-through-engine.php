@@ -25,6 +25,8 @@
 
 declare(strict_types=1);
 
+use MarkupCarve\Carve\Carve;
+
 $argvRest = array_slice($argv, 1);
 $list = in_array('--list', $argvRest, true);
 $positional = array_values(array_filter($argvRest, static fn (string $a): bool => !str_starts_with($a, '--')));
@@ -132,6 +134,8 @@ function declaredCorpusSize(string $corpusDir): int
  * Written on its own line in the baseline to declare, explicitly, that the
  * shipped engine renders every corpus document correctly. Distinguishes a
  * deliberate zero from a baseline that did not load.
+ *
+ * @var string
  */
 const NONE_SENTINEL = '(none)';
 
@@ -163,7 +167,7 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
 
     if ($recorded === [] && !$declaresNone) {
         fwrite(STDERR, sprintf(
-            "::error::%s names no documents and does not carry the %s line either, so it cannot say whether the corpus "
+            '::error::%s names no documents and does not carry the %s line either, so it cannot say whether the corpus '
             . "renders clean or the baseline failed to load. Write %s on its own line to declare zero divergences.\n",
             $path,
             NONE_SENTINEL,
@@ -190,8 +194,8 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
     $absent = array_values(array_diff($recorded, $present));
     if ($absent !== []) {
         fwrite(STDERR, sprintf(
-            "::error::the baseline names %d document(s) this corpus does not hold (%s). The corpus checkout is not the pinned "
-            . "freeze the baseline was measured against, so nothing in this run is a statement about this plugin. Fix the ref "
+            '::error::the baseline names %d document(s) this corpus does not hold (%s). The corpus checkout is not the pinned '
+            . 'freeze the baseline was measured against, so nothing in this run is a statement about this plugin. Fix the ref '
             . "in the workflow, or re-measure and re-record if the pin moved on purpose.\n",
             count($absent),
             implode(', ', array_slice($absent, 0, 10)) . (count($absent) > 10 ? ', ...' : ''),
@@ -205,7 +209,7 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
 
     if ($regressed !== []) {
         fwrite(STDERR, sprintf(
-            "::error::%d document(s) render differently now that rendered correctly at the freeze: %s. The corpus and the "
+            '::error::%d document(s) render differently now that rendered correctly at the freeze: %s. The corpus and the '
             . "engine revision are both pinned, so this is a change in this pull request and not upstream movement.\n",
             count($regressed),
             implode(', ', $regressed),
@@ -216,7 +220,7 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
 
     if ($improved !== []) {
         fwrite(STDERR, sprintf(
-            "::warning::%d document(s) recorded as divergent render correctly now: %s. Delete those lines from %s so the "
+            '::warning::%d document(s) recorded as divergent render correctly now: %s. Delete those lines from %s so the '
             . "baseline keeps meaning what it says.\n",
             count($improved),
             implode(', ', $improved),
@@ -233,7 +237,9 @@ function compareAgainstBaseline(string $path, array $wrong, array $present): int
 $sources = glob($corpusDir . '/*.crv') ?: [];
 sort($sources);
 
-/** @var array<int, string> $pairs */
+/**
+ * @var array<int, string> $pairs
+ */
 $pairs = [];
 foreach ($sources as $source) {
     $expected = substr($source, 0, -4) . '.html';
@@ -246,8 +252,8 @@ $declared = declaredCorpusSize($corpusDir);
 if (count($pairs) !== $declared) {
     fwrite(STDERR, sprintf(
         "::error::%d corpus pairs found in %s, but the spec's example pages declare %d. Every carve example in a ::: compare block in "
-        . "resources/examples/{core,extensions,edge-cases}.md becomes one corpus pair, so a difference means the corpus "
-        . "checked out here is not the one those pages describe - a truncated or stale checkout, or a corpus that needs "
+        . 'resources/examples/{core,extensions,edge-cases}.md becomes one corpus pair, so a difference means the corpus '
+        . 'checked out here is not the one those pages describe - a truncated or stale checkout, or a corpus that needs '
         . "regenerating. It does not mean this run was clean.\n",
         count($pairs),
         $corpusDir,
@@ -268,7 +274,7 @@ foreach ($pairs as $source) {
         // own extension stack is what tests/ConverterTest.php covers; mixing it
         // in here would put this repository's configuration into a number that
         // is supposed to mean "the shipped engine disagrees with the spec".
-        $got = (new MarkupCarve\Carve\CarveConverter())->convert((string)file_get_contents($source));
+        $got = Carve::render((string)file_get_contents($source));
     } catch (Throwable $e) {
         $threw++;
         $wrong[] = $name;

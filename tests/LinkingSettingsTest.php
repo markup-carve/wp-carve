@@ -36,6 +36,8 @@ class LinkingSettingsTest extends TestCase
 
     public function testHeadingNumbersNumberEachLevel(): void
     {
+        $this->markTestSkipped('Pending carve-php#5252: heading numbers are not in the 0.2 extension catalog yet.');
+
         $html = (new Converter(['heading_numbers' => true]))->toHtml("# Top\n\n## Sub");
 
         $this->assertStringContainsString('>1</span>', $html);
@@ -73,6 +75,16 @@ class LinkingSettingsTest extends TestCase
             ->toHtml('[a](https://elsewhere.test/x)');
 
         $this->assertStringContainsString('target="_blank"', $html);
+    }
+
+    public function testExternalLinkSettingsMergeWithAnAuthoredRel(): void
+    {
+        $settings = ['external_links' => true, 'external_links_new_tab' => true, 'external_links_nofollow' => true];
+        $html = (new Converter($settings))->toHtml('[a](https://elsewhere.test/x){rel=ugc}');
+
+        $this->assertStringContainsString('rel="ugc noopener noreferrer nofollow"', $html);
+        $this->assertStringContainsString('target="_blank"', $html);
+        $this->assertSame(1, substr_count($html, 'rel="'));
     }
 
     public function testExternalLinksCanAddNofollow(): void
@@ -131,7 +143,13 @@ class LinkingSettingsTest extends TestCase
             $html = $converter->toHtml('Hello @alice and #topic here.', $context);
 
             $this->assertStringContainsString('class="mention"', $html, $context);
-            $this->assertStringContainsString('class="tag"', $html, $context);
+            // 0.2 (C2-H-163, the `comment` profile table): `tag` is outside the
+            // comment profile and degrades to its text.
+            if ($context === 'comment') {
+                $this->assertStringNotContainsString('class="tag"', $html, $context);
+            } else {
+                $this->assertStringContainsString('class="tag"', $html, $context);
+            }
         }
     }
 
@@ -145,7 +163,7 @@ class LinkingSettingsTest extends TestCase
 
     public function testWikilinksAreLiteralByDefault(): void
     {
-        $this->assertStringNotContainsString('wikilink', (new Converter([]))->toHtml('See [[Getting Started]].'));
+        $this->assertStringNotContainsString('wikilink', (new Converter([]))->toHtml('See :wiki[Getting Started].'));
     }
 
     public function testALinkToThisSiteIsNotExternal(): void
@@ -189,7 +207,7 @@ class LinkingSettingsTest extends TestCase
         // about the fallback.
         wpcarve_test_set_pages(['getting-started' => 42]);
 
-        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See [[Getting Started]].');
+        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See :wiki[Getting Started].');
 
         $this->assertStringContainsString('/?p=42', $html);
         $this->assertStringNotContainsString('href="#"', $html);
@@ -201,22 +219,23 @@ class LinkingSettingsTest extends TestCase
         // value and PHP raises ArgumentCountError.
         add_filter('wpcarve_wikilink_url', static fn (?string $url, string $page): string => '/docs/' . strtolower($page[0]), 10, 2);
 
-        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See [[Zebra]].');
+        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See :wiki[Zebra].');
 
         $this->assertStringContainsString('/docs/z', $html);
     }
 
     public function testAnExcerptShowsTheWikilinkLabelNotItsMarkup(): void
     {
-        // An excerpt is the one place markup must not appear, and `[[...]]` was
-        // reaching it: the plain-text converter knows the core markers but not
-        // this extension, so the brackets came through verbatim.
-        $source = 'See [[Getting Started]] for more.';
+        // An excerpt is the one place markup must not appear. 0.2 spells a wiki
+        // link `:wiki[Page]` (U-408), and an unregistered inline extension
+        // renders its content as the fallback (C2-X-004), so the label shows
+        // whether the setting is on or off.
+        $source = 'See :wiki[Getting Started] for more.';
 
         $this->assertSame(
-            'See [[Getting Started]] for more.',
+            'See Getting Started for more.',
             trim((new Converter([]))->toText($source)),
-            'off by default, so the markup is the literal text it is',
+            'off by default: the fallback is the label (C2-X-004)',
         );
         $this->assertSame(
             'See Getting Started for more.',
@@ -230,10 +249,10 @@ class LinkingSettingsTest extends TestCase
         // link on every archive page for a string nothing reads. Pinned by the
         // OUTPUT being identical whether or not the page exists.
         wpcarve_test_set_pages(['getting-started' => 42]);
-        $resolved = trim((new Converter(['wikilinks_enabled' => true]))->toText('See [[Getting Started]].'));
+        $resolved = trim((new Converter(['wikilinks_enabled' => true]))->toText('See :wiki[Getting Started].'));
 
         wpcarve_test_set_pages([]);
-        $unresolved = trim((new Converter(['wikilinks_enabled' => true]))->toText('See [[Getting Started]].'));
+        $unresolved = trim((new Converter(['wikilinks_enabled' => true]))->toText('See :wiki[Getting Started].'));
 
         $this->assertSame($resolved, $unresolved);
         $this->assertSame('See Getting Started.', $resolved);
@@ -243,9 +262,15 @@ class LinkingSettingsTest extends TestCase
     {
         // Comments get no post extensions, and a commenter should not be able
         // to mint links into the site by typing brackets.
+        // 0.2: the unregistered `:wiki[...]` renders its label as the fallback
+        // (U-408, C2-X-004); what matters is that no link is minted.
         $this->assertSame(
-            'See [[Getting Started]].',
-            trim((new Converter(['wikilinks_enabled' => true]))->toText('See [[Getting Started]].', 'comment')),
+            'See Getting Started.',
+            trim((new Converter(['wikilinks_enabled' => true]))->toText('See :wiki[Getting Started].', 'comment')),
+        );
+        $this->assertStringNotContainsString(
+            'wikilink',
+            (new Converter(['wikilinks_enabled' => true]))->toHtml('See :wiki[Getting Started].', 'comment'),
         );
     }
 
@@ -254,7 +279,7 @@ class LinkingSettingsTest extends TestCase
         // Not dropped and not guessed at: the anchor keeps its class and its
         // title so a theme can style `a.wikilink[href="#"]` the way a wiki
         // styles a red link. Hiding it would hide the missing page.
-        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See [[No Such Page]].');
+        $html = (new Converter(['wikilinks_enabled' => true]))->toHtml('See :wiki[No Such Page].');
 
         $this->assertStringContainsString('class="wikilink"', $html);
         $this->assertStringContainsString('href="#"', $html);

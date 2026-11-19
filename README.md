@@ -11,24 +11,29 @@
 A WordPress plugin for the [Carve](https://github.com/markup-carve/carve) markup language - lightweight markup for documents and the web.
 Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-php`](https://github.com/markup-carve/carve-php) engine.
 
+> [!NOTE]
+> This branch (`next2`) targets Carve 0.2. The engines are pinned to unreleased
+> `next2` commits of carve-php, carve-js and carve-grammars. Features waiting on
+> a 0.2 engine API are listed under [Carve 0.2 status](#carve-02-status).
+
 [Watch the WordPress demo](https://www.youtube.com/watch?v=FT_IMW8ABng)
 
 ## Features
 
 - **Carve rendering** in posts/pages (per-post "Render as Carve" toggle), the `[carve]…[/carve]` shortcode, and comments.
 - **Gutenberg block** with a source editor and preview. Its optional Tiptap
-  visual editor loads directly from the Carve AST and preserves unsupported
-  constructs as source instead of dropping them through an HTML conversion.
+  visual editor is seeded from the carve-js 0.2 render and writes Carve back
+  through the 0.2 HTML importer; an untouched document keeps its exact source.
 - **Focused native blocks** for admonitions, code groups, and tables with spans,
   while the general Carve block remains best for complete documents.
-- **In-browser live preview.** Carve has a real JS engine (`@markup-carve/carve`), so the block previews **instantly client-side**, no server round-trip. Run `npm run build` to bundle the engine (`assets/js/vendor/carve.js`); without it the editor falls back to the REST render endpoint.
-- **Content profiles** (`full` / `article` / `comment` / `minimal`) + **safe mode** (XSS hardening) via carve-php's `Profile` + `SafeMode`.
-- **Table of contents**, **heading permalinks**, **smart quotes**, **Mermaid**, **tab normalization**, **Torchlight syntax highlighting** - carve-php extensions, toggled in settings.
+- **In-browser live preview.** Carve has a real JS engine (`@markup-carve/carve/v2`), so the block previews **instantly client-side**, no server round-trip. Run `npm run build` to bundle the engine (`assets/js/vendor/carve.js`); without it the editor falls back to the REST render endpoint.
+- **Content profiles** (`full` / `article` / `comment` / `minimal`) through the 0.2 `profile` option. Raw HTML renders only on authored surfaces whose profile allows it (`rawHtml`), and everything passes through `wp_kses`.
+- **Table of contents**, **heading permalinks**, **external link attributes**, **heading level shift**, **wiki links**, **smart typography**, **Mermaid** and the other diagram fences - toggled in settings.
 - **Media embeds** via `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]`, with a WordPress **oEmbed fallback** when the media-embed extension is off.
-- **Multi-format paste.** Paste Markdown / Djot / BBCode / HTML and convert to Carve in place, using carve-php's `*ToCarve` converters. `POST /wp-json/carve/v1/ingest`.
+- **Paste conversion.** Paste HTML and convert it to Carve in place with the 0.2 HTML importer. `POST /wp-json/carve/v1/ingest`.
 - **Frontmatter → meta/SEO.** Typed `---yaml` / `---json` / `---toml` frontmatter maps to excerpt, SEO description (Yoast/AIOSEO when present), canonical, and `_wpcarve_frontmatter` meta. Non-destructive.
 - **Bulk migrate**: convert existing posts to Carve in bulk. `wp carve migrate` - analyzes each post (skips block-editor / foreign-shortcode content), auto-detects Markdown vs HTML, converts safely (`--dry-run`, `--force`); or **Tools → Carve Migrate** for the same thing without CLI (the post list doubles as the dry-run preview). `wp carve lint` - read-only health check reporting render errors and visual-editor round-trip caveats.
-- **Import / export**: Tools → Carve Import loads a Markdown / Djot / HTML / Carve file as a draft; an "Export Carve" row action downloads a post's `.crv` source.
+- **Import / export**: Tools → Carve Import loads an HTML or Carve file as a draft; an "Export Carve" row action downloads a post's `.crv` source.
 - **Render caching + REST.** Rendered HTML is cached in post meta at save (fast views); `POST /wp-json/carve/v1/render` serves headless WordPress.
 
 ## Requirements
@@ -74,10 +79,35 @@ Both require the `edit_posts` capability.
 ## Hooks
 
 - `wpcarve_rendered_html` (filter): `(string $html, string $carve, string $context)`
-- `wpcarve_converter` (action): `(\MarkupCarve\Carve\CarveConverter $converter, string $context)` - register further carve-php extensions.
+- `wpcarve_extensions` (filter): `(array $extensions, string $context)` - add carve-php 0.2 extension definitions (replaces the 0.1 `wpcarve_converter` action).
 - `wpcarve_source` (filter): `(string $carve, string $context)` - modify source before conversion.
 
 See [docs/hooks.md](docs/hooks.md) for the full list (oEmbed, OG image, diagram renderer API, KaTeX base).
+
+## Carve 0.2 status
+
+These features wait for an engine API and keep their settings meanwhile:
+
+- **Torchlight highlighting** waits for the host code-block renderer
+  ([carve-php#5250](https://github.com/markup-carve/carve-php/issues/5250)).
+- **Details, spoiler, code group, list table, semantic spans, heading numbers and
+  citations with a CSL bibliography** render their plain fallback
+  ([carve-php#5252](https://github.com/markup-carve/carve-php/issues/5252)).
+- **Media embeds**: carve-php-media-embed has no 0.2 provider yet
+  ([carve-php-media-embed#23](https://github.com/markup-carve/carve-php-media-embed/issues/23)).
+- **Markdown, Djot and BBCode paste, import and bulk migration** fail with
+  "not available yet" ([carve-php#5237](https://github.com/markup-carve/carve-php/issues/5237),
+  [#5242](https://github.com/markup-carve/carve-php/issues/5242),
+  [#5251](https://github.com/markup-carve/carve-php/issues/5251)); HTML works.
+- **Soft-break mode** (`post_soft_break`, `comment_soft_break`), **tab
+  normalization** and the **smart-quote locale** have no 0.2 option yet; the
+  engine writes soft breaks as newlines and keeps tabs.
+- **Plain-text excerpts** go through the writer registry's `text` target once
+  carve-php registers it ([carve-php#5235](https://github.com/markup-carve/carve-php/issues/5235));
+  until then they are derived from the HTML render.
+- **Visual editor**: carve-grammars 0.2 has no Tiptap kit yet
+  ([carve-grammars#906](https://github.com/markup-carve/carve-grammars/issues/906)),
+  so the editor round-trips through HTML.
 
 ## Documentation
 

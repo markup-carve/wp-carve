@@ -13,6 +13,11 @@
  * post path (WpCarve\Converter::toHtml with the 'post' context). PHP appends a
  * trailing newline the JS renderer does not, so the comparison is on trimmed
  * output; everything else matches byte for byte.
+ *
+ * On 0.2 the list-table and semantic-span fixtures hold the inline and div
+ * fallbacks both engines write for an extension outside the catalog
+ * (C2-X-004, carve-php#5252). The img fence renders on the PHP side only until
+ * carve-js ships its standard definition (carve-js#5062).
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -48,12 +53,16 @@ const sources = {
 
 const names = {
 	imgfence: 'an img fence renders a sanitized image, not a code block',
-	listtable: 'a list-table renders a table, not a nested bullet list',
-	semantic: 'a colon-spelled semantic span renders its element, not a class',
+	listtable: 'a list-table renders the same fallback as the front end',
+	semantic: 'a colon-spelled semantic span renders the same fallback as the front end',
+};
+
+const pending = {
+	imgfence: 'Pending carve-js#5062: carve-js 0.2 has no standard img fence extension yet.',
 };
 
 for (const [key, source] of Object.entries(sources)) {
-	test(names[key], () => {
+	test(names[key], { skip: pending[key] ?? false }, () => {
 		assert.equal(
 			scope.wpCarveEngine.carveToHtml(source).trimEnd(),
 			frontEnd[key].trimEnd(),

@@ -4,86 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eab0b2e481cfc178775636d910359f4a",
+    "content-hash": "ad9c929f2ca322cda30ab4ca5598ba7b",
     "packages": [
-        {
-            "name": "dereuromark/media-embed",
-            "version": "1.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/dereuromark/media-embed.git",
-                "reference": "aa200fae31aedb61800ec237a13b243aee208ca9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/dereuromark/media-embed/zipball/aa200fae31aedb61800ec237a13b243aee208ca9",
-                "reference": "aa200fae31aedb61800ec237a13b243aee208ca9",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=8.1",
-                "psr/http-client": "^1.0",
-                "psr/http-factory": "^1.0",
-                "psr/simple-cache": "^3.0"
-            },
-            "require-dev": {
-                "fig-r/psr2r-sniffer": "@stable",
-                "jbroadway/urlify": "^1.0.0",
-                "nyholm/psr7": "^1.8",
-                "phpstan/phpstan": "^2.0",
-                "phpunit/phpunit": "^10.5 || ^11.5 || ^12.1 || ^13.0",
-                "sebastian/diff": "@stable"
-            },
-            "suggest": {
-                "jbroadway/urlify": "For best transliteration of non-ASCII provider names into slugs (otherwise a built-in ASCII slugger is used)"
-            },
-            "bin": [
-                "bin/generate-docs",
-                "bin/validate-providers.php"
-            ],
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-next": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MediaEmbed\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mark Scherer",
-                    "homepage": "https://www.dereuromark.de",
-                    "role": "Author"
-                }
-            ],
-            "description": "A PHP library to deal with all those media services around, parsing their URLs and embedding their audio/video content in websites.",
-            "keywords": [
-                "audio",
-                "embed",
-                "iframe",
-                "media",
-                "php",
-                "video"
-            ],
-            "support": {
-                "issues": "https://github.com/dereuromark/media-embed/issues",
-                "source": "https://github.com/dereuromark/media-embed"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/dereuromark",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-08-25T16:42:22+00:00"
-        },
         {
             "name": "dflydev/dot-access-data",
             "version": "v3.0.3",
@@ -350,16 +272,16 @@
         },
         {
             "name": "markup-carve/carve-grammars",
-            "version": "v0.1.24",
+            "version": "dev-next2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "7049c3bd6cd7c0d5bd12bf92c565f6ad61b8265c"
+                "url": "git@github.com:markup-carve/carve-grammars.git",
+                "reference": "ff1d0f0dac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/7049c3bd6cd7c0d5bd12bf92c565f6ad61b8265c",
-                "reference": "7049c3bd6cd7c0d5bd12bf92c565f6ad61b8265c",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/ff1d0f0dac",
+                "reference": "ff1d0f0dac",
                 "shasum": ""
             },
             "require": {
@@ -389,29 +311,30 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-11-12T18:49:13+00:00"
+            "time": "2026-11-19T01:17:26+00:00"
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "0.1.17",
+            "version": "dev-next2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "fa017b5e5260180e45cf8cb2add16c9adaad74a3"
+                "reference": "db1624daf9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/fa017b5e5260180e45cf8cb2add16c9adaad74a3",
-                "reference": "fa017b5e5260180e45cf8cb2add16c9adaad74a3",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/db1624daf9",
+                "reference": "db1624daf9",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.2"
+                "php": "^8.2",
+                "symfony/polyfill-intl-normalizer": "^1.27"
             },
             "require-dev": {
-                "brianium/paratest": "^7.8",
-                "nikic/php-fuzzer": "^0.0.11",
+                "league/commonmark": "^2.7",
                 "php-collective/code-sniffer": "^0.6.8",
+                "php-collective/djot": "^0.1.35",
                 "phpstan/phpstan": "^2.1.32",
                 "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0"
             },
@@ -423,12 +346,44 @@
                 "bin/carve"
             ],
             "type": "library",
+            "extra": {
+                "require-dev-notes": {
+                    "league/commonmark": "Benchmark only (bench/bench-engines.php).",
+                    "php-collective/djot": "Benchmark only (bench/bench-engines.php)."
+                }
+            },
             "autoload": {
                 "psr-4": {
                     "MarkupCarve\\Carve\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "MarkupCarve\\Carve\\Test\\": "tests/"
+                }
+            },
+            "scripts": {
+                "check": [
+                    "@cs-check",
+                    "@stan",
+                    "@test"
+                ],
+                "cs-check": [
+                    "phpcs --colors --parallel=16"
+                ],
+                "cs-fix": [
+                    "phpcbf --colors --parallel=16"
+                ],
+                "stan": [
+                    "phpstan analyze --memory-limit=1G"
+                ],
+                "tables-check": [
+                    "@php scripts/generate-tables.php --check"
+                ],
+                "test": [
+                    "@php -d pcov.enabled=0 vendor/bin/phpunit"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -451,80 +406,16 @@
                 "parser"
             ],
             "support": {
-                "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/0.1.17"
+                "source": "https://github.com/markup-carve/carve-php/tree/next2",
+                "issues": "https://github.com/markup-carve/carve-php/issues"
             },
             "funding": [
                 {
-                    "url": "https://github.com/dereuromark",
-                    "type": "github"
+                    "type": "github",
+                    "url": "https://github.com/dereuromark"
                 }
             ],
-            "time": "2026-11-12T09:37:21+00:00"
-        },
-        {
-            "name": "markup-carve/carve-php-media-embed",
-            "version": "0.1.7",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/markup-carve/carve-php-media-embed.git",
-                "reference": "a19c67fe766001178b86800fd4de5080196150d2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/a19c67fe766001178b86800fd4de5080196150d2",
-                "reference": "a19c67fe766001178b86800fd4de5080196150d2",
-                "shasum": ""
-            },
-            "require": {
-                "dereuromark/media-embed": "^1.0",
-                "markup-carve/carve-php": "^0.1.17",
-                "php": ">=8.2"
-            },
-            "require-dev": {
-                "dealerdirect/phpcodesniffer-composer-installer": "*",
-                "php-collective/code-sniffer": "^0.6",
-                "phpstan/phpstan": "^2.0",
-                "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0",
-                "squizlabs/php_codesniffer": "^4.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-main": "0.1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "MarkupCarve\\MediaEmbed\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mark Scherer",
-                    "homepage": "https://www.dereuromark.de"
-                }
-            ],
-            "description": "Opt-in Carve extension that embeds audio/video from 30+ providers via dereuromark/media-embed.",
-            "keywords": [
-                "audio",
-                "carve",
-                "embed",
-                "iframe",
-                "markup",
-                "media",
-                "video",
-                "youtube"
-            ],
-            "support": {
-                "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
-                "source": "https://github.com/markup-carve/carve-php-media-embed"
-            },
-            "time": "2026-11-12T10:24:33+00:00"
+            "time": "2026-11-19T01:32:40+00:00"
         },
         {
             "name": "nette/schema",
@@ -809,166 +700,6 @@
             "time": "2019-01-08T18:20:26+00:00"
         },
         {
-            "name": "psr/http-client",
-            "version": "1.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/http-client.git",
-                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-client/zipball/bb5906edc1c324c9a05aa0873d40117941e5fa90",
-                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.0 || ^8.0",
-                "psr/http-message": "^1.0 || ^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Http\\Client\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for HTTP clients",
-            "homepage": "https://github.com/php-fig/http-client",
-            "keywords": [
-                "http",
-                "http-client",
-                "psr",
-                "psr-18"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/http-client"
-            },
-            "time": "2023-09-23T14:17:50+00:00"
-        },
-        {
-            "name": "psr/http-factory",
-            "version": "1.1.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/http-factory.git",
-                "reference": "2b4765fddfe3b508ac62f829e852b1501d3f6e8a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-factory/zipball/2b4765fddfe3b508ac62f829e852b1501d3f6e8a",
-                "reference": "2b4765fddfe3b508ac62f829e852b1501d3f6e8a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.1",
-                "psr/http-message": "^1.0 || ^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Http\\Message\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
-            "description": "PSR-17: Common interfaces for PSR-7 HTTP message factories",
-            "keywords": [
-                "factory",
-                "http",
-                "message",
-                "psr",
-                "psr-17",
-                "psr-7",
-                "request",
-                "response"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/http-factory"
-            },
-            "time": "2024-04-15T12:06:14+00:00"
-        },
-        {
-            "name": "psr/http-message",
-            "version": "2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/http-message.git",
-                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
-                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.2 || ^8.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Http\\Message\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "https://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for HTTP messages",
-            "homepage": "https://github.com/php-fig/http-message",
-            "keywords": [
-                "http",
-                "http-message",
-                "psr",
-                "psr-7",
-                "request",
-                "response"
-            ],
-            "support": {
-                "source": "https://github.com/php-fig/http-message/tree/2.0"
-            },
-            "time": "2023-04-04T09:54:51+00:00"
-        },
-        {
             "name": "psr/simple-cache",
             "version": "3.0.0",
             "source": {
@@ -1089,6 +820,91 @@
                 }
             ],
             "time": "2026-06-05T06:23:12+00:00"
+        },
+        {
+            "name": "symfony/polyfill-intl-normalizer",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-intl-normalizer.git",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "suggest": {
+                "ext-intl": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for intl's Normalizer class and related functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "intl",
+                "normalizer",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-23T22:02:09+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
@@ -4113,8 +3929,11 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": {},
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "markup-carve/carve-grammars": 20,
+        "markup-carve/carve-php": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

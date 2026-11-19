@@ -1,50 +1,55 @@
-// Innovation A: in-browser Carve engine for instant editor preview.
+// In-browser Carve 0.2 engine for instant editor preview and the workbench.
 // Bundled by `npm run build` into ../vendor/carve.js (IIFE), exposing
 // `window.wpCarveEngine.carveToHtml`. The plugin loads it before the editor
 // script; when it is absent the editor falls back to the REST endpoint.
-import { carveToHtml, tabs, details, spoiler, codeGroup, citations, imgFence, listTable, semanticSpan, lintCarve, parse, toAstJson, diffAst } from '@markup-carve/carve'
+import { render, lint, parse, encodeTree, stringOffsetOfByte, tabsExtensions, tabsRenderer } from '@markup-carve/carve/v2'
 import { analyzeDocument, semanticChanges } from './workbench.js'
 
-// The block preview must match the published front-end render, so every content
-// extension the PHP post path enables unconditionally is enabled here:
-// CodeGroup, Tabs, Details and Spoiler, plus ImgFence, ListTable and
-// SemanticSpan. Without them the preview showed raw markup where the front end
-// rendered the real thing - a `<div class="tab">` for tabs and details, a
-// `<pre><code class="language-img">` of escaped SVG source for an img fence, a
-// nested bullet list for a list-table, and `<span class="ext-samp">` instead of
-// `<samp>` for the deprecated `:samp[...]` spelling.
-//
-// Settings-dependent, non-round-trippable extras (TOC, permalinks, heading
-// shift, smart quotes) stay out - they need PHP settings and are added
-// server-side only. This does not render the visual-editor seed either: the
-// block takes the in-browser path for the 'post' context only, and the
-// 'editor' context falls through to the server render, which is where PHP
-// drops what cannot round-trip.
-const EXTENSIONS = [
-  codeGroup(),
-  tabs(),
-  details(),
-  spoiler(),
-  imgFence(),
-  listTable(),
-  semanticSpan(),
-]
+// The preview matches the PHP post render where carve-js 0.2 can: the standard
+// tabs widget, heading ids on the headings (`sections: false`) and smart
+// typography off, as the plugin setting defaults. The 0.1 details, spoiler,
+// code-group, list-table, img-fence and semantic-span extensions are not in
+// the 0.2 catalog; settings-dependent extras (TOC, permalinks, heading shift)
+// stay server-side as before.
+const RENDER_OPTIONS = {
+  sections: false,
+  smartTypography: false,
+  extensions: tabsExtensions,
+  renderers: { 'carve.tabs': tabsRenderer },
+}
+
+function position(source, byte) {
+  const before = source.slice(0, stringOffsetOfByte(source, byte))
+  const lines = before.split('\n')
+  return { line: lines.length, column: lines[lines.length - 1].length + 1 }
+}
+
+export function lintCarve(source) {
+  return lint(source).map((d) => ({
+    ...(d.range && !d.file ? position(source, d.range.startOffset) : { line: 1, column: 1 }),
+    rule: d.code,
+    message: d.message,
+    severity: d.severity,
+  }))
+}
+
+export function toAstJson(tree) {
+  return JSON.parse(encodeTree(tree))
+}
 
 window.wpCarveEngine = {
-  citations,
   lintCarve,
-  parse,
+  parse: (source) => parse(String(source ?? '')),
   toAstJson,
-  diffAst,
   analyzeDocument(source, bibliography = '') {
     return analyzeDocument(String(source ?? ''), window.wpCarveEngine, bibliography)
   },
   semanticChanges(before, after) {
     return semanticChanges(String(before ?? ''), String(after ?? ''), window.wpCarveEngine)
   },
-  carveToHtml(source, options = {}) {
-    const bibliography = Array.isArray(options.bibliography) ? options.bibliography : []
-    const citationMode = options.citationMode === 'author-date' ? 'author-date' : 'numbered'
-    return carveToHtml(String(source ?? ''), { extensions: [...EXTENSIONS, citations({ mode: citationMode, bibliography })] })
+  // `options.bibliography` and `options.citationMode` are accepted for callers;
+  // citation rendering waits for the 0.2 extension catalog (carve-php#5252).
+  carveToHtml(source) {
+    return render(String(source ?? ''), RENDER_OPTIONS)
   },
 }

@@ -1,21 +1,58 @@
 /**
  * Carve visual (WYSIWYG) editor.
  *
- * A Tiptap-based editor that loads Carve through the shared AST bridge and
- * serializes back to Carve markup on every change. This module and its imports are bundled locally
- * with esbuild (assets/js/vendor/carve-editor.js) - no CDN at runtime.
+ * A Tiptap-based editor seeded from the Carve 0.2 HTML render and serialized
+ * back to Carve with the 0.2 HTML importer on every change. This module and its
+ * imports are bundled locally with esbuild (assets/js/vendor/carve-editor.js) -
+ * no CDN at runtime.
  *
- * The editor is seeded directly from the Carve AST. This preserves source
- * attributes and unsupported constructs that an HTML pivot cannot represent.
- * The extension kit, loader and serializer are shared with carve-wysiwyg;
- * wpcarve only adds the empty-state placeholder.
+ * Carve 0.2 has no Tiptap editor kit yet (carve-grammars `next2` removed the
+ * 0.1 CarveKit and serializer), so constructs without an HTML equivalent come
+ * back in the importer's spelling. Unchanged documents keep their source.
  */
 
-import { Editor } from '@tiptap/core';
+import { Editor, Extension } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
-import { CarveKit, carveToProseMirror, serializeToCarve } from '@markup-carve/carve-grammars/tiptap';
+import StarterKit from '@tiptap/starter-kit';
+import Highlight from '@tiptap/extension-highlight';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import Table from '@tiptap/extension-table';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TableRow from '@tiptap/extension-table-row';
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
+import Underline from '@tiptap/extension-underline';
+import { importDocument, render } from '@markup-carve/carve/v2';
 
-export { serializeToCarve };
+/**
+ * Carve 0.2 source for editor HTML.
+ *
+ * @param {string} html Editor HTML.
+ * @return {string} Carve source.
+ */
+export function serializeToCarve( html ) {
+	return importDocument( String( html ?? '' ), { from: 'html' } ).source;
+}
+
+// The block toolbar still offers the 0.1 kit's div and embed commands; without
+// that kit (carve-grammars#906) they do nothing instead of throwing.
+const PendingKitCommands = Extension.create( {
+	name: 'wpcarvePendingKitCommands',
+	addCommands() {
+		return {
+			toggleCarveDiv: () => () => false,
+			setCarveEmbed: () => () => false,
+		};
+	},
+} );
+
+function editorContent( source ) {
+	return source ? render( source, { sections: false, smartTypography: false } ) : '<p></p>';
+}
 
 /**
  * Mount a Carve visual editor inside a container.
@@ -29,14 +66,22 @@ export { serializeToCarve };
  * @param {Function}    onChange     Receives Carve markup on every edit.
  * @return {Promise<Object>} Control object: { getCarve, setCarve, destroy, editor }.
  */
-function editorContent( source ) {
-	return source ? carveToProseMirror( source, { unsupported: 'preserve' } ) : '<p></p>';
-}
-
 export async function initVisualEditor( container, initialCarve, onChange ) {
-	// CarveKit already bundles the keymap (Ctrl/Cmd+1-6, clear, Enter reset).
 	const extensions = [
-		CarveKit,
+		StarterKit,
+		Underline,
+		Highlight,
+		Subscript,
+		Superscript,
+		Link.configure( { openOnClick: false } ),
+		Image,
+		Table,
+		TableRow,
+		TableHeader,
+		TableCell,
+		TaskList,
+		TaskItem.configure( { nested: true } ),
+		PendingKitCommands,
 		Placeholder.configure( { placeholder: 'Start writing Carve…' } ),
 	];
 
@@ -46,14 +91,13 @@ export async function initVisualEditor( container, initialCarve, onChange ) {
 	surfaceEl.className = 'wpcarve wpcarve-ve-surface';
 	container.appendChild( surfaceEl );
 
-	let content = editorContent( initialCarve );
 	let sourceSnapshot = initialCarve || '';
 	let documentSnapshot = '';
 	const editor = new Editor( {
 		element: surfaceEl,
 		extensions,
-		content,
-		onUpdate: ( { editor: ed } ) => {
+		content: editorContent( initialCarve ),
+		onUpdate: () => {
 			if ( onChange ) {
 				onChange( serializeCurrent() );
 			}
@@ -62,23 +106,16 @@ export async function initVisualEditor( container, initialCarve, onChange ) {
 	documentSnapshot = JSON.stringify( editor.getJSON() );
 
 	function serializeCurrent() {
-		const doc = editor.getJSON();
-		return JSON.stringify( doc ) === documentSnapshot ? sourceSnapshot : serializeToCarve( doc );
-	}
-
-	function serializeWithoutEnvelope() {
-		const doc = editor.getJSON();
-		return serializeToCarve( { ...doc, attrs: undefined } );
+		return JSON.stringify( editor.getJSON() ) === documentSnapshot ? sourceSnapshot : serializeToCarve( editor.getHTML() );
 	}
 
 	return {
 		editor,
 		getCarve: serializeCurrent,
-		getEditableCarve: serializeWithoutEnvelope,
+		getEditableCarve: () => serializeToCarve( editor.getHTML() ),
 		setCarve: ( source ) => {
-			content = editorContent( source );
 			sourceSnapshot = source || '';
-			const result = editor.commands.setContent( content, { emitUpdate: false } );
+			const result = editor.commands.setContent( editorContent( source ), { emitUpdate: false } );
 			documentSnapshot = JSON.stringify( editor.getJSON() );
 			return result;
 		},

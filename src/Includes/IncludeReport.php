@@ -45,19 +45,19 @@ class IncludeReport
     }
 
     /**
-     * @param array<\MarkupCarve\Carve\Transform\IncludeDependency> $dependencies
+     * @param array<int, array<string, mixed>> $dependencies `Carve::includeDependencies()` entries.
      * @param array<int, array{0: string, 1: string|null}> $lookups
-     * @param array<\MarkupCarve\Carve\Exception\ParseWarning> $warnings
+     * @param array<\MarkupCarve\Carve\Diagnostics\Diagnostic> $warnings The `include-*` parse diagnostics.
      * @param int $suppressed
      */
-    public function record(array $dependencies, array $lookups, array $warnings, int $suppressed): void
+    public function record(array $dependencies, array $lookups, array $warnings, int $suppressed = 0): void
     {
         $this->lookups = $lookups;
         foreach ($dependencies as $dependency) {
-            $this->dependencies[] = ['target' => $dependency->getTarget(), 'resolved' => $dependency->isResolved()];
+            $this->dependencies[] = ['target' => (string)($dependency['path'] ?? ''), 'resolved' => (bool)($dependency['read'] ?? false)];
         }
         foreach ($warnings as $warning) {
-            $this->warnings[] = ['rule' => (string)$warning->getRule(), 'message' => $warning->getMessage()];
+            $this->warnings[] = ['rule' => $warning->code, 'message' => $warning->message];
         }
         if ($suppressed > 0) {
             $this->warnings[] = ['rule' => 'include-warnings-suppressed', 'message' => sprintf('%d further include warnings were suppressed.', $suppressed)];
