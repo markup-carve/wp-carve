@@ -20,16 +20,20 @@ the source editor) searches common constructs and inserts them at the cursor.
 ## Semantic changes
 
 The changes panel compares the current Carve AST with the corresponding block in
-the last saved post. It reports added, removed, moved, and changed nodes. Save
-the post to establish a new baseline.
+the last saved post. It reports added, removed and changed top-level blocks
+(carve-js 0.2 has no AST diff, so the plugin compares the encoded trees itself).
+Save the post to establish a new baseline.
 
 ## Citations
 
 The citations panel accepts a CSL-JSON array and supports numbered and
-author-date rendering. Cite an entry by its `id` and place the references list:
+author-date rendering. On Carve 0.2, citation rendering waits for the extension
+catalog ([carve-php#5252](https://github.com/markup-carve/carve-php/issues/5252)),
+so a citation renders its fallback text; the panel still checks the keys. Cite an
+entry by its `id` with the 0.2 spelling (U-411) and place the references list:
 
 ```carve
-Research supports this claim [@knuth84].
+Research supports this claim :cite[knuth84].
 
 ::: references
 :::

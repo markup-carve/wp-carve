@@ -15,8 +15,11 @@ with the tab bar at the top of the block:
 
 The preview uses the in-browser Carve engine when the JS bundle is built
 (instant, no request), otherwise the REST render endpoint. Either way it renders
-the same content extensions the published post does, including tabs, details,
-spoilers, code groups, img fences, list-tables and semantic spans. Extensions
+the same core constructs the published post does, including tabs. The img
+fence renders on the server path only until carve-js ships its 0.2 definition
+(carve-js#5062); details, spoilers, code groups, list-tables and semantic spans
+render their plain fallback on both paths until the 0.2 extension catalog has
+them (carve-php#5252). Extensions
 that depend on a setting (table of contents, heading permalinks, heading shift,
 smart quotes) are applied server-side only, so those appear in the published
 post rather than in the instant preview.
@@ -41,9 +44,9 @@ When the block is selected in Write/Split mode, the block toolbar offers:
   block, admonition (note / tip / info / warning / danger / success / example /
   quote), media embed (YouTube / Vimeo / auto URL), divider
 - Footnote (`^[…]`), math (inline `` $`…` `` / display `` $$`…` ``), citation
-  (`[@key]`), definition list (`:: term` / `:  definition`)
-- **Import & convert** - paste Markdown, Djot, BBCode or HTML and convert it to
-  Carve, inserted at the cursor
+  (`:cite[key]`), definition list (`:: term` / `:  definition`)
+- **Import & convert** - paste HTML and convert it to Carve, inserted at the
+  cursor (Markdown, Djot and BBCode wait for the 0.2 importers)
 
 Keyboard shortcuts in the source editor: `Ctrl/Cmd+B` strong, `Ctrl/Cmd+I`
 emphasis, `Ctrl/Cmd+U` underline, `Ctrl/Cmd+K` link.

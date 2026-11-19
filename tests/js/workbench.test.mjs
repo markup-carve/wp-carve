@@ -57,3 +57,9 @@ test('the host tree diff names added and changed blocks', () => {
 	const changes = semanticChanges('Para.\n', 'Para two.\n\nMore.\n', engine)
 	assert.deepEqual(changes.map((c) => [c.kind, c.type]), [['changed', 'paragraph'], ['added', 'paragraph']])
 })
+
+test('reports a 0.2 :cite[] key missing from the bibliography', () => {
+	const result = analyzeDocument('Intro.\n\nSee :cite[known] and :cite[gone].', engine, '[{"id":"known","title":"A"}]')
+	const missing = result.diagnostics.filter((d) => d.rule === 'unresolved-citation')
+	assert.deepEqual(missing.map((d) => [d.line, d.message]), [[3, 'Citation “gone” has no in-document or CSL-JSON entry.']])
+})

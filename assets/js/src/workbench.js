@@ -27,8 +27,12 @@ export function outlineFromAst( ast ) {
 
 function citationKeys( source ) {
 	const keys = [];
-	for ( const match of source.matchAll( /\[(?:[^\]\n]*?)(?:-?@)([A-Za-z0-9_][\w:.#$%&+?<>~\/-]*)[^\]\n]*\](?!:)/g ) ) {
-		if ( ! keys.includes( match[ 1 ] ) ) keys.push( match[ 1 ] );
+	// `:cite[key]` is the 0.2 spelling (U-411); `[@key]` the 0.1 one.
+	const patterns = [ /:cite\[\s*([A-Za-z0-9_][\w:.#$%&+?<>~\/-]*)[^\]\n]*\]/g, /\[(?:[^\]\n]*?)(?:-?@)([A-Za-z0-9_][\w:.#$%&+?<>~\/-]*)[^\]\n]*\](?!:)/g ];
+	for ( const pattern of patterns ) {
+		for ( const match of source.matchAll( pattern ) ) {
+			if ( ! keys.includes( match[ 1 ] ) ) keys.push( match[ 1 ] );
+		}
 	}
 	return keys;
 }
@@ -69,7 +73,7 @@ export function analyzeDocument( source, engine, bibliographyJson = '' ) {
 	}
 	const known = new Set( [ ...definitionKeys( source ), ...bibliography.map( ( entry ) => entry.id ) ] );
 	citationKeys( source ).filter( ( key ) => ! known.has( key ) ).forEach( ( key ) => diagnostics.push( {
-		line: source.slice( 0, source.indexOf( '@' + key ) ).split( '\n' ).length,
+		line: source.slice( 0, Math.max( 0, source.indexOf( key ) ) ).split( '\n' ).length,
 		column: 1,
 		rule: 'unresolved-citation',
 		message: 'Citation “' + key + '” has no in-document or CSL-JSON entry.',

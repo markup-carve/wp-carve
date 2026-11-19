@@ -193,7 +193,7 @@ add_filter('wpcarve_mention_url', fn (string $template): string => 'https://soci
 
 ### `wpcarve_wikilink_url`
 
-Resolve `[[Page Title]]` yourself when `wikilinks_enabled` is on. Return a URL
+Resolve `:wiki[Page Title]` yourself when `wikilinks_enabled` is on. Return a URL
 string to use it, or `null` to fall through to the default lookup (a post or
 page whose slug matches the sanitized title). An unresolved link becomes `#`
 and keeps its `wikilink` class, so it can be styled as a broken link rather
@@ -207,12 +207,13 @@ add_filter('wpcarve_wikilink_url', function (?string $url, string $page): ?strin
 }, 10, 2);
 ```
 
-## Actions
+### `wpcarve_extensions`
 
-### `wpcarve_converter`
-
-Register additional carve-php extensions on the converter as it is built (once
-per context).
+Filter the carve-php 0.2 extensions a context renders with: a list of
+`MarkupCarve\Carve\Extension\ExtensionDefinition` or `ExtensionProvider`
+instances, passed as the engine's `extensions` option (built once per context).
+It replaces the 0.1 `wpcarve_converter` action: carve-php 0.2 has no converter
+object to configure. The 0.2 extension API is provisional.
 
 `$context` is one of:
 
@@ -220,32 +221,32 @@ per context).
 - `comment` - comment rendering (uses the comment profile).
 - `feed` - RSS and Atom output. Renders like `post` but in the engine's static
   mode, because nothing in a feed reader runs this plugin's JavaScript, so a
-  diagram's hydration container would arrive empty. Register content extensions
-  for it alongside `post`; anything that needs client-side JavaScript to appear
-  is pointless here.
-- `editor` - the compatibility render used by linting and REST clients that
-  request an editor-safe HTML seed. The built-in Gutenberg visual editor now
-  loads source through the JavaScript AST bridge, but this context remains for
-  integrations that consume editor-safe rendered HTML.
+  diagram's hydration container would arrive empty. An extension without a
+  build-time renderer writes its fallback there.
+- `editor` - the editor-safe HTML render used by linting and REST clients.
+- `text:post`, `text:comment` - the plain-text render behind excerpts.
 
 Gate accordingly: apply **round-trippable content extensions** for both `post`
-and `editor`, but apply
-extensions that **inject generated markup** for `post` only.
+and `editor`, but apply extensions that **inject generated markup** for `post`
+only.
 
 ```php
-use MarkupCarve\Carve\CarveConverter;
+use MarkupCarve\Carve\Extension\ExtensionDefinition;
 
-add_action('wpcarve_converter', function (CarveConverter $converter, string $context): void {
-    // Round-trippable content extension: also wanted in the visual editor.
-    if (in_array($context, ['post', 'editor'], true)) {
-        $converter->addExtension(new MyContentExtension());
+add_filter('wpcarve_extensions', function (array $extensions, string $context): array {
+    if (in_array($context, ['post', 'feed'], true)) {
+        $extensions[] = new ExtensionDefinition(
+            'acme.callout',
+            '1',
+            matcher: ['form' => 'div', 'name' => 'callout'],
+            transform: [MyCallout::class, 'transform'](...),
+            renderer: [MyCallout::class, 'render'](...),
+        );
     }
-    // Generated markup that can't survive the round trip: front-end only.
-    if ($context === 'post') {
-        $converter->addExtension(new MyTocLikeExtension());
-    }
+
+    return $extensions;
 }, 10, 2);
 ```
 
-This is the supported extension point: anything carve-php exposes as an
-`ExtensionInterface` can be wired in without patching the plugin.
+See the [carve-php 0.2 guide](https://github.com/markup-carve/carve-php/blob/next2/docs/README.md#extensions-provisional)
+for the transform and renderer signatures.

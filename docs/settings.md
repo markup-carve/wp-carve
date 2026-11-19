@@ -22,9 +22,9 @@ Markup**.
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. Only `full` permits raw HTML (still sanitized via `wp_kses`); the others escape it. |
 | `comment_profile` | `comment` | Content profile for comments. |
 | `untrusted_max_bytes` | `65536` | Maximum source bytes for comments and shortcodes. Larger input appears as escaped text. |
-| `untrusted_max_nesting` | `4` | Maximum engine nesting depth for comments and shortcodes. Deeper input appears as escaped text. |
-| `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
-| `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). |
+| `untrusted_max_nesting` | `4` | Maximum block container nesting (quotes, lists, divs, admonitions, description lists) for comments and shortcodes. Deeper input appears as escaped text. |
+| `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. **Carve 0.2:** no engine option yet; soft breaks render as newlines. |
+| `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). **Carve 0.2:** no engine option yet. |
 | `abbreviations` | `''` | Site-wide abbreviations, one `KEY: expansion` per line; matching words get an `<abbr>` tooltip everywhere. |
 
 See [Profiles & rendering](profiles.md) for what each profile means.
@@ -40,14 +40,14 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `toc_max_level` | `4` | Highest heading level included. |
 | `toc_list_type` | `ul` | `ul` (bulleted) or `ol` (numbered) TOC. |
 | `permalinks_enabled` | `false` | Add click-to-copy heading anchors. |
-| `heading_numbers` | `false` | Prefix each heading with its section number (1, 1.1, 1.2). Front end only - it is generated markup, so it never reaches the visual editor. |
+| `heading_numbers` | `false` | Prefix each heading with its section number (1, 1.1, 1.2). Front end only - it is generated markup, so it never reaches the visual editor. **Carve 0.2:** waits for [carve-php#5252](https://github.com/markup-carve/carve-php/issues/5252). |
 | `external_links` | `false` | Add `rel="noopener noreferrer"` to links pointing off this site. The site's own host comes from `home_url()`; add others with the `wpcarve_internal_hosts` filter. |
 | `external_links_new_tab` | `false` | Also add `target="_blank"`. Separate from the above because marking a link external and forcing a new tab are different decisions. |
 | `external_links_nofollow` | `false` | Also add `nofollow` to the `rel`. |
 | `mentions_enabled` | `false` | Turn `@name` into an author-archive link and `#tag` into a tag-archive link. Off, both stay literal source text. Templates come from `home_url()`; override with `wpcarve_mention_url` / `wpcarve_tag_url` if your author base or permalinks differ. |
-| `wikilinks_enabled` | `false` | Turn `[[Page Title]]` into a link to the matching post or page. Unresolved links become `href="#"` and keep their `wikilink` class, so a theme can style `a.wikilink[href="#"]` as a broken link. Override resolution with `wpcarve_wikilink_url`. |
-| `smart_quotes` | `false` | Curly quotes / dashes. |
-| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`). |
+| `wikilinks_enabled` | `false` | Turn `:wiki[Page Title]` into a link to the matching post or page. Unresolved links become `href="#"` and keep their `wikilink` class, so a theme can style `a.wikilink[href="#"]` as a broken link. Override resolution with `wpcarve_wikilink_url`. |
+| `smart_quotes` | `false` | Curly quotes / dashes (the 0.2 `smartTypography` option). |
+| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`). **Carve 0.2:** no engine option; quotes use the default glyphs. |
 | `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams. |
 | `chart_enabled` | `false` | Render ` ```chart ` blocks with Chart.js. |
 | `vega_enabled` | `false` | Render ` ```vega-lite ` blocks with Vega-Lite. |
@@ -56,8 +56,8 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
 | `plantuml_enabled` | `false` | Render ` ```plantuml ` / ` ```puml ` blocks via the Kroki service (external request). |
 | `diagram_export` | `false` | Show hover **Copy SVG** / **Download** controls on rendered diagrams (front end). |
-| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). |
-| `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
+| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). **Carve 0.2:** waits for [carve-php-media-embed#23](https://github.com/markup-carve/carve-php-media-embed/issues/23); the oEmbed fallback still runs. |
+| `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). **Carve 0.2:** waits for [carve-php#5250](https://github.com/markup-carve/carve-php/issues/5250). |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 
@@ -68,7 +68,7 @@ Each diagram renderer is off by default; its JavaScript loads only on pages that
 With `diagram_export` enabled (off by default), hovering a rendered diagram on the front end reveals a **Download** control (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC, PlantUML - a **Copy SVG**). SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
-| `normalize_tabs` | `false` | Convert leading tabs to spaces. |
+| `normalize_tabs` | `false` | Convert leading tabs to spaces. **Carve 0.2:** no engine option; tabs are kept. |
 | `tab_width` | `2` | Spaces per tab when normalizing. |
 
 ## Innovations
@@ -77,7 +77,7 @@ With `diagram_export` enabled (off by default), hovering a rendered diagram on t
 | --- | --- | --- |
 | `live_preview` | `true` | In-browser instant block preview (needs the bundled `assets/js/vendor/carve.js`). |
 | `visual_editor_mode` | `disabled` | Tiptap "Visual" tab in the Carve block: `disabled` / `enabled` / `enabled_default` (open in Visual). See [Visual editor](visual-editor.md). |
-| `paste_ingest` | `true` | Paste Markdown / Djot / BBCode / HTML and convert to Carve. |
+| `paste_ingest` | `true` | Paste HTML and convert to Carve. Markdown, Djot and BBCode answer "not available yet" until carve-php imports them on 0.2. |
 | `frontmatter_meta` | `true` | Map `---` frontmatter to excerpt / SEO / meta. |
 | `render_cache` | `true` | Cache rendered HTML in post meta on save. |
 | `include_root` | `''` | Absolute directory that `{{ file.crv }}` include directives read from. Empty disables includes. |

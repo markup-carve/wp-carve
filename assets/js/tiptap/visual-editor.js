@@ -11,7 +11,7 @@
  * back in the importer's spelling. Unchanged documents keep their source.
  */
 
-import { Editor } from '@tiptap/core';
+import { Editor, Extension } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
@@ -37,6 +37,18 @@ import { importDocument, render } from '@markup-carve/carve/v2';
 export function serializeToCarve( html ) {
 	return importDocument( String( html ?? '' ), { from: 'html' } ).source;
 }
+
+// The block toolbar still offers the 0.1 kit's div and embed commands; without
+// that kit (carve-grammars#906) they do nothing instead of throwing.
+const PendingKitCommands = Extension.create( {
+	name: 'wpcarvePendingKitCommands',
+	addCommands() {
+		return {
+			toggleCarveDiv: () => () => false,
+			setCarveEmbed: () => () => false,
+		};
+	},
+} );
 
 function editorContent( source ) {
 	return source ? render( source, { sections: false, smartTypography: false } ) : '<p></p>';
@@ -69,6 +81,7 @@ export async function initVisualEditor( container, initialCarve, onChange ) {
 		TableCell,
 		TaskList,
 		TaskItem.configure( { nested: true } ),
+		PendingKitCommands,
 		Placeholder.configure( { placeholder: 'Start writing Carve…' } ),
 	];
 

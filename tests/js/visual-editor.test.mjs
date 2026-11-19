@@ -35,3 +35,13 @@ test('an edit is written back as 0.2 source', async () => {
 	editor.destroy();
 	el.remove();
 });
+
+test('toolbar commands of the 0.1 editor kit are inert, not errors', async () => {
+	const el = document.createElement('div');
+	document.body.appendChild(el);
+	const editor = await initVisualEditor(el, 'Text.\n');
+	assert.equal(editor.editor.chain().toggleCarveDiv({ class: 'note' }).run(), false);
+	assert.equal(editor.editor.chain().setCarveEmbed({ src: 'https://example.test' }).run(), false);
+	editor.destroy();
+	el.remove();
+});
