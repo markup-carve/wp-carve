@@ -15,7 +15,7 @@ use RuntimeException;
  */
 final class ImporterUnavailable extends RuntimeException
 {
-    public function __construct(public readonly string $format, public readonly string $issue)
+    public function __construct(public string $format, public string $issue)
     {
         parent::__construct(sprintf(
             'Importing %s is not available yet in Carve 0.2%s.',

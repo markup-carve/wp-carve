@@ -124,8 +124,8 @@ class Converter
             $html = $includes !== null && $context !== 'editor' && $context !== 'comment'
                 ? $this->renderWithIncludes($source, $options, $includes, $context, $maxNesting)
                 : $this->renderSource($source, $options, $context, $maxNesting);
-        } catch (InputError $e) {
-            throw new LengthException('Input length exceeds the profile limit', 0, $e);
+        } catch (InputError) {
+            throw new LengthException('Input length exceeds the profile limit');
         }
 
         // JSON diagram configs (chart, vega-lite) that an add-on still emits in a
@@ -450,7 +450,7 @@ class Converter
         $html = (string)preg_replace('/<a [^>]*role="doc-noteref"[^>]*>.*?<\/a>/s', '', $html);
         $html = (string)preg_replace('/<\/(p|h[1-6]|li|blockquote|pre|tr|dt|dd|div|aside|section|figure)>/', "$0\n", $html);
         $html = (string)preg_replace('/<\/t[dh]>/', '$0 ', $html);
-        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return trim((string)preg_replace("/\n{2,}/", "\n", $text));
     }
@@ -840,7 +840,7 @@ class Converter
         return (string)preg_replace_callback(
             '/<a href="(https?:\/\/[^"]+)"([^>]*)>/i',
             static function (array $m) use ($internal, $newTab, $nofollow): string {
-                $host = parse_url(html_entity_decode($m[1]), PHP_URL_HOST);
+                $host = wp_parse_url(html_entity_decode($m[1]), PHP_URL_HOST);
                 if (!is_string($host) || in_array(strtolower($host), array_map('strtolower', $internal), true)) {
                     return $m[0];
                 }
@@ -869,7 +869,7 @@ class Converter
         foreach ($matches as $m) {
             $level = (int)$m[1];
             if ($level >= $min && $level <= $max) {
-                $items .= '<li class="toc-level-' . $level . '"><a href="#' . $m[2] . '">' . trim(strip_tags($m[3])) . '</a></li>';
+                $items .= '<li class="toc-level-' . $level . '"><a href="#' . $m[2] . '">' . wp_strip_all_tags($m[3]) . '</a></li>';
             }
         }
 

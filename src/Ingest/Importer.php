@@ -38,7 +38,7 @@ final class Importer
     public static function import(string $from, string $source): array
     {
         if ($from !== 'html') {
-            throw new ImporterUnavailable($from, self::PENDING[$from] ?? '');
+            throw new ImporterUnavailable(esc_html($from), esc_html(self::PENDING[$from] ?? ''));
         }
 
         $result = Carve::importDocument($source, ['from' => 'html']);
@@ -47,7 +47,7 @@ final class Importer
             'value' => $result->source,
             'report' => [
                 'source_format' => 'html',
-                'diagnostics' => array_map(self::entry(...), $result->diagnostics),
+                'diagnostics' => array_map(static fn (Diagnostic $d): array => self::entry($d), $result->diagnostics),
             ],
         ];
     }

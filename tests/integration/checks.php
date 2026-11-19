@@ -27,6 +27,11 @@ $carve_check = static function (string $name, bool $passed, string $detail = '')
     fwrite(STDOUT, "FAIL  {$name}" . ($detail !== '' ? " - {$detail}" : '') . "\n");
 };
 
+// A check that waits for a Carve 0.2 engine feature: named, with its issue, never silently dropped.
+$carve_skip = static function (string $name, string $reason): void {
+    fwrite(STDOUT, "SKIP  {$name} - {$reason}\n");
+};
+
 $carve_snippet = static fn (string $html): string => trim(preg_replace('/\s+/', ' ', substr($html, 0, 160)) ?? '');
 
 // --- Plugin loaded + active ---------------------------------------------------
@@ -69,7 +74,7 @@ $native_code_group = render_block([
     'innerHTML' => '',
     'innerContent' => [],
 ]);
-$carve_check('native code group renders tab panels', str_contains($native_code_group, 'code-group-panel'));
+$carve_skip('native code group renders tab panels', 'Pending carve-php#5252: code group is not in the 0.2 extension catalog yet.');
 
 $native_table = render_block([
     'blockName' => 'carve/table-spans',
@@ -183,7 +188,13 @@ for ($i = 0; $i < 64; $i++) {
     $ingest->set_param('from', ['auto', 'markdown', 'djot', 'bbcode', 'html'][$i % 5]);
     $ingested = rest_get_server()->dispatch($ingest);
     $data = $ingested->get_data();
-    $carve_check("ingest fuzz {$i}", $ingested->get_status() === 200 && is_string($data['carve'] ?? null));
+    // 0.2 imports HTML only; the other formats answer 501 until carve-php
+    // provides them (carve-php#5237, #5242, #5251).
+    $carve_check(
+        "ingest fuzz {$i}",
+        ($ingested->get_status() === 200 && is_string($data['carve'] ?? null))
+            || ($ingested->get_status() === 501 && ($data['from'] ?? '') !== 'html' && ($data['pending'] ?? '') !== ''),
+    );
 }
 
 $oversized_render = new WP_REST_Request('POST', '/carve/v1/render');
@@ -347,22 +358,7 @@ $carve_check(
 // End-to-end: a highlighted `{.diff}` fence must keep BOTH the token spans and
 // the diff row classes through wp_kses. toHtml() sanitizes on the way out, so
 // anything missing here was dropped by the real filter, not by the extension.
-if (class_exists(\Torchlight\Engine\Engine::class)) {
-    $carve_diff_converter = new \WpCarve\Converter([
-        'torchlight_enabled' => true,
-        'torchlight_theme' => 'github-light',
-    ]);
-    $carve_diff_html = $carve_diff_converter->toHtml("{.diff}\n``` php\n- old();\n+ fresh();\n```\n");
-    $carve_check(
-        'kses keeps the diff row classes on a highlighted fence',
-        str_contains($carve_diff_html, 'has-diff')
-            && str_contains($carve_diff_html, 'line diff add')
-            && str_contains($carve_diff_html, 'line diff remove')
-            && str_contains($carve_diff_html, 'class="diff-marker"')
-            && str_contains($carve_diff_html, 'phiki language-php'),
-        $carve_snippet($carve_diff_html),
-    );
-}
+$carve_skip('kses keeps the diff row classes on a highlighted fence', 'Pending carve-php#5250: Torchlight needs the 0.2 host code-block renderer.');
 
 // End-to-end: a ```chart fence must survive wp_kses as a data attribute (the
 // <script> carrier is stripped) and ship the accessible data-table fallback.
@@ -384,13 +380,14 @@ $carve_check(
 $carve_prev_ingest_user = get_current_user_id();
 wp_set_current_user(1);
 
+$carve_skip('ingest converts a small Markdown paste', 'Pending carve-php#5237: Carve 0.2 has no Markdown importer yet.');
 $ingest_ok = new WP_REST_Request('POST', '/carve/v1/ingest');
-$ingest_ok->set_param('source', '# Hello world');
-$ingest_ok->set_param('from', 'markdown');
+$ingest_ok->set_param('source', '<h1>Hello world</h1>');
+$ingest_ok->set_param('from', 'html');
 $ingest_ok_res = rest_get_server()->dispatch($ingest_ok);
 $carve_check(
-    'ingest converts a small Markdown paste',
-    $ingest_ok_res->get_status() === 200 && str_contains((string)($ingest_ok_res->get_data()['carve'] ?? ''), 'Hello world'),
+    'ingest converts a small HTML paste with the 0.2 importer',
+    $ingest_ok_res->get_status() === 200 && (string)($ingest_ok_res->get_data()['carve'] ?? '') === "= Hello world\n",
     $carve_snippet((string)($ingest_ok_res->get_data()['carve'] ?? '')),
 );
 
@@ -535,9 +532,10 @@ $carve_check(
     !str_contains($carve_svg_html, 'src="image/svg+xml'),
     $carve_snippet($carve_svg_html),
 );
+// 0.2 (C2-X-060): the standard img fence writes an empty alt.
 $carve_check(
-    'img fence alt comes from the svg title',
-    str_contains($carve_svg_html, 'alt="A dot"'),
+    'img fence alt is empty',
+    str_contains($carve_svg_html, 'alt=""'),
     $carve_snippet($carve_svg_html),
 );
 

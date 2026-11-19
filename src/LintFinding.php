@@ -17,11 +17,11 @@ use MarkupCarve\Carve\Diagnostics\Diagnostic;
 final class LintFinding
 {
     public function __construct(
-        public readonly int $line,
-        public readonly int $column,
-        public readonly string $rule,
-        public readonly string $message,
-        public readonly string $severity = 'warning',
+        public int $line,
+        public int $column,
+        public string $rule,
+        public string $message,
+        public string $severity = 'warning',
     ) {
     }
 
