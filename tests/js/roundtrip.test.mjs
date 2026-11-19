@@ -1,10 +1,10 @@
 /**
  * Visual-editor round-trip smoke test.
  *
- * Exercises the exact path the Carve block uses: Carve -> HTML (carve-js) ->
- * Tiptap (carve-grammars CarveKit) -> Carve (serializeToCarve). A construct
- * "round-trips" when the rendered output is unchanged, which is what the block's
- * lossy guard checks. The deep coverage lives in carve-grammars; this guards the
+ * Exercises the exact path the Carve block uses: Carve -> 0.2 tree (carve-js) ->
+ * Tiptap (carve-grammars CarveKit) -> tree -> Carve (the carve-js writer). A
+ * construct "round-trips" when the rendered output is unchanged, which is what
+ * the block's lossy guard checks. The deep coverage lives in carve-grammars; this guards the
  * wired-up stack (carve-js + carve-grammars + the shipped extension set).
  */
 import test from 'node:test';
@@ -25,9 +25,9 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 }
 
 const { Editor } = await import('@tiptap/core');
-const { carveToHtml } = await import('@markup-carve/carve');
-const { CarveKit, carveToProseMirror, serializeToCarve } = await import('@markup-carve/carve-grammars/tiptap').catch(() => ({}));
-const KIT_PENDING = CarveKit ? false : 'Pending carve-grammars#906: carve-grammars 0.2 has no Tiptap editor kit (CarveKit, serializeToCarve) yet.';
+const carve = await import('@markup-carve/carve/v2');
+const carveToHtml = (source) => carve.render(source);
+const { CarveKit, carveToProseMirror, serializeToCarve } = await import('@markup-carve/carve-grammars/tiptap');
 
 // Same equivalence used by the block's lossy guard: sort tag attributes and
 // collapse whitespace so visually-identical HTML compares equal.
@@ -41,16 +41,16 @@ function normHtml(html) {
 		.trim();
 }
 
-function roundTrip(carve) {
+/** Load into the editor and write the tree back with the writer, as an edit would. */
+function roundTrip(source) {
 	const el = document.createElement('div');
 	document.body.appendChild(el);
-	const content = carveToProseMirror(carve, { unsupported: 'preserve' });
 	const editor = new Editor({
 		element: el,
 		extensions: [CarveKit],
-		content,
+		content: carveToProseMirror(source, { engine: carve }),
 	});
-	const out = serializeToCarve({ ...editor.getJSON(), attrs: undefined });
+	const out = serializeToCarve(editor.getJSON(), { engine: carve });
 	editor.destroy();
 	el.remove();
 	return out;
@@ -101,42 +101,44 @@ test('the wp-carve shell keeps an untouched source envelope exact', async () => 
 	//
 	// The writer normalizes the extra heading space. An untouched visual editor
 	// still returns the author's exact source through its envelope.
-	const carve = '#  Heading\n';
+	const source = '#  Heading\n';
 	const el = document.createElement('div');
 	document.body.appendChild(el);
 	const { initVisualEditor } = await import('../../assets/js/tiptap/visual-editor.js');
-	const editor = await initVisualEditor(el, carve);
-	assert.equal(editor.getCarve(), carve);
-	assert.notEqual(editor.getEditableCarve(), carve, 'the approval gate must see rich-mapping drift');
+	const editor = await initVisualEditor(el, source);
+	assert.equal(editor.getCarve(), source);
+	assert.notEqual(editor.getEditableCarve(), source, 'the approval gate must see rich-mapping drift');
 	editor.destroy();
 	el.remove();
 });
 
-test('GFM table separator spelling survives the current grammar bridge', { skip: KIT_PENDING }, () => {
-	const carve = '| A | B |\n|---|---|\n| 1 | 2 |';
-	assert.equal(roundTrip(carve), carve);
+test('GFM table separator spelling survives an unedited document', () => {
+	const source = '| A | B |\n|---|---|\n| 1 | 2 |';
+	assert.equal(serializeToCarve(carveToProseMirror(source, { engine: carve }), { engine: carve, source }), source);
 });
 
-for (const [name, carve] of Object.entries(CASES)) {
-	test(`round-trips: ${name}`, { skip: KIT_PENDING }, () => {
-		const before = normHtml(carveToHtml(carve));
-		const after = normHtml(carveToHtml(roundTrip(carve)));
-		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(carve)}\n  serialized: ${JSON.stringify(roundTrip(carve))}`);
+for (const [name, source] of Object.entries(CASES)) {
+	test(`round-trips: ${name}`, () => {
+		const before = normHtml(carveToHtml(source));
+		const after = normHtml(carveToHtml(roundTrip(source)));
+		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(source)}\n  serialized: ${JSON.stringify(roundTrip(source))}`);
 	});
 }
 
-test('a rule inserted in the visual editor is written as ***', { skip: KIT_PENDING }, () => {
+test('a rule inserted in the visual editor is written as a thematic break', () => {
 	const doc = { type: 'doc', content: [
 		{ type: 'paragraph', content: [ { type: 'text', text: 'Above.' } ] },
 		{ type: 'horizontalRule' },
 		{ type: 'paragraph', content: [ { type: 'text', text: 'Below.' } ] },
 	] };
-	assert.equal(serializeToCarve(doc), 'Above.\n\n***\n\nBelow.');
+	const written = serializeToCarve(doc, { engine: carve });
+	assert.deepEqual(carve.parse(written).children.map((node) => node.type), ['paragraph', 'thematic_break', 'paragraph']);
+	assert.match(written, /^Above\.\n\n(\*\*\*|---)\n\nBelow\.\n$/);
 });
 
-test('braced cell alignment keeps its braced spelling through the visual editor', { skip: KIT_PENDING }, () => {
-	const carve = '|={<} Item |={>} Price |\n| Tea | 3.50 |\n| Cake |{~} n/a |';
-	const out = roundTrip(carve);
-	assert.equal(normHtml(carveToHtml(out)), normHtml(carveToHtml(carve)));
+test('braced cell alignment keeps its braced spelling through the visual editor', () => {
+	const source = '|={<} Item |={>} Price |\n| Tea | 3.50 |\n| Cake |{~} n/a |';
+	const out = roundTrip(source);
+	assert.equal(normHtml(carveToHtml(out)), normHtml(carveToHtml(source)));
 	assert.doesNotMatch(out, /\|=?[<>~]/, `deprecated alignment prefix written: ${JSON.stringify(out)}`);
 });

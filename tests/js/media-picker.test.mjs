@@ -228,12 +228,12 @@ test('all three call sites reach the one shared mapper rather than mapping their
   }
 
   // Classic source editor and block source editor both build source through
-  // toSourceAt; the visual editor maps the same pick onto nodes.
+  // toSourceAt; the visual editor inserts the same pick's toSource through the editor kit.
   assert.match(documentSource, /window\.wpCarveMedia/);
   assert.match(documentSource, /media\.toSourceAt\( chosen, before, after \)/);
   assert.match(blockSource, /window\.wpCarveMedia/);
   assert.match(blockSource, /media\.toSourceAt\(\s*\n\s*chosen,\s*\n\s*selection\.value\.slice\( 0, selection\.start \),/);
-  assert.match(blockSource, /attrs\.class = chosen\.className/);
+  assert.match(blockSource, /ctl\.insertCarve\( window\.wpCarveMedia\.toSource\( chosen \) \)/);
 
   // Each one keeps a prompt fallback for a screen without wp.media.
   assert.match(documentSource, /fallback: \(\) => insertLinked\( 'image' \)/);
@@ -241,10 +241,10 @@ test('all three call sites reach the one shared mapper rather than mapping their
   assert.match(blockSource, /fallback: \(\) => promptImageUrl\( ed \)/);
 });
 
-test('the visual editor builds a figure with a caption child, and a bare image without', () => {
-  assert.match(blockSource, /type: 'carveFigure'/);
-  assert.match(blockSource, /type: 'carveCaption', content: \[ \{ type: 'text', text: chosen\.caption \} \]/);
-  assert.match(blockSource, /if \( ! chosen\.caption \) \{\s*\n\s*ed\.chain\(\)\.focus\(\)\.setImage\( attrs \)\.run\(\);/);
+// The caption and class round trip itself is media-picker-visual.test.mjs, through the real editor.
+test('the visual editor inserts the pick as source through the kit, and a bare image without it', () => {
+  assert.match(blockSource, /ctl && typeof ctl\.insertCarve === 'function'/);
+  assert.match(blockSource, /ed\.chain\(\)\.focus\(\)\.setImage\( \{ src: chosen\.url, alt: chosen\.alt \} \)\.run\(\);/);
 });
 
 /**
