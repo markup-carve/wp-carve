@@ -23,7 +23,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
-import { carveToHtml, tabs, details, spoiler, codeGroup, imgFence, listTable, semanticSpan, citations } from '@markup-carve/carve';
+import { render, tabsExtensions, tabsRenderer } from '@markup-carve/carve/v2';
 
 const bundle = await readFile(new URL('../../assets/js/vendor/carve.js', import.meta.url), 'utf8');
 const scope = {};
@@ -38,18 +38,14 @@ runInNewContext(bundle, {
 	Intl,
 });
 
-// The same list assets/js/src/engine.js registers, so a difference is the
-// engine's and not the extension set's.
-const extensions = () => [
-	codeGroup(),
-	tabs(),
-	details(),
-	spoiler(),
-	imgFence(),
-	listTable(),
-	semanticSpan(),
-	citations({ mode: 'numbered', bibliography: [] }),
-];
+// The same options assets/js/src/engine.js renders with, so a difference is
+// the engine's and not the configuration's.
+const options = {
+	sections: false,
+	smartTypography: false,
+	extensions: tabsExtensions,
+	renderers: { 'carve.tabs': tabsRenderer },
+};
 
 /**
  * Shapes around the boundaries the engine has moved recently, not a
@@ -71,7 +67,7 @@ for (const [name, source] of Object.entries(shapes)) {
 	test(`the shipped bundle renders ${name} like the pinned engine`, () => {
 		assert.equal(
 			scope.wpCarveEngine.carveToHtml(source),
-			carveToHtml(source, { extensions: extensions() }),
+			render(source, options),
 		);
 	});
 }

@@ -8,10 +8,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\Converter\BbcodeToCarve;
-use MarkupCarve\Carve\Converter\DjotToCarve;
-use MarkupCarve\Carve\Converter\HtmlToCarve;
-use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -65,17 +61,16 @@ class PasteController
             return new WP_REST_Response(['carve' => $source, 'from' => $from, 'report' => null], 200);
         }
 
-        $result = match ($from) {
-            'markdown' => (new MarkdownToCarve())->convertWithFidelityReport($source),
-            'djot' => (new DjotToCarve())->convertWithFidelityReport($source),
-            'bbcode' => (new BbcodeToCarve())->convertWithFidelityReport($source),
-            'html' => (new HtmlToCarve())->convertWithFidelityReport($source),
-        };
+        try {
+            $result = Importer::import($from, $source);
+        } catch (ImporterUnavailable $e) {
+            return new WP_REST_Response(['message' => $e->getMessage(), 'from' => $from, 'pending' => $e->issue], 501);
+        }
 
         return new WP_REST_Response([
-            'carve' => $result->value,
+            'carve' => $result['value'],
             'from' => $from,
-            'report' => $result->report(),
+            'report' => $result['report'],
         ], 200);
     }
 

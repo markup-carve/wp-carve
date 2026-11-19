@@ -20,8 +20,14 @@ use WpCarve\Converter;
 #[UsesClass(Converter::class)]
 class FeedRenderTest extends TestCase
 {
+    /**
+     * @var string
+     */
     private const CHART = "``` chart\n{ \"type\": \"bar\" }\n```";
 
+    /**
+     * @var string
+     */
     private const MERMAID = "``` mermaid\ngraph TD; A-->B\n```";
 
     public function testTheInteractiveRenderOfAChartHasNoTextContent(): void
@@ -85,6 +91,8 @@ class FeedRenderTest extends TestCase
 
     public function testAFeedKEEPSHeadingNumbers(): void
     {
+        $this->markTestSkipped('Pending carve-php#5252: heading numbers are not in the 0.2 extension catalog yet.');
+
         // Unlike the two above: a section number is static text that reads
         // correctly with no CSS, no JavaScript and no page to anchor into.
         $html = (new Converter(['heading_numbers' => true]))->toHtml("# One\n\n## Two", 'feed');

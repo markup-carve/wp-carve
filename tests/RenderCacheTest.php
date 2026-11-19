@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpCarve\Test;
 
-use MarkupCarve\Carve\CarveConverter;
+use Composer\InstalledVersions;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use WpCarve\Meta\RenderCache;
@@ -69,11 +69,20 @@ class RenderCacheTest extends TestCase
         $this->assertSame($before, $after);
     }
 
+    /**
+     * 0.2 has no LIB_VERSION constant; the engine version is the installed
+     * package version and its source reference, read here independently.
+     */
+    private static function engineVersion(): string
+    {
+        return InstalledVersions::getPrettyVersion('markup-carve/carve-php') . '@' . InstalledVersions::getReference('markup-carve/carve-php');
+    }
+
     public function testReadReturnsCachedHtmlWhenSignatureMatches(): void
     {
         $postId = 42;
         update_post_meta($postId, '_wpcarve_html', '<p>cached</p>');
-        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()));
+        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, self::engineVersion(), Settings::renderSignature()));
         update_post_meta($postId, '_wpcarve_html_safe', '1');
 
         $this->assertSame('<p>cached</p>', RenderCache::read($postId, true));
@@ -84,7 +93,7 @@ class RenderCacheTest extends TestCase
         $postId = 42;
         update_post_meta($postId, '_wpcarve_html', '<p>cached</p>');
         // Cached under the current signature...
-        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()));
+        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, self::engineVersion(), Settings::renderSignature()));
         update_post_meta($postId, '_wpcarve_html_safe', '1');
 
         // ...then a render-affecting setting changes: the stored HTML is stale.
@@ -97,7 +106,7 @@ class RenderCacheTest extends TestCase
     {
         $postId = 42;
         update_post_meta($postId, '_wpcarve_html', '<p>cached</p>');
-        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()));
+        update_post_meta($postId, '_wpcarve_html_version', RenderCache::composeSignature(WPCARVE_VERSION, self::engineVersion(), Settings::renderSignature()));
         update_post_meta($postId, '_wpcarve_html_safe', '0');
 
         // Rendered unsafe, now an unsafe render is expected to differ from safe.
@@ -115,7 +124,7 @@ class RenderCacheTest extends TestCase
         $method = new ReflectionMethod(RenderCache::class, 'signature');
 
         $this->assertSame(
-            RenderCache::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature()),
+            RenderCache::composeSignature(WPCARVE_VERSION, self::engineVersion(), Settings::renderSignature()),
             $method->invoke(null),
         );
     }

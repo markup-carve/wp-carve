@@ -8,10 +8,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\Converter\DjotToCarve;
-use MarkupCarve\Carve\Converter\HtmlToCarve;
-use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_Post;
+use WpCarve\Ingest\Importer;
+use WpCarve\Ingest\ImporterUnavailable;
 use WpCarve\Plugin;
 
 /**
@@ -93,7 +92,11 @@ class ImportExport
         }
         $raw = (string)file_get_contents($tmp);
         $ext = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
-        [$carve, $report] = $this->toCarve($raw, $ext);
+        try {
+            [$carve, $report] = $this->toCarve($raw, $ext);
+        } catch (ImporterUnavailable $e) {
+            wp_die(esc_html($e->getMessage()));
+        }
 
         $title = sanitize_text_field(wp_unslash($_POST['wpcarve_title'] ?? ''));
         if ($title === '') {
@@ -127,13 +130,13 @@ class ImportExport
         if (!in_array($ext, ['md', 'markdown', 'txt', 'djot', 'dj', 'html', 'htm'], true)) {
             return [$raw, null];
         }
-        $result = match ($ext) {
-            'md', 'markdown', 'txt' => (new MarkdownToCarve())->convertWithFidelityReport($raw),
-            'djot', 'dj' => (new DjotToCarve())->convertWithFidelityReport($raw),
-            'html', 'htm' => (new HtmlToCarve())->convertWithFidelityReport($raw),
-        };
+        $result = Importer::import(match ($ext) {
+            'md', 'markdown', 'txt' => 'markdown',
+            'djot', 'dj' => 'djot',
+            default => 'html',
+        }, $raw);
 
-        return [$result->value, $result->report()];
+        return [$result['value'], $result['report']];
     }
 
     /**

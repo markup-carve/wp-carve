@@ -89,6 +89,8 @@ class LintCommandTest extends TestCase
 
     public function testMediaEmbedDirectivesAreLintedOnlyWhenTheExtensionRenders(): void
     {
+        $this->markTestSkipped('Pending markup-carve/carve-php-media-embed#23: media-embed has no 0.2 extension provider yet.');
+
         $source = "Watch :media[]\n";
 
         $this->assertSame([], LintCommand::engineFindings(new Converter([]), [$source])['findings']);

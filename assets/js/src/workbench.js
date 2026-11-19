@@ -57,7 +57,7 @@ export function analyzeDocument( source, engine, bibliographyJson = '' ) {
 	let bibliography = [];
 	const diagnostics = [];
 	try {
-		ast = engine.parse( source, { extensions: [ engine.citations() ] } );
+		ast = engine.parse( source );
 		diagnostics.push( ...engine.lintCarve( source ).map( ( item ) => ( { ...item, severity: item.severity ?? 'warning' } ) ) );
 	} catch ( error ) {
 		diagnostics.push( { line: 1, column: 1, rule: 'parse-error', message: error.message, severity: 'error' } );
@@ -78,11 +78,38 @@ export function analyzeDocument( source, engine, bibliographyJson = '' ) {
 	return { ast, outline: ast ? outlineFromAst( ast ) : [], diagnostics, citations: citationKeys( source ), bibliography };
 }
 
+function nodeText( node ) {
+	return textOf( node ).slice( 0, 80 );
+}
+
+/**
+ * Structural changes between two encoded trees: top-level blocks compared by
+ * type and content, positions ignored. carve-js 0.2 has no AST diff
+ * (`diffAst` is gone), so the workbench keeps this small host diff.
+ */
+export function diffTrees( before, after ) {
+	const strip = ( node ) => JSON.stringify( node, ( key, value ) => ( key === 'pos' ? undefined : value ) );
+	const a = before?.children ?? [];
+	const b = after?.children ?? [];
+	const changes = [];
+	const length = Math.max( a.length, b.length );
+	for ( let i = 0; i < length; i++ ) {
+		const path = '/children/' + i;
+		if ( ! a[ i ] ) {
+			changes.push( { kind: 'added', type: b[ i ].type, path, detail: nodeText( b[ i ] ) } );
+		} else if ( ! b[ i ] ) {
+			changes.push( { kind: 'removed', type: a[ i ].type, path, detail: nodeText( a[ i ] ) } );
+		} else if ( strip( a[ i ] ) !== strip( b[ i ] ) ) {
+			changes.push( { kind: 'changed', type: b[ i ].type, path, detail: nodeText( b[ i ] ) } );
+		}
+	}
+	return changes;
+}
+
 export function semanticChanges( before, after, engine ) {
 	if ( before === after ) return [];
 	try {
-		const extensions = [ engine.citations() ];
-		return engine.diffAst( engine.toAstJson( engine.parse( before, { extensions } ) ), engine.toAstJson( engine.parse( after, { extensions } ) ) );
+		return diffTrees( engine.toAstJson( engine.parse( before ) ), engine.toAstJson( engine.parse( after ) ) );
 	} catch ( error ) {
 		return [ { kind: 'changed', type: 'document', path: '', detail: error.message } ];
 	}

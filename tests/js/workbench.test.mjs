@@ -1,9 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parse, lintCarve, citations, toAstJson, diffAst } from '@markup-carve/carve'
+import { parse } from '@markup-carve/carve/v2'
 import { analyzeDocument, bibliographyEntries, semanticChanges } from '../../assets/js/src/workbench.js'
 
-const engine = { parse, lintCarve, citations, toAstJson, diffAst }
+globalThis.window ??= {}
+const { lintCarve, toAstJson } = await import('../../assets/js/src/engine.js')
+const engine = { parse, lintCarve, toAstJson }
 
 test('builds an outline with source locations', () => {
 	const result = analyzeDocument('# One\n\n## Two', engine)
@@ -40,4 +42,18 @@ test('keeps the severity the engine linter assigns and defaults the rest to warn
 	}
 	const severities = analyzeDocument('Text', stub).diagnostics.map((d) => [d.rule, d.severity])
 	assert.deepEqual(severities, [['thematic-break-spelling', 'Hint'], ['plain', 'warning']])
+})
+
+test('maps 0.2 lint diagnostics to lines and columns', () => {
+	const findings = lintCarve('Intro.\n\n{#a}\nx\n\n{#a}\ny\n')
+	const duplicate = findings.find((d) => d.rule === 'duplicate-id')
+	assert.ok(duplicate, JSON.stringify(findings))
+	assert.equal(duplicate.line, 6)
+	// The range covers the id itself, after `{`.
+	assert.equal(duplicate.column, 2)
+})
+
+test('the host tree diff names added and changed blocks', () => {
+	const changes = semanticChanges('Para.\n', 'Para two.\n\nMore.\n', engine)
+	assert.deepEqual(changes.map((c) => [c.kind, c.type]), [['changed', 'paragraph'], ['added', 'paragraph']])
 })
