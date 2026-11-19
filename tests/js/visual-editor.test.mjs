@@ -9,7 +9,7 @@ import { Window } from 'happy-dom';
 const win = new Window({ url: 'http://localhost/' });
 globalThis.window = win;
 globalThis.document = win.document;
-for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'getComputedStyle', 'MutationObserver']) {
+for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'getComputedStyle', 'MutationObserver', 'requestAnimationFrame', 'cancelAnimationFrame']) {
 	if (globalThis[k] === undefined && win[k] !== undefined) {
 		try {
 			globalThis[k] = win[k];
@@ -68,4 +68,20 @@ test('embed sources name YouTube and Vimeo by id', () => {
 	assert.equal(embedSource('https://youtu.be/xyz'), ':youtube[xyz]');
 	assert.equal(embedSource('https://vimeo.com/123'), ':vimeo[123]');
 	assert.equal(embedSource('https://example.test/v.mp4'), ':media[https://example.test/v.mp4]');
+	assert.equal(embedSource('https://www.youtube.com/embed/abc'), ':youtube[abc]');
+	assert.equal(embedSource('https://player.vimeo.com/video/42'), ':vimeo[42]');
+	// Another host that only mentions a video host keeps its own URL.
+	assert.equal(embedSource('https://notyoutube.com/watch?v=abc'), ':media[https://notyoutube.com/watch?v=abc]');
+	assert.equal(embedSource('https://example.test/youtube.com/watch?v=abc'), ':media[https://example.test/youtube.com/watch?v=abc]');
+});
+
+test('an uncaptioned image goes in at the caret, inside the paragraph', async () => {
+	const el = document.createElement('div');
+	document.body.appendChild(el);
+	const editor = await initVisualEditor(el, 'Hello world.\n');
+	editor.editor.commands.setTextSelection(6);
+	editor.insertCarve('![A](a.png){.wp-image-1}');
+	assert.equal(editor.getCarve(), 'Hello![A](a.png){.wp-image-1} world.\n');
+	editor.destroy();
+	el.remove();
 });

@@ -52,13 +52,28 @@ export function serializeToCarve( json, source ) {
  */
 export function embedSource( src ) {
 	const url = String( src ?? '' );
-	const youtube = url.match( /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]+)/ );
-	if ( youtube ) {
-		return `:youtube[${ youtube[ 1 ] }]`;
+	let parsed = null;
+	try {
+		parsed = new URL( url );
+	} catch {
+		return `:media[${ url }]`;
 	}
-	const vimeo = url.match( /vimeo\.com\/(?:video\/)?(\d+)/ );
-	if ( vimeo ) {
-		return `:vimeo[${ vimeo[ 1 ] }]`;
+	const host = parsed.hostname.replace( /^(?:www|m)\./, '' );
+	const path = parsed.pathname.split( '/' ).filter( Boolean );
+	let youtube = null;
+	if ( host === 'youtu.be' ) {
+		youtube = path[ 0 ];
+	} else if ( host === 'youtube.com' ) {
+		youtube = parsed.searchParams.get( 'v' ) ?? ( [ 'embed', 'shorts' ].includes( path[ 0 ] ) ? path[ 1 ] : null );
+	}
+	if ( youtube && /^[\w-]+$/.test( youtube ) ) {
+		return `:youtube[${ youtube }]`;
+	}
+	if ( host === 'vimeo.com' || host === 'player.vimeo.com' ) {
+		const id = path.find( ( part ) => /^\d+$/.test( part ) );
+		if ( id ) {
+			return `:vimeo[${ id }]`;
+		}
 	}
 	return `:media[${ url }]`;
 }
@@ -72,7 +87,12 @@ const WpCarveCommands = Extension.create( {
 				? commands.toggleWrap( 'carveAdmonition', { kind: name } )
 				: commands.toggleWrap( 'carveDiv', { carve: name ? { attrs: { classes: [ name ] } } : null } ) ),
 			setCarveEmbed: ( { src } ) => ( { commands } ) => commands.insertContent( carveContent( embedSource( src ) ).content?.[ 0 ]?.content ?? [] ),
-			insertCarve: ( source ) => ( { commands } ) => commands.insertContent( carveContent( source ).content ?? [] ),
+			// One paragraph (an uncaptioned image) goes in at the caret, like the source editors insert it.
+			insertCarve: ( source ) => ( { commands } ) => {
+				const content = carveContent( source ).content ?? [];
+				const inline = content.length === 1 && content[ 0 ].type === 'paragraph';
+				return commands.insertContent( inline ? content[ 0 ].content ?? [] : content );
+			},
 		};
 	},
 } );
