@@ -26,7 +26,7 @@ Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-p
   through the 0.2 HTML importer; an untouched document keeps its exact source.
 - **Focused native blocks** for admonitions, code groups, and tables with spans,
   while the general Carve block remains best for complete documents.
-- **In-browser live preview.** Carve has a real JS engine (`@markup-carve/carve/v2`), so the block previews **instantly client-side**, no server round-trip. Run `npm run build` to bundle the engine (`assets/js/vendor/carve.js`); without it the editor falls back to the REST render endpoint.
+- **In-browser live preview.** Carve has a real JS engine (`@markup-carve/carve`), so the block previews **instantly client-side**, no server round-trip. Run `npm run build` to bundle the engine (`assets/js/vendor/carve.js`); without it the editor falls back to the REST render endpoint.
 - **Content profiles** (`full` / `article` / `comment` / `minimal`) through the 0.2 `profile` option. Raw HTML renders only on authored surfaces whose profile allows it (`rawHtml`), and everything passes through `wp_kses`.
 - **Table of contents**, **heading permalinks**, **external link attributes**, **heading level shift**, **wiki links**, **smart typography**, **Mermaid** and the other diagram fences - toggled in settings.
 - **Media embeds** via `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]`, with a WordPress **oEmbed fallback** when the media-embed extension is off.
