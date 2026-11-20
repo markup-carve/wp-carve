@@ -76,9 +76,20 @@ class EngineWiringTest extends TestCase
 
     public function testSmartQuoteLocaleReachesTheEngine(): void
     {
-        // The article profile drops the locale in carve-php next2 (carve-php#5415).
         $settings = Settings::defaults();
         $settings['post_profile'] = 'full';
+        $settings['smart_quotes'] = true;
+        $settings['smart_quotes_locale'] = 'de';
+
+        $html = (new Converter($settings))->toHtml("He said \"hi\".\n");
+
+        $this->assertStringContainsString('„hi“', $html);
+    }
+
+    public function testSmartQuoteLocaleReachesTheArticleProfile(): void
+    {
+        $settings = Settings::defaults();
+        $settings['post_profile'] = 'article';
         $settings['smart_quotes'] = true;
         $settings['smart_quotes_locale'] = 'de';
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7dc26d90bcf1020e0963e489d13be81a",
+    "content-hash": "5478746e565915643ffd8811838d307b",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -396,13 +396,13 @@
             "version": "dev-next2",
             "source": {
                 "type": "git",
-                "url": "git@github.com:markup-carve/carve-php.git",
-                "reference": "e84ca2189d42e6cdde4acf7d5949e1f2c3763b7d"
+                "url": "https://github.com/markup-carve/carve-php.git",
+                "reference": "6ceebc52181efc1f5dfe6f5e7964b75c43f13a90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/e84ca2189d42e6cdde4acf7d5949e1f2c3763b7d",
-                "reference": "e84ca2189d42e6cdde4acf7d5949e1f2c3763b7d",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/6ceebc52181efc1f5dfe6f5e7964b75c43f13a90",
+                "reference": "6ceebc52181efc1f5dfe6f5e7964b75c43f13a90",
                 "shasum": ""
             },
             "require": {
@@ -477,7 +477,17 @@
                 "markup",
                 "parser"
             ],
-            "time": "2026-11-20T03:56:27+00:00"
+            "support": {
+                "source": "https://github.com/markup-carve/carve-php/tree/next2",
+                "issues": "https://github.com/markup-carve/carve-php/issues"
+            },
+            "funding": [
+                {
+                    "type": "github",
+                    "url": "https://github.com/dereuromark"
+                }
+            ],
+            "time": "2026-11-20T10:04:01+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
@@ -485,17 +495,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php-media-embed.git",
-                "reference": "ba2f989f7f3694ded934e82253cea06eb7834b53"
+                "reference": "27498d470f6c4dd8bffd6cee271ef9af5811dca7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/ba2f989f7f3694ded934e82253cea06eb7834b53",
-                "reference": "ba2f989f7f3694ded934e82253cea06eb7834b53",
+                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/27498d470f6c4dd8bffd6cee271ef9af5811dca7",
+                "reference": "27498d470f6c4dd8bffd6cee271ef9af5811dca7",
                 "shasum": ""
             },
             "require": {
                 "dereuromark/media-embed": "^1.0",
-                "markup-carve/carve-php": "dev-next2#1ce70376fbcb06d4ac40493efd131becaf957f29",
+                "markup-carve/carve-php": "dev-next2#6ceebc52181efc1f5dfe6f5e7964b75c43f13a90",
                 "php": ">=8.2"
             },
             "require-dev": {
@@ -560,7 +570,7 @@
                 "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
                 "source": "https://github.com/markup-carve/carve-php-media-embed"
             },
-            "time": "2026-11-20T05:01:26+00:00"
+            "time": "2026-11-20T10:26:50+00:00"
         },
         {
             "name": "nette/schema",
