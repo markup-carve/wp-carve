@@ -10,7 +10,7 @@
 
 import { Editor, Extension } from '@tiptap/core';
 import Placeholder from '@tiptap/extension-placeholder';
-import * as carve from '@markup-carve/carve/v2';
+import * as carve from '@markup-carve/carve';
 import { CarveKit, carveToProseMirror, proseMirrorToTree, serializeToCarve as writeCarve } from '@markup-carve/carve-grammars/tiptap';
 
 const ADMONITION_KINDS = new Set( [ 'note', 'tip', 'warning', 'danger', 'info', 'success', 'example', 'quote' ] );

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ccf28b3100372165b4303574ad1de9c6",
+    "content-hash": "d35686f39037577f3a8d7b5d0645b9d8",
     "packages": [
         {
             "name": "dflydev/dot-access-data",
@@ -319,16 +319,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "14a3fabd4b16069501b8768179a98a447449f36b"
+                "reference": "1ce70376fbcb06d4ac40493efd131becaf957f29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/14a3fabd4b16069501b8768179a98a447449f36b",
-                "reference": "14a3fabd4b16069501b8768179a98a447449f36b",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/1ce70376fbcb06d4ac40493efd131becaf957f29",
+                "reference": "1ce70376fbcb06d4ac40493efd131becaf957f29",
                 "shasum": ""
             },
             "require": {
-                "league/commonmark": "^2.7",
+                "league/commonmark": "^2.9.2",
                 "php": "^8.2",
                 "php-collective/djot": "^0.1.35",
                 "symfony/polyfill-intl-normalizer": "^1.27"

@@ -23,7 +23,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
-import { render, tabsExtensions, tabsRenderer } from '@markup-carve/carve/v2';
+import { render, tabsExtensions, tabsRenderer } from '@markup-carve/carve';
 
 const bundle = await readFile(new URL('../../assets/js/vendor/carve.js', import.meta.url), 'utf8');
 const scope = {};

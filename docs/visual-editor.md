@@ -45,7 +45,7 @@ Write** to keep it exact.
 
 | File | Role |
 | --- | --- |
-| `@markup-carve/carve/v2` (npm) | `parse()` reads the block source, `write()` writes the edited tree. |
+| `@markup-carve/carve` (npm) | `parse()` reads the block source, `write()` writes the edited tree. |
 | `@markup-carve/carve-grammars/tiptap` (npm) | `CarveKit`, `carveToProseMirror()` and `serializeToCarve()`: the 0.2 editor kit. |
 | `assets/js/tiptap/visual-editor.js` | wp-carve editor shell: mounts Tiptap with the kit, keeps the loaded source, adds the block toolbar commands, and wires change events. |
 | `assets/blocks/carve/index.js` | The block UI: mode tabs, WordPress block toolbar, gating modal, context controls. |

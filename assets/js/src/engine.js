@@ -2,7 +2,7 @@
 // Bundled by `npm run build` into ../vendor/carve.js (IIFE), exposing
 // `window.wpCarveEngine.carveToHtml`. The plugin loads it before the editor
 // script; when it is absent the editor falls back to the REST endpoint.
-import { render, lint, parse, encodeTree, stringOffsetOfByte, tabsExtensions, tabsRenderer } from '@markup-carve/carve/v2'
+import { render, lint, parse, encodeTree, stringOffsetOfByte, tabsExtensions, tabsRenderer } from '@markup-carve/carve'
 import { analyzeDocument, semanticChanges } from './workbench.js'
 
 // The preview matches the PHP post render where carve-js 0.2 can: the standard

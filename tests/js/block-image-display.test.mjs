@@ -9,7 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { Window } from 'happy-dom';
-import { carveToHtml } from '@markup-carve/carve';
+import { render as carveToHtml } from '@markup-carve/carve';
 
 const styles = await readFile(new URL('../../assets/css/carve.css', import.meta.url), 'utf8');
 

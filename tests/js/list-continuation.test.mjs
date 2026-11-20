@@ -171,11 +171,11 @@ function placement(source, word) {
         if (block.children) walk(block.children, depth);
         continue;
       }
-      block.items.forEach((item, at) => {
+      block.children.forEach((item, at) => {
         const paragraph = item.children[0];
         const text = paragraph && paragraph.type === 'paragraph' ? paragraph.children.map(node => node.value || '').join('') : '';
         if (text === word || text.endsWith(' ' + word)) {
-          found = { depth, ordinal: block.ordered ? (block.start || 1) + at : null };
+          found = { depth, ordinal: block.marker.kind === 'ordered' ? (block.marker.start || 1) + at : null };
         }
         walk(item.children, depth + 1);
       });
@@ -248,9 +248,10 @@ for (const [name, before, outdent] of KEEPS_TAB) {
   });
 }
 
-test('the engine keeps a paragraph after the list outside it once an item nests', () => {
+// C2-B-025: after the blank line, `  outside` is indented past the outer marker, so the item owns it.
+test('the engine keeps a paragraph indented past the outer marker in the list once an item nests', () => {
   const after = tab('1. a\n2. b|\n\n  outside').replace('|', '');
-  assert.deepEqual(parse(after).children.map(block => block.type), ['list', 'paragraph']);
+  assert.deepEqual(parse(after).children.map(block => block.type), ['list']);
 });
 
 test('a block line short of the content column stays after the list when the item moves', () => {
@@ -259,8 +260,9 @@ test('a block line short of the content column stays after the list when the ite
     ['9. a\n10. b|\n   # outside', '9. a\n   1. b|\n  # outside'],
   ]) {
     assert.equal(tab(before), after);
+    // C2-B-012, C2-B-013: a heading line does not interrupt the open paragraph, so it is a lazy line.
     const blocks = parse(after.replace('|', '')).children;
-    assert.deepEqual(blocks.map(block => block.type), ['list', 'heading']);
+    assert.deepEqual(blocks.map(block => block.type), ['list']);
   }
 });
 
@@ -271,7 +273,8 @@ test('lazy paragraph text short of the content column still moves with the item'
 test('Shift+Tab leaves a block between the marker and content columns a block', () => {
   const after = tab('- a\n  - b|\n   # heading', true);
   assert.equal(after, '- a\n- b|\n   # heading');
-  assert.deepEqual(parse(after.replace('|', '')).children[0].items[1].children.map(block => block.type), ['paragraph', 'heading']);
+  // C2-B-012, C2-B-013: the heading line is a lazy line of the open paragraph.
+  assert.deepEqual(parse(after.replace('|', '')).children[0].children[1].children.map(block => block.type), ['paragraph']);
 });
 
 test('a selection mixing prose and items shifts the prose by two spaces', () => {

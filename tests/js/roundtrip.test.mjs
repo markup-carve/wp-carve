@@ -25,7 +25,7 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 }
 
 const { Editor } = await import('@tiptap/core');
-const carve = await import('@markup-carve/carve/v2');
+const carve = await import('@markup-carve/carve');
 const carveToHtml = (source) => carve.render(source);
 const { CarveKit, carveToProseMirror, serializeToCarve } = await import('@markup-carve/carve-grammars/tiptap');
 

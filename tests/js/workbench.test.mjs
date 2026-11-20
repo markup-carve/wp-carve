@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parse } from '@markup-carve/carve/v2'
+import { parse } from '@markup-carve/carve'
 import { analyzeDocument, bibliographyEntries, semanticChanges } from '../../assets/js/src/workbench.js'
 
 globalThis.window ??= {}
