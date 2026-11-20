@@ -93,10 +93,6 @@ See [docs/hooks.md](docs/hooks.md) for the full list (oEmbed, OG image, diagram 
 - **BBCode** paste and import run in the browser only: Carve 0.2 imports
   BBCode in carve-js, not carve-php. The REST ingest endpoint, file import and
   bulk migration do not take BBCode.
-- **Smart-quote locale** under the `article`, `comment` and `minimal`
-  profiles: carve-php drops the locale's quotes there and writes the default
-  ones ([carve-php#5415](https://github.com/markup-carve/carve-php/issues/5415));
-  the `full` profile and the live preview use them.
 - **Plain-text excerpts** come from the engine's `plain` writer, without
   footnotes.
 

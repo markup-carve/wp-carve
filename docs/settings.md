@@ -47,7 +47,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `mentions_enabled` | `false` | Turn `@name` into an author-archive link and `#tag` into a tag-archive link. Off, both stay literal source text. Templates come from `home_url()`; override with `wpcarve_mention_url` / `wpcarve_tag_url` if your author base or permalinks differ. |
 | `wikilinks_enabled` | `false` | Turn `:wiki[Page Title]` into a link to the matching post or page. Unresolved links become `href="#"` and keep their `wikilink` class, so a theme can style `a.wikilink[href="#"]` as a broken link. Override resolution with `wpcarve_wikilink_url`. |
 | `smart_quotes` | `false` | Curly quotes / dashes (the 0.2 `smartTypography` option). |
-| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`, `de-CH`), through the `carve.smartQuotes` extension. Under a profile other than `full`, carve-php writes the default quotes ([carve-php#5415](https://github.com/markup-carve/carve-php/issues/5415)). |
+| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`, `de-CH`), through the `carve.smartQuotes` extension. |
 | `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams. |
 | `chart_enabled` | `false` | Render ` ```chart ` blocks with Chart.js. |
 | `vega_enabled` | `false` | Render ` ```vega-lite ` blocks with Vega-Lite. |
