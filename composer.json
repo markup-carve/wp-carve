@@ -12,7 +12,7 @@
     "require": {
         "php": ">=8.2",
         "markup-carve/carve-grammars": "dev-next2#31215996ebba0cad12d958275ba87fad1d99991a",
-        "markup-carve/carve-php": "dev-next2#fd4a883ce2d543f6ab555bb08322bc7c616ecb17",
+        "markup-carve/carve-php": "dev-next2#0f547121adf666fda67828ab37a6d9e2fd70d418",
         "markup-carve/carve-php-media-embed": "dev-next2#27498d470f6c4dd8bffd6cee271ef9af5811dca7",
         "torchlight/engine": "^1.0"
     },

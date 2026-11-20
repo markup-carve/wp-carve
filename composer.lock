@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7e77b0a85b2b8ee6567b3329e015f779",
+    "content-hash": "df9811df1574f8dd76276590978c22e8",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -397,12 +397,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "fd4a883ce2d543f6ab555bb08322bc7c616ecb17"
+                "reference": "0f547121adf666fda67828ab37a6d9e2fd70d418"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/fd4a883ce2d543f6ab555bb08322bc7c616ecb17",
-                "reference": "fd4a883ce2d543f6ab555bb08322bc7c616ecb17",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/0f547121adf666fda67828ab37a6d9e2fd70d418",
+                "reference": "0f547121adf666fda67828ab37a6d9e2fd70d418",
                 "shasum": ""
             },
             "require": {
@@ -487,7 +487,7 @@
                     "url": "https://github.com/dereuromark"
                 }
             ],
-            "time": "2026-11-20T11:24:06+00:00"
+            "time": "2026-11-20T12:36:14+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
