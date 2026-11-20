@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - next2
   pull_request:
 
 permissions:
@@ -38,57 +39,21 @@ jobs:
       - name: Run tests
         run: composer test
 
-  # The corpus, against the engine this plugin SHIPS.
-  #
-  # Nothing here did this. The jobs above assert hand-written expectations,
-  # which a stale engine satisfies exactly as well as a current one, and
-  # engine-drift.yml checks that the pins are well formed, reachable and
-  # honestly labelled - all of which a pin rendering 195 documents wrongly
-  # passes without complaint. A version distance cannot answer it either: 200
-  # commits can change nothing and one can change a construct.
-  #
-  # The exposure reaches a READER rather than a test. carve-php renders post and
-  # comment content on the front end, so this is what a WordPress site
-  # publishes.
-  #
-  # BOTH SIDES ARE PINNED. Composer resolves the engine's main-branch commit
-  # to the exact revision recorded in composer.lock, which is what the plugin
-  # bundles; the corpus is pinned to the spec freeze for the same reason. An
-  # unpinned corpus made this job measure UPSTREAM MOVEMENT: two spec pull
-  # requests landing on carve main took the corpus from 1239 documents to 1241,
-  # the residual went to 193, and the job failed a branch that had changed
-  # nothing while telling its author they had made rendering worse. A gate that
-  # can say that is a gate people learn to ignore.
-  #
-  # How fast that end moves: the corpus freeze was declared three times in one
-  # night, 287b4b8 at 1239 documents, then 0490ae5 at 1241, then this one at
-  # 1245. Every one of those was a sanctioned exception landing upstream, and
-  # none of them was anything a branch here did.
-  #
-  # With both ends fixed the divergent set is a constant, so the recorded
-  # divergences are a LIST OF NAMES rather than a count - a document regressing
-  # while another is fixed leaves a count untouched. It is still a residual and
-  # not a defect list: the two projects can implement corpus changes at
-  # different times, even though release preparation refreshes the lock to main.
-  #
-  # WHEN THE LOCK MOVES, re-measure through the installed engine and rewrite
-  # scripts/corpus-divergences-at-freeze.txt if the named result changes. The
-  # corpus ref is worth revisiting in the same change.
   corpus:
-    name: The shipped engine against the frozen spec corpus
+    name: The shipped engine against the 0.2 conformance examples
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
-      # The carve 0.1.14 tag. A moving corpus would test an upstream change
-      # rather than this plugin's locked renderer.
-      - name: Check out the corpus at the spec freeze
+      # A fixed carve `next2` commit, so the job tests this plugin's locked
+      # engine, not an upstream change.
+      - name: Check out the 0.2 conformance examples
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 51c5631541efb60faad51f81ac7dbf881150b757 # 0.1.14
-          path: carve-freeze
+          ref: eb8ffcdb2d957de677411dd2f4da3d436131353f # next2
+          path: carve-next2
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -96,29 +61,21 @@ jobs:
           php-version: '8.2'
           coverage: none
 
-      # The engine AS THIS PLUGIN INSTALLS IT: the locked revision, runtime
-      # dependencies only, the same resolution a site gets.
       - name: Install runtime dependencies
         run: composer install --no-dev --prefer-dist --no-progress
 
-      - name: Render every corpus document through the shipped engine
+      - name: Render every conformance example through the shipped engine
         run: |
           set -euo pipefail
-          php scripts/corpus-through-engine.php carve-freeze/tests/corpus \
-            --list --baseline=scripts/corpus-divergences-at-freeze.txt | tee "${RUNNER_TEMP}/corpus-run.txt"
-          documents="$(sed -n 's/^documents=//p' "${RUNNER_TEMP}/corpus-run.txt")"
-          wrong="$(sed -n 's/^wrong=//p' "${RUNNER_TEMP}/corpus-run.txt")"
-
-          # Reaching this line already means the population guard passed and the
-          # baseline held. Guard the extraction anyway: an empty value would
-          # make the line below a claim about nothing, which is the failure
-          # shape this job exists to not have.
+          php scripts/conformance-through-engine.php carve-next2/spec/0.2/conformance/examples.json \
+            --list --baseline=scripts/conformance-divergences.txt | tee "${RUNNER_TEMP}/conformance-run.txt"
+          documents="$(sed -n 's/^documents=//p' "${RUNNER_TEMP}/conformance-run.txt")"
+          wrong="$(sed -n 's/^wrong=//p' "${RUNNER_TEMP}/conformance-run.txt")"
           if [ -z "${documents}" ] || [ -z "${wrong}" ]; then
-            echo "::error::the run logged no documents=/wrong= counters, so nothing was measured and nothing here is a result"
+            echo "::error::the run logged no documents=/wrong= counters, so nothing was measured"
             exit 1
           fi
-
-          echo "the residual against the frozen corpus is ${wrong} of ${documents} documents, the same set recorded at the freeze"
+          echo "${wrong} of ${documents} conformance examples render differently"
 
   stan:
     name: PHPStan

@@ -8,9 +8,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\Converter\HtmlToCarve;
-use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_Post;
+use WpCarve\Ingest\Importer;
+use WpCarve\Ingest\ImporterUnavailable;
 
 /**
  * Migrate existing post content into Carve, with a safety analysis first.
@@ -22,14 +22,10 @@ use WP_Post;
  */
 class Migrator
 {
-    private MarkdownToCarve $markdown;
-
-    private HtmlToCarve $html;
-
     /**
      * Reuse the assessed conversion when a batch immediately migrates it.
      *
-     * @var array<int, \MarkupCarve\Carve\Converter\MigrationResult>
+     * @var array<int, array{value: string, report: array<string, mixed>}>
      */
     private array $assessments = [];
 
@@ -39,12 +35,6 @@ class Migrator
      * @var array<int, array{post_id: int, source: string, can_auto_migrate: bool, reason: string, report?: array<string, mixed>}>
      */
     private array $analyses = [];
-
-    public function __construct()
-    {
-        $this->markdown = new MarkdownToCarve();
-        $this->html = new HtmlToCarve();
-    }
 
     /**
      * @return array{post_id: int, source: string, can_auto_migrate: bool, reason: string, report?: array<string, mixed>}
@@ -69,10 +59,12 @@ class Migrator
 
         $source = $this->detectMarkdown($content) ? 'markdown' : 'html';
 
-        $result = $source === 'markdown'
-            ? $this->markdown->convertWithFidelityReport($content)
-            : $this->html->convertWithFidelityReport($content);
-        $report = $result->report();
+        try {
+            $result = Importer::import($source, $content);
+        } catch (ImporterUnavailable $e) {
+            return ['post_id' => $postId, 'source' => $source, 'can_auto_migrate' => false, 'reason' => $e->getMessage()];
+        }
+        $report = $result['report'];
         $this->assessments[$postId] = $result;
         $unsafe = array_filter(
             $report['diagnostics'],
@@ -111,16 +103,20 @@ class Migrator
             return null;
         }
 
-        $result = $this->assessments[$postId] ?? ($analysis['source'] === 'markdown'
-            ? $this->markdown->convertWithFidelityReport($post->post_content)
-            : $this->html->convertWithFidelityReport($post->post_content));
-        $carve = $result->value;
+        try {
+            $result = $this->assessments[$postId] ?? Importer::import($analysis['source'] === 'markdown' ? 'markdown' : 'html', (string)$post->post_content);
+        } catch (ImporterUnavailable) {
+            $this->forgetAnalysis($postId);
+
+            return null;
+        }
+        $carve = $result['value'];
 
         // wp_update_post unslashes its input; slash so Carve backslash escapes
         // (e.g. \* or math \(...\)) survive instead of being stripped.
         wp_update_post(['ID' => $postId, 'post_content' => wp_slash($carve)]);
         update_post_meta($postId, '_wpcarve_enabled', 1);
-        $report = $result->report();
+        $report = $result['report'];
         if (in_array($analysis['source'], ['blocks', 'shortcodes'], true)) {
             $report['diagnostics'][] = [
                 'code' => 'analysis-overridden',

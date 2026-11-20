@@ -30,7 +30,8 @@ for (const k of ['DOMParser', 'Node', 'Element', 'HTMLElement', 'navigator', 'ge
 }
 
 const { Editor } = await import('@tiptap/core');
-const { carveToHtml } = await import('@markup-carve/carve');
+const carve = await import('@markup-carve/carve');
+const carveToHtml = (source) => carve.render(source);
 const { CarveKit, carveToProseMirror, serializeToCarve } = await import('@markup-carve/carve-grammars/tiptap');
 
 function normHtml(html) {
@@ -43,16 +44,16 @@ function normHtml(html) {
 		.trim();
 }
 
-function roundTrip(carve) {
+/** Load into the editor and write the tree back with the writer, as an edit would. */
+function roundTrip(source) {
 	const el = document.createElement('div');
 	document.body.appendChild(el);
-	const content = carveToProseMirror(carve, { unsupported: 'preserve' });
 	const editor = new Editor({
 		element: el,
 		extensions: [CarveKit],
-		content,
+		content: carveToProseMirror(source, { engine: carve }),
 	});
-	const out = serializeToCarve({ ...editor.getJSON(), attrs: undefined });
+	const out = serializeToCarve(editor.getJSON(), { engine: carve });
 	editor.destroy();
 	el.remove();
 	return out;
@@ -60,49 +61,36 @@ function roundTrip(carve) {
 
 // carve -> [expected substring in the rendered HTML]
 const CASES = {
-	// Semantic inline marks (SemanticSpanExtension). Bare `=x=` highlight is the
-	// #41 "bare highlight" form; the braced `{=x=}` is the canonical one.
+	// Semantic inline marks. Carve 0.2 has only the braced `{=x=}` highlight; a bare `=x=` is text.
 	highlightBraced: [ 'A {=highlighted=} word.', '<mark>highlighted</mark>' ],
-	highlightBare: [ 'A =highlighted= word.', '<mark>highlighted</mark>' ],
 	insert: [ 'An {+inserted+} word.', '<ins>inserted</ins>' ],
 	delete: [ 'A {-deleted-} word.', '<del>deleted</del>' ],
 	// Spoiler container (SpoilerExtension) -> div.spoiler, kept raw in the seed.
 	spoiler: [ '::: spoiler\nHidden body.\n:::', '<div class="spoiler">' ],
 	// Thematic break.
-	horizontalRule: [ 'Above.\n\n---\n\nBelow.', '<hr>' ],
-	// These payloads are child text in the current editor schema, making them
-	// directly caret-editable while the serializer still accepts legacy attrs.
+	horizontalRule: [ 'Above.\n\n***\n\nBelow.', '<hr>' ],
 	literalInline: [ 'Pronounce !`/kaet/`.', '<p>Pronounce /kaet/.</p>' ],
-	rawInline: [ 'A `<br>`{=html} break.', '<br>' ],
+	// The 0.2 render escapes raw HTML by default; the editor still keeps the raw node.
+	rawInline: [ 'A `<br>`{=html} break.', '&lt;br&gt;' ],
 };
 
-for (const [name, [carve, expected]] of Object.entries(CASES)) {
+for (const [name, [source, expected]] of Object.entries(CASES)) {
 	test(`renders the expected element: ${name}`, () => {
 		assert.ok(
-			carveToHtml(carve).includes(expected),
-			`expected ${JSON.stringify(expected)} in render of ${JSON.stringify(carve)}\n  got: ${carveToHtml(carve)}`,
+			carveToHtml(source).includes(expected),
+			`expected ${JSON.stringify(expected)} in render of ${JSON.stringify(source)}\n  got: ${carveToHtml(source)}`,
 		);
 	});
 
 	test(`round-trips: ${name}`, () => {
-		const before = normHtml(carveToHtml(carve));
-		const after = normHtml(carveToHtml(roundTrip(carve)));
-		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(carve)}\n  serialized: ${JSON.stringify(roundTrip(carve))}`);
+		const before = normHtml(carveToHtml(source));
+		const after = normHtml(carveToHtml(roundTrip(source)));
+		assert.equal(after, before, `render changed on round-trip\n  carve: ${JSON.stringify(source)}\n  serialized: ${JSON.stringify(roundTrip(source))}`);
 	});
 }
 
-test('inline comments, literals, and raw inline payloads are directly editable text', () => {
-	const doc = carveToProseMirror('Keep {% review this %}, !`literal`, and `<b>`{=html}.', { unsupported: 'preserve' });
-	const paragraph = doc.content.find((node) => node.type === 'paragraph');
-	const byType = Object.fromEntries(
-		paragraph.content
-			.filter((node) => [ 'carveCommentInline', 'carveLiteral', 'carveRawInline' ].includes(node.type))
-			.map((node) => [ node.type, node ]),
-	);
-
-	for (const type of [ 'carveCommentInline', 'carveLiteral', 'carveRawInline' ]) {
-		assert.equal(byType[type]?.content?.[0]?.type, 'text', `${type} must expose child text`);
-		assert.equal(byType[type]?.attrs?.content, undefined, `${type} must not hide new payloads in attrs.content`);
-	}
-	assert.equal(serializeToCarve(doc), 'Keep {% review this %}, !`literal`, and `<b>`{=html}.');
+test('inline comments, literals, and raw inline payloads survive the editor', () => {
+	const source = 'Keep %{ review this }%, !`literal`, and `<b>`{=html}.\n';
+	assert.equal(serializeToCarve(carveToProseMirror(source, { engine: carve }), { engine: carve, source }), source);
+	assert.equal(normHtml(carveToHtml(roundTrip(source))), normHtml(carveToHtml(source)));
 });

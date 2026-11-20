@@ -8,8 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\Transform\FilesystemIncludeResolver;
-use MarkupCarve\Carve\Transform\IncludeContext;
+use MarkupCarve\Carve\Include\FileResolver;
 use Throwable;
 use WP_Post;
 use WpCarve\Plugin;
@@ -199,7 +198,7 @@ class IncludePolicy
     public static function fingerprint(string $root, array $lookups): string
     {
         try {
-            $resolver = new FilesystemIncludeResolver($root);
+            $resolver = FileResolver::forRoot($root);
         } catch (Throwable) {
             return 'root-refused';
         }
@@ -207,9 +206,13 @@ class IncludePolicy
         $states = [];
         foreach ($lookups as [$path, $including]) {
             $key = $path . "\0" . $including;
+            $request = ['path' => $path, 'options' => [], 'budget' => PHP_INT_MAX];
+            if ($including !== null) {
+                $request['from'] = $including;
+            }
             try {
-                $resolved = $resolver->resolve($path, new IncludeContext($including, $including));
-                $states[] = $key . "\0" . md5($resolved->getSource());
+                $resolved = $resolver->resolve($request);
+                $states[] = $key . "\0" . (isset($resolved['text']) ? md5($resolved['text']) : '-');
             } catch (Throwable) {
                 $states[] = $key . "\0-";
             }

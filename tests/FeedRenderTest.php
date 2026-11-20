@@ -20,8 +20,14 @@ use WpCarve\Converter;
 #[UsesClass(Converter::class)]
 class FeedRenderTest extends TestCase
 {
+    /**
+     * @var string
+     */
     private const CHART = "``` chart\n{ \"type\": \"bar\" }\n```";
 
+    /**
+     * @var string
+     */
     private const MERMAID = "``` mermaid\ngraph TD; A-->B\n```";
 
     public function testTheInteractiveRenderOfAChartHasNoTextContent(): void

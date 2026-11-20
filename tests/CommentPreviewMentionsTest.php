@@ -23,6 +23,7 @@ class CommentPreviewMentionsTest extends TestCase
 {
     /**
      * @param array<string, mixed> $settings
+     * @param string $carve
      */
     private function previewAnonymously(array $settings, string $carve): string
     {
@@ -55,6 +56,9 @@ class CommentPreviewMentionsTest extends TestCase
         $html = $this->previewAnonymously(['mentions_enabled' => true], 'Hello @alice and #topic here.');
 
         $this->assertStringContainsString('class="mention"', $html);
-        $this->assertStringContainsString('class="tag"', $html);
+        // 0.2 (C2-H-163, the `comment` profile table): `tag` is outside the
+        // comment profile and degrades to its text.
+        $this->assertStringContainsString('#topic', $html);
+        $this->assertStringNotContainsString('class="tag"', $html);
     }
 }

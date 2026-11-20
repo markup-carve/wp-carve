@@ -27,6 +27,11 @@ $carve_check = static function (string $name, bool $passed, string $detail = '')
     fwrite(STDOUT, "FAIL  {$name}" . ($detail !== '' ? " - {$detail}" : '') . "\n");
 };
 
+// A check that waits for a Carve 0.2 engine feature: named, with its issue, never silently dropped.
+$carve_skip = static function (string $name, string $reason): void {
+    fwrite(STDOUT, "SKIP  {$name} - {$reason}\n");
+};
+
 $carve_snippet = static fn (string $html): string => trim(preg_replace('/\s+/', ' ', substr($html, 0, 160)) ?? '');
 
 // --- Plugin loaded + active ---------------------------------------------------
@@ -183,7 +188,12 @@ for ($i = 0; $i < 64; $i++) {
     $ingest->set_param('from', ['auto', 'markdown', 'djot', 'bbcode', 'html'][$i % 5]);
     $ingested = rest_get_server()->dispatch($ingest);
     $data = $ingested->get_data();
-    $carve_check("ingest fuzz {$i}", $ingested->get_status() === 200 && is_string($data['carve'] ?? null));
+    // BBCode converts in the browser (carve-js only in 0.2); the server says so.
+    $carve_check(
+        "ingest fuzz {$i}",
+        ($ingested->get_status() === 200 && is_string($data['carve'] ?? null))
+            || ($ingested->get_status() === 422 && ($data['from'] ?? '') === 'bbcode' && ($data['browser'] ?? false) === true),
+    );
 }
 
 $oversized_render = new WP_REST_Request('POST', '/carve/v1/render');
@@ -339,6 +349,12 @@ $carve_check(
         return str_contains($h, '<iframe') && str_contains($h, 'allow="fullscreen"') && str_contains($h, 'loading="lazy"');
     })(),
 );
+$carve_media_html = (new \WpCarve\Converter(['media_embed_enabled' => true]))->toHtml("Watch :youtube[dQw4w9WgXcQ]\n");
+$carve_check(
+    'a media embed renders a sanitized youtube iframe when the setting is on',
+    str_contains($carve_media_html, '<iframe') && str_contains($carve_media_html, 'src="//www.youtube.com/embed/dQw4w9WgXcQ') && str_contains($carve_media_html, 'allowfullscreen'),
+    $carve_snippet($carve_media_html),
+);
 $carve_check(
     'kses keeps the data-carve-json diagram config attribute',
     str_contains(\WpCarve\Converter::sanitizeHtml('<div class="chart" data-carve-json="{&quot;a&quot;:1}"></div>'), 'data-carve-json'),
@@ -384,13 +400,30 @@ $carve_check(
 $carve_prev_ingest_user = get_current_user_id();
 wp_set_current_user(1);
 
-$ingest_ok = new WP_REST_Request('POST', '/carve/v1/ingest');
-$ingest_ok->set_param('source', '# Hello world');
-$ingest_ok->set_param('from', 'markdown');
-$ingest_ok_res = rest_get_server()->dispatch($ingest_ok);
+$ingest_md = new WP_REST_Request('POST', '/carve/v1/ingest');
+$ingest_md->set_param('source', '# Hello world');
+$ingest_md->set_param('from', 'markdown');
+$ingest_md_res = rest_get_server()->dispatch($ingest_md);
 $carve_check(
     'ingest converts a small Markdown paste',
-    $ingest_ok_res->get_status() === 200 && str_contains((string)($ingest_ok_res->get_data()['carve'] ?? ''), 'Hello world'),
+    $ingest_md_res->get_status() === 200 && (string)($ingest_md_res->get_data()['carve'] ?? '') === "= Hello world\n",
+    $carve_snippet((string)($ingest_md_res->get_data()['carve'] ?? '')),
+);
+$ingest_bb = new WP_REST_Request('POST', '/carve/v1/ingest');
+$ingest_bb->set_param('source', '[b]bold[/b]');
+$ingest_bb->set_param('from', 'bbcode');
+$ingest_bb_res = rest_get_server()->dispatch($ingest_bb);
+$carve_check(
+    'ingest points BBCode at the browser importer',
+    $ingest_bb_res->get_status() === 422 && ($ingest_bb_res->get_data()['browser'] ?? false) === true,
+);
+$ingest_ok = new WP_REST_Request('POST', '/carve/v1/ingest');
+$ingest_ok->set_param('source', '<h1>Hello world</h1>');
+$ingest_ok->set_param('from', 'html');
+$ingest_ok_res = rest_get_server()->dispatch($ingest_ok);
+$carve_check(
+    'ingest converts a small HTML paste with the 0.2 importer',
+    $ingest_ok_res->get_status() === 200 && (string)($ingest_ok_res->get_data()['carve'] ?? '') === "= Hello world\n",
     $carve_snippet((string)($ingest_ok_res->get_data()['carve'] ?? '')),
 );
 
@@ -535,9 +568,10 @@ $carve_check(
     !str_contains($carve_svg_html, 'src="image/svg+xml'),
     $carve_snippet($carve_svg_html),
 );
+// 0.2 (C2-X-060): the standard img fence writes an empty alt.
 $carve_check(
-    'img fence alt comes from the svg title',
-    str_contains($carve_svg_html, 'alt="A dot"'),
+    'img fence alt is empty',
+    str_contains($carve_svg_html, 'alt=""'),
     $carve_snippet($carve_svg_html),
 );
 

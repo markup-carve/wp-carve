@@ -20,7 +20,6 @@ The comment converter does not register media embeds or diagram renderers.
 <!-- profile-capabilities:start -->
 | Construct | `full` | `article` | `comment` | `minimal` | `none` | Browser request |
 | --- | --- | --- | --- | --- | --- | --- |
-| `admonition` | renders | renders | literal | literal | renders | No |
 | `paragraph` | renders | renders | renders | renders | renders | No |
 | `heading` | renders | renders | literal | literal | renders | No |
 | `code_block` | renders | renders | renders | literal | renders | Yes |
@@ -32,32 +31,34 @@ The comment converter does not register media embeds or diagram renderers.
 | `table_cell` | renders | renders | literal | literal | renders | No |
 | `thematic_break` | renders | renders | stripped | stripped | renders | No |
 | `div` | renders | renders | literal | literal | renders | No |
+| `admonition` | renders | renders | literal | literal | renders | No |
 | `directive` | renders | renders | stripped | stripped | renders | No |
-| `block_extension`¹ | renders | renders | literal | literal | renders | No |
 | `raw_block` | renders | literal | literal | literal | renders | Yes |
 | `footnote` | renders | renders | stripped | stripped | renders | No |
 | `frontmatter` | stripped | stripped | stripped | stripped | stripped | No |
 | `definition_list` | renders | renders | literal | literal | renders | No |
 | `definition_term` | renders | renders | literal | literal | renders | No |
 | `definition_description` | renders | renders | literal | literal | renders | No |
-| `section` | renders | renders | literal | literal | renders | No |
+| `section` | literal | literal | literal | literal | literal | No |
 | `line_block` | renders | renders | literal | literal | renders | No |
 | `comment` | stripped | stripped | stripped | stripped | stripped | No |
 | `figure` | renders | renders | literal | literal | renders | Yes |
 | `figure_group` | renders | renders | literal | literal | renders | Yes |
+| `caption` | renders | renders | literal | literal | renders | Yes |
 | `abbreviation_def` | renders | renders | stripped | stripped | renders | No |
 | `link_reference_definition` | renders | renders | renders | literal | renders | No |
-| `citation_definition` | renders | renders | literal | stripped | renders | No |
-| `autolink` | renders | renders | renders | literal | renders | No |
+| `citation_definition` | literal | literal | literal | literal | literal | No |
 | `text` | renders | renders | renders | renders | renders | No |
+| `inline_extension` | renders | renders | renders | renders | renders | Yes |
 | `emphasis` | renders | renders | renders | renders | renders | No |
 | `strong` | renders | renders | renders | renders | renders | No |
 | `underline` | renders | renders | renders | renders | renders | No |
 | `strike` | renders | renders | renders | renders | renders | No |
-| `inline_extension` | renders | renders | renders | renders | renders | Yes |
 | `mention` | literal | literal | literal | literal | literal | No |
 | `code` | renders | renders | renders | renders | renders | No |
+| `literal_inline` | renders | renders | renders | renders | renders | No |
 | `link` | renders | renders | renders | literal | renders | No |
+| `autolink` | renders | renders | renders | literal | renders | No |
 | `image` | renders | renders | literal | literal | renders | Yes |
 | `non_breaking_space` | renders | renders | renders | renders | renders | No |
 | `soft_break` | renders | renders | renders | renders | renders | No |
@@ -67,27 +68,20 @@ The comment converter does not register media embeds or diagram renderers.
 | `footnote_ref` | renders | renders | literal | literal | renders | No |
 | `inline_footnote` | renders | renders | literal | literal | renders | No |
 | `heading_ref` | renders | renders | literal | literal | renders | No |
-| `citation_group` | renders | renders | literal | stripped | renders | No |
-| `citation` | renders | renders | literal | stripped | renders | No |
-| `ruby`¹ | renders | renders | literal | literal | renders | No |
-| `small_caps`¹ | renders | renders | literal | literal | renders | No |
-| `caption_number`¹ | renders | renders | literal | literal | renders | No |
+| `citation_group` | literal | literal | literal | literal | literal | No |
+| `citation` | literal | literal | literal | literal | literal | No |
 | `span` | renders | renders | literal | literal | renders | No |
 | `superscript` | renders | renders | renders | renders | renders | No |
 | `subscript` | renders | renders | renders | renders | renders | No |
 | `highlight` | renders | renders | renders | literal | renders | No |
 | `insert` | renders | renders | renders | renders | renders | No |
 | `delete` | renders | renders | renders | renders | renders | No |
-| `substitution` | renders | renders | literal | literal | renders | No |
-| `critic_comment` | renders | renders | literal | literal | renders | No |
-| `symbol`¹ | renders | renders | literal | literal | renders | No |
+| `substitution` | renders | renders | renders | renders | renders | No |
+| `critic_comment` | renders | renders | stripped | stripped | renders | No |
 | `math` | renders | renders | literal | literal | renders | Yes |
 | `abbreviation` | renders | renders | literal | literal | renders | No |
-| `caption` | renders | renders | literal | literal | renders | Yes |
-| `cell_wrap`¹ | renders | renders | renders | renders | renders | No |
-| `literal_inline` | renders | renders | renders | renders | renders | No |
 
-¹ This engine type has no independent source spelling in the fixture set. Its cells follow the carve-php profile definition.
+Every cell is measured by rendering the construct's sample through the plugin.
 
 <!-- profile-capabilities:end -->
 
@@ -130,12 +124,13 @@ it and the reader, and a string sanitizer is not browser-grade.
 
 ## Raw HTML
 
-Carve is Djot-based, so a literal `<div>` typed in the source is **text**, not
-HTML. Raw HTML is only produced by Djot's explicit raw syntax - a `` `=html ``
-fenced block or an inline `` `<tag>`{=html} `` span - and only when the active
-profile permits raw nodes. The **`full`** and **`none`** profiles permit
-them; `article` (the default), `comment`, and `minimal` deny them, so their raw
-blocks render as escaped text.
+A literal `<div>` typed in the source is **text**, not HTML. Raw HTML is only
+produced by Carve's explicit raw syntax - a `` ```=html `` fenced block or an
+inline `` `<tag>`{=html} `` span. Carve 0.2 escapes it unless the render passes
+`rawHtml` (upgrade row U-076). The plugin passes `rawHtml` on authored surfaces
+(posts, pages, blocks) and never for comments, and the profile still decides:
+**`full`** and **`none`** permit raw nodes; `article` (the default), `comment`,
+and `minimal` deny them, so their raw blocks render as escaped text.
 
 When raw HTML is permitted, it is rendered and then filtered by `wp_kses` (layer
 2 above): safe tags and sanitized inline `style` attributes survive, while
@@ -145,33 +140,44 @@ mirrors how WordPress core sanitizes author-supplied HTML in post content.
 ## Line breaks
 
 A single source newline inside a paragraph is a soft break: it stays inside the
-paragraph and the browser collapses it to a space. There is no configurable
-soft-break mode. For a visible line break use a trailing backslash `\` (a hard
+paragraph and the browser collapses it to a space. The `post_soft_break` and
+`comment_soft_break` settings pass the engine's `softBreak` option: `space`
+joins the lines and `br` writes a `<br>`. For a visible line break in any mode use a trailing backslash `` \ `` (a hard
 break, always renders as `<br>`) or a `::: |` line block (poetry, addresses).
 
-## Extensions
+## Features
 
-Enabled extensions are added to the post converter (most are post-only; tab
-normalization applies to both):
+Settings map to the 0.2 engine like this (most are post-only):
 
-- `HeadingLevelShiftExtension` — `heading_shift`
-- `TableOfContentsExtension` — `toc_*`
-- `HeadingPermalinksExtension` — `permalinks_enabled`
-- `SmartQuotesExtension` — `smart_quotes` + `smart_quotes_locale`
-- `MermaidExtension` — `mermaid_enabled`
-- `TorchlightExtension` — `torchlight_enabled` + `torchlight_theme` + `torchlight_line_numbers` (plugin-local; see below)
-- `TabNormalizeExtension` — `normalize_tabs` + `tab_width`
+- `heading_shift` - a document transform that raises heading levels.
+- `toc_*`, `permalinks_enabled`, `external_links*` - processing of the
+  rendered HTML.
+- `smart_quotes` - the core `smartTypography` option; `smart_quotes_locale`
+  registers `SmartQuotes::bundle()` with that locale.
+- `mentions_enabled` - core mentions and tags with the archive URLs in the
+  `social` option.
+- `wikilinks_enabled` - the standard `:wiki[Page]` definition and a document
+  transform that writes the link.
+- `<diagram>_enabled` - the `DiagramFences` extension provider.
+- `post_soft_break`, `comment_soft_break` - the `softBreak` option.
+- `normalize_tabs`, `tab_width` - the `Transforms::tabNormalize()` document
+  transform.
+- `heading_numbers` - `Navigation::headingNumbers()`.
+- `extension_*` - the content extensions by name; see
+  [extensions](extensions.md).
+- `torchlight_*` - the `codeBlockRenderer` option.
+- `media_embed_enabled` - the `MediaEmbedExtension` provider of
+  carve-php-media-embed; see [extensions](extensions.md).
 
 ### Torchlight (server-side highlighting)
 
-`WpCarve\Extension\TorchlightExtension` hooks carve-php's `render.code_block`
-event and replaces each fenced block with themed, highlighted HTML. It uses `torchlight/engine`, which highlights locally with TextMate grammars -
-no API token, no network. The package is bundled with the plugin; enable it with
-the `torchlight_enabled` setting.
-`carve`, `csv` and `tsv` fences use the grammars from carve-grammars, so a
-`csv` or `tsv` body shows its separators and quoted fields. A `csv` fence inside
-a `carve` fence does too; a nested `tsv` fence does not, because a `carve` body
-has its tabs expanded to spaces before highlighting.
+`WpCarve\Extension\TorchlightExtension::highlight()` turns one code block into
+themed, highlighted HTML with `torchlight/engine`, which highlights locally with
+TextMate grammars - no API token, no network. On Carve 0.2 it plugs into the
+engine's `codeBlockRenderer` option.
+`carve`, `csv` and `tsv` fences use the grammars from carve-grammars (the 0.2
+Carve grammar on this branch).
+
 Line numbers come from Torchlight's server-side gutter. Enable them globally
 with `torchlight_line_numbers`, or for one block with a preceding attribute line:
 
@@ -183,8 +189,7 @@ require __DIR__ . '/vendor/autoload.php';
 ````
 
 The global `torchlight_theme` can be overridden per block with a `theme`
-attribute on the preceding attribute line - handy for a dark sample on an
-otherwise light page:
+attribute on the preceding attribute line:
 
 ````text
 {theme=dracula}
@@ -193,17 +198,13 @@ require __DIR__ . '/vendor/autoload.php';
 ```
 ````
 
-An unknown theme name falls back to carve-php's plain (un-highlighted) output
-for that block.
+An unknown theme name falls back to the plain (un-highlighted) output for that
+block. Torchlight also handles in-code annotations such as `[tl! highlight]`,
+`[tl! ++]`, `[tl! --]`, and `[tl! focus]`.
 
-Torchlight also handles in-code annotations such as `[tl! highlight]`,
-`[tl! ++]`, `[tl! --]`, and `[tl! focus]` for highlighted, added, removed, and
-focused lines. Carve does not support Djot-style language strings like
-```` ``` php # ````; use the preceding attribute line instead.
-
-To register further carve-php extensions of your own, use the
-`wpcarve_converter` action - see [Hooks](hooks.md).
+To register carve-php extensions of your own, use the `wpcarve_extensions`
+filter - see [Hooks](hooks.md#wpcarve_extensions).
 
 ## Budgets
 
-Comments and `[carve]` shortcodes use the untrusted content budgets. The default source limit is 65,536 bytes, above ordinary comment sizes and below carve-php's 100,000-byte comment preset limit. The default nesting limit is four levels, matching that preset. Change either value under Settings > Carve Markup. Input that exceeds a budget appears as escaped source in the normal Carve wrapper. Comment moderation shows whether source size or nesting caused the fallback. The fallback is evaluated on each render, so raising a limit takes effect without clearing the post render cache.
+Comments and `[carve]` shortcodes use the untrusted content budgets. The default source limit is 65,536 bytes, above ordinary comment sizes and below carve-php's comment profile limit. The default nesting limit is four levels of block containers (quotes, lists, divs, admonitions, description lists), which the plugin measures on the parsed tree because Carve 0.2 has no per-render nesting option. Change either value under Settings > Carve Markup. Input that exceeds a budget appears as escaped source in the normal Carve wrapper. Comment moderation shows whether source size or nesting caused the fallback. The fallback is evaluated on each render, so raising a limit takes effect without clearing the post render cache.

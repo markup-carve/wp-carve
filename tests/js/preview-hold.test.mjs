@@ -12,7 +12,7 @@ const documentSource = readFileSync(new URL('../../assets/js/code-editor.js', im
 const sandbox = { window: {} };
 runInNewContext(listSource, sandbox);
 const { edit, isBareMarker, holdsPreview } = sandbox.window.wpCarveListContinuation;
-const { carveToHtml } = await import('@markup-carve/carve');
+const { render: carveToHtml } = await import('@markup-carve/carve');
 
 // `|` marks the caret.
 function holds(marked) {
@@ -89,8 +89,9 @@ test('a quoted fence line inside a top-level fence is code, not a closer', () =>
   assert.equal(edit('```\n> ```\n- x', 13), null);
 });
 
-test('a task box on an ordered item is text, so it opens no fence', () => {
-  assert.match(carveToHtml('1. [ ] ~~~\n  1.\n'), /<li>\[ \] ~~~\s+1\.<\/li>/);
+// C2-B-046: a task box also follows an ordered marker.
+test('a task box on an ordered item opens no fence', () => {
+  assert.match(carveToHtml('1. [ ] ~~~\n  1.\n'), /<li class="task"><input type="checkbox" disabled aria-label="~~~ 1\."> ~~~\s+1\.<\/li>/);
   assert.equal(holds('1. [ ] ~~~\n  1.|\n'), true);
 });
 

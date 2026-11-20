@@ -7,8 +7,6 @@ $root = dirname(__DIR__);
 require $root . '/vendor/johnpbloch/wordpress-core/wp-includes/kses.php';
 require $root . '/tests/bootstrap.php';
 
-use MarkupCarve\Carve\NodeType;
-use MarkupCarve\Carve\Profile;
 use WpCarve\Converter;
 
 if (!function_exists('wp_allowed_protocols')) {
@@ -18,13 +16,9 @@ if (!function_exists('wp_allowed_protocols')) {
     }
 }
 
-$profiles = [
-    'full' => Profile::full(),
-    'article' => Profile::article(),
-    'comment' => Profile::comment(),
-    'minimal' => Profile::minimal(),
-    'none' => Profile::full(),
-];
+// carve-php 0.2 keeps profiles as spec tables without a public per-node API,
+// so every cell is measured by rendering its sample.
+$profiles = ['full', 'article', 'comment', 'minimal', 'none'];
 
 // Each fixture is source, a rendered HTML signature, and a unique visible token.
 $samples = [
@@ -60,8 +54,8 @@ $samples = [
     'inline_extension' => [":youtube[dQw4w9WgXcQ]\n", 'ext-youtube', 'dQw4w9WgXcQ'],
     'emphasis' => ["/Alpha emphasis/\n", '<em', 'Alpha emphasis'],
     'strong' => ["*Alpha strong*\n", '<strong', 'Alpha strong'],
-    'underline' => ["_Alpha underline_\n", '<u', 'Alpha underline'],
-    'strike' => ["~Alpha strike~\n", '<s', 'Alpha strike'],
+    'underline' => ["{_Alpha underline_}\n", '<u', 'Alpha underline'],
+    'strike' => ["{~Alpha strike~}\n", '<s', 'Alpha strike'],
     'mention' => ["@alpha\n", 'mention', '@alpha'],
     'code' => ["`Alpha code`\n", '<code', 'Alpha code'],
     'literal_inline' => ["!`Alpha literal`\n", 'Alpha literal', 'Alpha literal'],
@@ -78,70 +72,49 @@ $samples = [
     'heading_ref' => ["# Alpha heading\n\n</#Alpha-heading>\n", '<a', 'Alpha heading'],
     'citation_group' => ["[@alpha]\n\n[@alpha]: {author=Alpha year=2024}\n", 'data-cite-key', 'Alpha'],
     'citation' => ["[@alpha]\n\n[@alpha]: {author=Alpha year=2024}\n", 'data-cite-key', 'Alpha'],
-        'span' => ["[Alpha span]{.sample}\n", '<span', 'Alpha span'],
+    'span' => ["[Alpha span]{.sample}\n", '<span', 'Alpha span'],
     'superscript' => ["{^Alpha super^}\n", '<sup', 'Alpha super'],
     'subscript' => ["{,Alpha sub,}\n", '<sub', 'Alpha sub'],
-    'highlight' => ["=Alpha highlight=\n", '<mark', 'Alpha highlight'],
+    'highlight' => ["{=Alpha highlight=}\n", '<mark', 'Alpha highlight'],
     'insert' => ["{+Alpha insert+}\n", '<ins', 'Alpha insert'],
     'delete' => ["{-Alpha delete-}\n", '<del', 'Alpha delete'],
-    'substitution' => ["{~Alpha old~>Beta new~}\n", '<del', 'Alpha old'],
+    'substitution' => ["{-Alpha old-}{+Beta new+}\n", '<del', 'Alpha old'],
     'critic_comment' => ["{#Alpha critic#}\n", 'critic-comment', 'Alpha critic'],
     'math' => ["$`x+y`\n", 'math', 'x+y'],
     'abbreviation' => ["*[HTML]: Alpha expansion\n\nHTML\n", '<abbr', 'HTML'],
 ];
 
-// Probe opt-in renderers separately from ordinary code and inline samples.
-$optional = new Converter([
-    'post_profile' => 'article',
-    'comment_profile' => 'comment',
-    'media_embed_enabled' => true,
-    'plantuml_enabled' => true,
-]);
-$embedHtml = $optional->toHtml(':youtube[dQw4w9WgXcQ]', 'post');
+// Probe the opt-in diagram renderer separately from ordinary code samples.
+$optional = new Converter(['post_profile' => 'article', 'plantuml_enabled' => true]);
 $plantumlHtml = $optional->toHtml("```plantuml\nAlice -> Bob: hello\n```", 'post');
-$commentEmbedHtml = $optional->toHtml(':youtube[dQw4w9WgXcQ]', 'comment');
-if (!str_contains($embedHtml, '<iframe') || !str_contains($plantumlHtml, 'class="plantuml"')
-    || str_contains($commentEmbedHtml, '<iframe')) {
+if (!str_contains($plantumlHtml, 'class="plantuml"')) {
     throw new RuntimeException('Optional network renderer behavior changed; review the request markers');
 }
 
-$types = array_values(array_unique(array_merge(
-    NodeType::allBlockTypes(),
-    NodeType::allInlineTypes(),
-    array_values((new ReflectionClass(NodeType::class))->getConstants()),
-)));
+$types = array_keys($samples);
 $rows = [];
 $networkFindings = [];
-$mismatches = [];
 foreach ($types as $type) {
-    $sample = $samples[$type] ?? null;
+    $sample = $samples[$type];
     $cells = [];
     // Some renderings enqueue local assets or use a browser-side service after conversion.
     $network = in_array($type, ['code_block', 'inline_extension', 'math', 'raw_block', 'raw_inline'], true);
-    foreach ($profiles as $name => $profile) {
-        $allowed = $profile->isTypeAllowed($type);
-        if ($sample === null) {
-            $outcome = $allowed ? 'renders' : 'literal';
-        } else {
-            [$source, $signature, $visible] = $sample;
-            $html = (new Converter(['post_profile' => $name, 'comment_profile' => $name, 'media_embed_enabled' => true, 'plantuml_enabled' => true]))
-                ->toHtml($source, $name === 'comment' ? 'comment' : 'post');
-            $rendered = str_contains($html, $signature) || ($type === 'inline_extension' && str_contains($html, '<iframe'));
-            $outcome = $rendered ? 'renders'
-                : (str_contains(html_entity_decode(strip_tags($html)), $visible) ? 'literal' : 'stripped');
-            if (preg_match('/<(?:img|iframe|script|link|video|audio|source)\b[^>]+(?:src|href)="(?:https?:)?\/\//i', $html) === 1) {
-                $network = true;
-                if (in_array($name, ['article', 'comment'], true)) {
-                    $networkFindings[] = $name . ': ' . $type;
-                }
+    foreach ($profiles as $name) {
+        [$source, $signature, $visible] = $sample;
+        $html = (new Converter(['post_profile' => $name, 'comment_profile' => $name, 'plantuml_enabled' => true]))
+            ->toHtml($source, $name === 'comment' ? 'comment' : 'post');
+        $rendered = str_contains($html, $signature) || ($type === 'inline_extension' && str_contains($html, '<iframe'));
+        $outcome = $rendered ? 'renders'
+            : (str_contains(html_entity_decode(strip_tags($html)), $visible) ? 'literal' : 'stripped');
+        if (preg_match('/<(?:img|iframe|script|link|video|audio|source)\b[^>]+(?:src|href)="(?:https?:)?\/\//i', $html) === 1) {
+            $network = true;
+            if (in_array($name, ['article', 'comment'], true)) {
+                $networkFindings[] = $name . ': ' . $type;
             }
-        }
-        if ($sample !== null && $allowed !== ($outcome === 'renders')) {
-            $mismatches[] = $name . ': ' . $type . ' (' . ($allowed ? 'allowed' : 'denied') . ' -> ' . $outcome . ')';
         }
         $cells[] = $outcome;
     }
-    $rows[] = '| `' . $type . '`' . ($sample === null ? '¹' : '') . ' | ' . implode(' | ', $cells)
+    $rows[] = '| `' . $type . '` | ' . implode(' | ', $cells)
         . ' | ' . ($network ? 'Yes' : 'No') . ' |';
 }
 
@@ -149,7 +122,7 @@ $table = "<!-- profile-capabilities:start -->\n"
     . "| Construct | `full` | `article` | `comment` | `minimal` | `none` | Browser request |\n"
     . "| --- | --- | --- | --- | --- | --- | --- |\n"
     . implode("\n", $rows) . "\n\n"
-    . "¹ This engine type has no independent source spelling in the fixture set. Its cells follow the carve-php profile definition.\n"
+    . "Every cell is measured by rendering the construct's sample through the plugin.\n"
     . "\n<!-- profile-capabilities:end -->";
 $path = $root . '/docs/profiles.md';
 $document = file_get_contents($path);
@@ -169,4 +142,3 @@ if (in_array('--check', $argv, true)) {
     file_put_contents($path, $updated);
 }
 fwrite(STDOUT, count($rows) . ' rows; network: ' . implode(', ', array_unique($networkFindings)) . "\n");
-if (in_array('--audit', $argv, true)) { fwrite(STDOUT, 'Differences: ' . implode(', ', $mismatches) . "\n"); }

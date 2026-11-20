@@ -1,5 +1,10 @@
 {
     "imgfence": "<img src=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%225%22%20r%3D%224%22%2F%3E%3C%2Fsvg%3E\" alt=\"\">\n",
     "listtable": "<table>\n  <thead>\n    <tr><th scope=\"col\">A</th><th scope=\"col\">B</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>1</td><td>2</td></tr>\n  </tbody>\n</table>\n",
-    "semantic": "<p>A <samp>word</samp> here.</p>\n"
+    "semantic": "<p>A <span class=\"ext-samp\">word</span> here.</p>\n",
+    "codegroup": "<div class=\"code-group\" role=\"group\" aria-label=\"Code examples\"><input type=\"radio\" name=\"codegroup-1\" id=\"codegroup-1-tab-1\" class=\"code-group-radio\" checked><label for=\"codegroup-1-tab-1\" class=\"code-group-label\">php</label><input type=\"radio\" name=\"codegroup-1\" id=\"codegroup-1-tab-2\" class=\"code-group-radio\"><label for=\"codegroup-1-tab-2\" class=\"code-group-label\">js</label><div class=\"code-group-panel\" role=\"group\" aria-label=\"php\"><pre><code class=\"language-php\">x = 1;\n</code></pre></div><div class=\"code-group-panel\" role=\"group\" aria-label=\"js\"><pre><code class=\"language-js\">const a = 1;\n</code></pre></div></div>\n",
+    "details": "<details>\n  <summary>More</summary>\n  <p>Hidden body.</p>\n</details>\n",
+    "spoiler": "<details class=\"spoiler\">\n  <summary>Reveal</summary>\n  <p>Secret.</p>\n</details>\n",
+    "tabs": "<div class=\"tabs\" role=\"group\" aria-label=\"Tabs\"><input type=\"radio\" name=\"tabs-1\" id=\"tabs-1-0\" checked><label for=\"tabs-1-0\">One</label><input type=\"radio\" name=\"tabs-1\" id=\"tabs-1-1\"><label for=\"tabs-1-1\">Two</label><div class=\"tab-panel\" role=\"group\" aria-label=\"One\"><p>First.</p></div><div class=\"tab-panel\" role=\"group\" aria-label=\"Two\"><p>Second.</p></div></div>\n",
+    "semanticbraced": "<p>Press <kbd>Ctrl</kbd> for <samp>out</samp>.</p>\n"
 }

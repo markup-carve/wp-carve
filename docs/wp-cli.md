@@ -52,13 +52,11 @@ auto-migrated:
 | `none` | no | Missing or empty content. |
 | `blocks` | no | Uses the block editor; convert manually (or `--force`). |
 | `shortcodes` | no | Contains non-Carve shortcodes; convert manually (or `--force`). |
-| `markdown` | yes | Markdown-looking source; converted via `MarkdownToCarve`. |
-| `html` | yes | HTML source; converted via `HtmlToCarve`. |
+| `markdown` | yes | Markdown-looking source; converted with the Carve 0.2 Markdown (GFM) importer. |
+| `html` | yes | HTML source; converted with the Carve 0.2 HTML importer (`Carve::importDocument()`). |
 
-Markdown GitHub alerts (`> [!NOTE]`) become Carve admonitions and HTML comment
-blocks become Carve comments. The HTML importer reads only `data-carve-*`
-carrier attributes; the older `data-djot-*` prefix is treated as an ordinary
-`data-*` attribute.
+The HTML importer reads only `data-carve-*` carrier attributes; the older
+`data-djot-*` prefix is treated as an ordinary `data-*` attribute.
 
 The plugin's own `[carve]` shortcode does **not** count as a blocking
 shortcode. Migrated posts get `_wpcarve_enabled = 1` so the `the_content`

@@ -77,8 +77,28 @@ class MigratorTest extends TestCase
         $this->assertSame('markdown', $analysis['source']);
         $this->assertTrue($analysis['can_auto_migrate']);
         $this->assertSame('OK', $analysis['reason']);
-        $this->assertSame('markdown-bullet-list', $analysis['report']['diagnostics'][1]['code']);
-        $this->assertSame('preserved', $analysis['report']['diagnostics'][1]['fidelity']);
+        $this->assertSame([], $analysis['report']['diagnostics']);
+    }
+
+    public function testMarkdownPostCanMigrateWithTheImporter(): void
+    {
+        wpcarve_test_set_post(15, ['post_content' => "# Heading\n\n- a\n- b\n\n**bold**"]);
+
+        $migrator = new Migrator();
+        $analysis = $migrator->analyze(15);
+
+        $this->assertSame('markdown', $analysis['source']);
+        $this->assertTrue($analysis['can_auto_migrate']);
+        $this->assertSame('OK', $analysis['reason']);
+        $this->assertNotNull($migrator->migrate(15, true));
+    }
+
+    public function testHtmlMigrationUsesTheZeroTwoImporter(): void
+    {
+        wpcarve_test_set_post(16, ['post_content' => '<p>Just a <em>paragraph</em>.</p>']);
+
+        $this->assertNotNull((new Migrator())->migrate(16, true));
+        $this->assertSame("Just a /paragraph/.\n", get_post(16)->post_content);
     }
 
     public function testHtmlIsDetected(): void

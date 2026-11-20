@@ -15,11 +15,12 @@ with the tab bar at the top of the block:
 
 The preview uses the in-browser Carve engine when the JS bundle is built
 (instant, no request), otherwise the REST render endpoint. Either way it renders
-the same content extensions the published post does, including tabs, details,
-spoilers, code groups, img fences, list-tables and semantic spans. Extensions
-that depend on a setting (table of contents, heading permalinks, heading shift,
-smart quotes) are applied server-side only, so those appear in the published
-post rather than in the instant preview.
+the same constructs the published post does: the extensions enabled under
+**Settings → Carve Markup → Content → Extensions** (tabs, details, spoilers, code
+groups, list tables, the SVG image fence, semantic spans), soft breaks, smart
+quotes with their locale and tab normalization. Extensions that need the
+server (table of contents, heading permalinks, heading shift, heading numbers,
+Torchlight) appear in the published post rather than in the instant preview.
 
 While you type a new list item, the Split preview keeps its last render as long
 as the line under the cursor holds only a list marker (`-`, `*`, `1.`, `a)`,
@@ -41,9 +42,10 @@ When the block is selected in Write/Split mode, the block toolbar offers:
   block, admonition (note / tip / info / warning / danger / success / example /
   quote), media embed (YouTube / Vimeo / auto URL), divider
 - Footnote (`^[…]`), math (inline `` $`…` `` / display `` $$`…` ``), citation
-  (`[@key]`), definition list (`:: term` / `:  definition`)
-- **Import & convert** - paste Markdown, Djot, BBCode or HTML and convert it to
-  Carve, inserted at the cursor
+  (`:cite[key]`), definition list (`:: term` / `:  definition`)
+- **Import & convert** - paste Markdown, Djot, HTML or BBCode and convert it to
+  Carve, inserted at the cursor. BBCode converts in the browser with carve-js;
+  the other formats go through the server
 
 Keyboard shortcuts in the source editor: `Ctrl/Cmd+B` strong, `Ctrl/Cmd+I`
 emphasis, `Ctrl/Cmd+U` underline, `Ctrl/Cmd+K` link.

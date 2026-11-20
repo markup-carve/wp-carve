@@ -1,100 +1,78 @@
 # Engine extensions
 
-carve-php ships more extensions than this plugin registers. Every one of them is
-reachable through the [`wpcarve_converter`](hooks.md) action without patching
-the plugin, so "not registered by default" is never "unavailable".
+On Carve 0.2 an extension is an `ExtensionDefinition` passed in the engine's
+`extensions` option. The 0.2 extension API is provisional. Add your own through
+the [`wpcarve_extensions`](hooks.md#wpcarve_extensions) filter; the 0.1
+`wpcarve_converter` action and its `ExtensionInterface` classes are gone.
 
-This page accounts for each absence. An unexplained one reads as an oversight
-rather than a decision, and the question gets re-asked at every release.
+## What the plugin registers
 
-## Registered by default
-
-`Citations`, `CodeGroup`, `Details`, `ExternalLinks`, `FencedRender`,
-`Frontmatter`, `HeadingLevelShift`, `HeadingNumbers`, `HeadingPermalinks`,
-`ImgFence`, `ListTable`, `MediaEmbed`, `Mentions`, `SemanticSpan`,
-`SmartQuotes`, `Spoiler`, `TableOfContents`, `TabNormalize`, `Tabs`,
-`TocPlacement`, `Torchlight`, `Wikilinks`.
-
-Most sit behind a setting - see [settings](settings.md). `TocPlacement` is one
-of the few that do not: `::: toc` is something the author wrote, so it renders
-wherever they wrote it. The `toc_enabled` setting is a separate thing - it
-controls the contents list the plugin injects at the top or bottom of a post.
-
-Generated markup stays out of the visual-editor seed, `TocPlacement` included.
-There the `::: toc` div is left unclaimed, which is what lets the editor
-serialize it back to `::: toc` instead of freezing a rendered nav into the post
-source.
-
-## Not registered, because the construct already works
-
-Registering these would change nothing.
-
-| extension | why |
-| --- | --- |
-| `Admonition` | `::: note` already renders an `<aside class="admonition note">` |
-| `InlineFootnotes` | `^[a note]` already renders a numbered footnote with a backlink |
-
-Note the separator: `::: note` opens an admonition and `:::note` does not.
-
-## Not registered, because it is rendered elsewhere
-
-| extension | why |
-| --- | --- |
-| `MathBlock` | math renders client-side, through the vendored KaTeX auto-render pass the plugin enqueues |
-
-## Not registered, because it is the site's editorial decision
-
-Each of these rewrites or generates content on every post, and none of them has
-a setting. A plugin default would be making an editorial choice on the site's
-behalf, so they are off and the choice is yours. (The ones that DO have a
-setting - `ExternalLinks`, `HeadingNumbers`, `Mentions`, `Wikilinks` - are
-listed above: the plugin registers them, the setting decides.)
-
-| extension | what it does | the risk in enabling it blindly |
+| Feature | 0.2 mechanism | Setting |
 | --- | --- | --- |
-| `Autolink` | bare URLs become links | changes existing prose |
-| `PlusBullet` | `+` opens a list | reinterprets text that was not a list |
-| `LowercaseHeadingIds` | lowercases heading anchors | **changes existing anchors, breaking inbound links** |
-| `AsciiHeadingIds` | transliterates anchors to ASCII | same, and it mangles non-English titles |
-| `DefaultAttributes` | applies attributes the author did not write | surprising in a round-tripping editor |
+| Tabs (`:::: tabs`) | carve-php standard `Extension\Tabs` | `extension_tabs` |
+| Details, spoiler (`::: details`, `::: spoiler`) | `Extension\Details`, `Extension\Spoiler` | `extension_details`, `extension_spoiler` |
+| Code group (`::: code-group`) | `Extension\CodeGroup` | `extension_code_group` |
+| List table (`::: list-table`) | `Extension\ListTable` | `extension_list_table` |
+| SVG image fence (```` ```img ````) | carve-php standard `Extension\ImgFence` | `extension_img_fence` |
+| Semantic spans (`[Ctrl]{kbd}`, `[HTML]{abbr="..."}`) | `Extension\SemanticSpan` | `extension_semantic_span` |
+| Heading numbers | `Navigation::headingNumbers()` | `heading_numbers` |
+| Citations (`:cite[key]` with a CSL-JSON bibliography) | `Extension\Citations` | block panel |
+| Torchlight highlighting | `codeBlockRenderer` option | `torchlight_enabled` |
+| Tab normalization | `Transforms::tabNormalize()` | `normalize_tabs`, `tab_width` |
+| Smart-quote locale | `SmartQuotes::bundle()` | `smart_quotes_locale` |
+| Media embeds (`:youtube[ID]`, `:vimeo[ID]`, `:media[URL]`) | `MarkupCarve\MediaEmbed\MediaEmbedExtension` provider, plus `MediaEmbedLinter` findings in lint; a feed gets the link fallback; comments, plain-text excerpts and the editor seed none | `media_embed_enabled` |
+| Diagram fences (Mermaid, Chart.js, Vega-Lite, Graphviz, WaveDrom, ABC, PlantUML) | `WpCarve\Extension\DiagramFences` | one per diagram |
+| Wiki links (`:wiki[Page]`) | carve-php standard `carve.wiki` definition plus a document transform that writes the link | `wikilinks_enabled` |
+| Heading level shift | document transform | `heading_shift` |
+| Mentions and tags | core syntax, `social` option for the archive URLs | `mentions_enabled` |
+| Smart typography | core, `smartTypography` option | `smart_quotes` |
+| Soft breaks | core, `softBreak` option | `post_soft_break`, `comment_soft_break` |
+| Frontmatter | core `frontmatter` node | always on |
+| Table of contents, `::: toc`, heading permalinks, external link attributes | host processing of the rendered HTML | `toc_enabled`, `permalinks_enabled`, `external_links` |
 
-## Not registered, because the construct is not part of this plugin's surface
+`::: toc` renders wherever the author wrote it, whether or not `toc_enabled` is
+on; that setting controls the contents list the plugin injects at the top or
+bottom of a post. Generated markup stays out of the visual-editor seed, so the
+editor serializes the directive back to `::: toc`.
 
-Each would need its own settings, styles and documentation before it could be
-turned on for a site.
+The `extension_*` toggles are the plugin's extension catalog
+(`WpCarve\Extensions`). The in-browser preview reads the same enabled names
+and registers the carve-js bundle of each, so the preview and the published
+post agree.
 
-`CodeCallouts`, `ColorSwatch`, `Glossary`, `Index`, `HeadingReference`.
-
-## Enabling one
+## Adding one
 
 Gate on the context. Apply round-trippable content extensions for both `post`
 and `editor`; apply anything that injects generated markup to `post` only, so
 the visual editor does not serialize it back into the source.
 
 ``` php
-use MarkupCarve\Carve\CarveConverter;
-use MarkupCarve\Carve\Extension\ExternalLinksExtension;
+use MarkupCarve\Carve\Extension\Claim;
+use MarkupCarve\Carve\Extension\ExtensionDefinition;
+use MarkupCarve\Carve\Extension\RenderHost;
+use MarkupCarve\Carve\Node;
 
-add_action('wpcarve_converter', function (CarveConverter $converter, string $context): void {
+add_filter('wpcarve_extensions', function (array $extensions, string $context): array {
     if ($context !== 'post') {
-        return;
+        return $extensions;
     }
 
-    $converter->addExtension(new ExternalLinksExtension(
-        internalHosts: [wp_parse_url(home_url(), PHP_URL_HOST)],
-        target: '_blank',
-    ));
+    $extensions[] = new ExtensionDefinition(
+        'acme.shout',
+        '1',
+        matcher: ['form' => 'fence', 'name' => 'shout'],
+        transform: static function (Claim $claim): Node {
+            $node = new Node('block_extension', []);
+            $node->f = ['name' => 'acme.shout', 'version' => '1', 'fallback' => [$claim->copyNode()]];
+
+            return $node;
+        },
+        renderer: static fn (Node $node, RenderHost $host): string => '<p class="shout">LOUD</p>',
+    );
+
+    return $extensions;
 }, 10, 2);
 ```
 
-`Mentions` and `Wikilinks` take the site's own URL shapes:
-
-``` php
-new MentionsExtension(mentionUrl: '/author/{name}', tagUrl: '/tag/{name}');
-
-new WikilinksExtension(urlGenerator: static function (string $page): string {
-    $post = get_page_by_path(sanitize_title($page), OBJECT, ['post', 'page']);
-
-    return $post ? (string)get_permalink($post) : '#';
-});
-```
+The renderer is trusted host code: its HTML is inserted unchanged, and then
+passes through `wp_kses` with the rest of the post.

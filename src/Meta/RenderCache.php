@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\CarveConverter;
+use Composer\InstalledVersions;
 use WP_Post;
 use WpCarve\Converter;
 use WpCarve\Includes\IncludePolicy;
@@ -128,13 +128,21 @@ class RenderCache
      * of every render-affecting setting. Any of the three moving changes this,
      * so read() treats the stored HTML as stale and re-renders on the fly.
      *
-     * The engine version catches tagged dependency updates made without a
-     * plugin version bump. A dev-main commit may keep the same LIB_VERSION,
-     * so bump WPCARVE_VERSION whenever that lockfile revision changes.
+     * The engine version is the installed carve-php version plus its source
+     * reference, so a moved `next2` commit pin also invalidates the cache.
      */
     private static function signature(): string
     {
-        return self::composeSignature(WPCARVE_VERSION, CarveConverter::LIB_VERSION, Settings::renderSignature());
+        return self::composeSignature(WPCARVE_VERSION, self::engineVersion(), Settings::renderSignature());
+    }
+
+    private static function engineVersion(): string
+    {
+        if (!class_exists(InstalledVersions::class) || !InstalledVersions::isInstalled('markup-carve/carve-php')) {
+            return 'unknown';
+        }
+
+        return InstalledVersions::getPrettyVersion('markup-carve/carve-php') . '@' . InstalledVersions::getReference('markup-carve/carve-php');
     }
 
     /**

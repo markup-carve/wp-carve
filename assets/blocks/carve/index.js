@@ -123,7 +123,7 @@
 		const serverIncludes = cfg.includes && source.indexOf( '{{' ) !== -1;
 		if ( ctx === 'post' && ! forceServer && ! serverIncludes && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
 			try {
-				done( engine.carveToHtml( source ) );
+				done( engine.carveToHtml( source, cfg.preview ) );
 				return;
 			} catch ( e ) {
 				// fall through to server render
@@ -257,7 +257,7 @@
 						let rendersSame = false;
 						if ( engine && typeof engine.carveToHtml === 'function' ) {
 							try {
-								rendersSame = normHtml( engine.carveToHtml( attributes.carve || '' ) ) === normHtml( engine.carveToHtml( rt ) );
+								rendersSame = normHtml( engine.carveToHtml( attributes.carve || '', cfg.preview ) ) === normHtml( engine.carveToHtml( rt, cfg.preview ) );
 							} catch ( e ) {
 								rendersSame = false;
 							}
@@ -310,8 +310,9 @@
 			const ed = ctlRef.current && ctlRef.current.editor;
 			if ( ed ) {
 				ed.chain().focus().setTextSelection( ed.state.selection.to ).insertContent( {
-					type: 'carveInlineNote',
-					content: [ { type: 'text', text: 'note' } ],
+					type: 'text',
+					text: 'note',
+					marks: [ { type: 'carveInlineFootnote' } ],
 				} ).run();
 			}
 		}
@@ -319,7 +320,7 @@
 			const ed = ctlRef.current && ctlRef.current.editor;
 			if ( ed ) {
 				ed.chain().focus().insertContent( {
-					type: 'carveMath', attrs: { src: selectedVisualText( ed ) || 'x', display },
+					type: 'carveMath', attrs: { value: selectedVisualText( ed ) || 'x', display },
 				} ).run();
 			}
 		}
@@ -344,26 +345,16 @@
 			const chain = ed.chain().focus();
 			( url === '' ? chain.unsetLink() : chain.setLink( { href: url } ) ).run();
 		}
-		// Visual mode inserts NODES, not source: the serializer writes the
-		// `{.wp-image-N}` run from `attrs.class`, and a captioned image becomes
-		// a carveFigure whose trailing carveCaption is written as `^ Caption`.
+		// The visual pick is inserted as the source the source editors write, read
+		// by the editor kit, so `{.wp-image-N}` and a `^ Caption` line come out the same.
 		function insertVisualImage( ed, chosen ) {
-			const attrs = { src: chosen.url, alt: chosen.alt };
-			if ( chosen.className ) {
-				attrs.class = chosen.className;
-			}
-			if ( ! chosen.caption ) {
-				ed.chain().focus().setImage( attrs ).run();
+			const ctl = ctlRef.current;
+			if ( ctl && typeof ctl.insertCarve === 'function' ) {
+				ctl.insertCarve( window.wpCarveMedia.toSource( chosen ) );
 
 				return;
 			}
-			ed.chain().focus().insertContent( {
-				type: 'carveFigure',
-				content: [
-					{ type: 'paragraph', content: [ { type: 'image', attrs } ] },
-					{ type: 'carveCaption', content: [ { type: 'text', text: chosen.caption } ] },
-				],
-			} ).run();
+			ed.chain().focus().setImage( { src: chosen.url, alt: chosen.alt } ).run();
 		}
 
 		function promptImage() {
@@ -405,8 +396,8 @@
 			if ( ! url ) {
 				return;
 			}
-			// A bare id (no scheme) is assumed to be YouTube. carve-grammars
-			// serializes the src to :youtube[id] / :vimeo[id] / :media[url].
+			// A bare id (no scheme) is assumed to be YouTube. The visual editor
+			// writes the src as :youtube[id] / :vimeo[id] / :media[url].
 			const src = /^https?:|^\/\//.test( url ) ? url : 'https://www.youtube.com/watch?v=' + url;
 			ed.chain().focus().setCarveEmbed( { src } ).run();
 		}
@@ -417,14 +408,14 @@
 		const setAttr = ( name, attrs ) => () => ed && ed.chain().focus().updateAttributes( name, attrs ).run();
 		const contextGroup =
 			ed &&
-			ed.isActive( 'carveDiv' ) &&
+			ed.isActive( 'carveAdmonition' ) &&
 			el(
 				ToolbarGroup,
 				null,
 				el( ToolbarDropdownMenu, {
 					icon: 'info',
 					label: __( 'Admonition type', 'carve-markup' ),
-					controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: setAttr( 'carveDiv', { class: t } ) } ) ),
+					controls: ADMONITIONS.map( ( t ) => ( { title: cap( t ), onClick: setAttr( 'carveAdmonition', { kind: t } ) } ) ),
 				} )
 			);
 
@@ -1223,11 +1214,31 @@
 		}
 
 		function ingestNow( raw, from ) {
+			// BBCode imports in carve-js only (Carve 0.2): convert it here.
+			const importer = window.wpCarveImport;
+			const bbcode = from === 'bbcode' || ( ( ! from || from === 'auto' ) && importer && importer.looksLikeBbcode( raw ) );
+			if ( bbcode ) {
+				if ( ! importer ) {
+					return Promise.reject( new Error( __( 'BBCode import needs the in-browser Carve importer, which did not load.', 'carve-markup' ) ) );
+				}
+				try {
+					return Promise.resolve( importer.importBbcode( raw ) );
+				} catch ( error ) {
+					return Promise.reject( error );
+				}
+			}
 			return wp.apiFetch( {
 				url: cfg.restIngest,
 				method: 'POST',
 				data: { source: raw, from: from || 'auto' },
 			} );
+		}
+
+		function reportIngestError( error ) {
+			const notices = wp.data && wp.data.dispatch( 'core/notices' );
+			if ( notices && notices.createErrorNotice ) {
+				notices.createErrorNotice( ( error && error.message ) || __( 'The content could not be converted to Carve.', 'carve-markup' ), { type: 'snackbar' } );
+			}
 		}
 
 		function doPasteIngest() {
@@ -1238,7 +1249,7 @@
 					setIngestReport( res.report || null );
 					setIngest( null );
 				} )
-				.catch( () => { setIngestReport( null ); setIngest( null ); } );
+				.catch( ( error ) => { setIngestReport( null ); setIngest( null ); reportIngestError( error ); } );
 		}
 
 		function doImport() {
@@ -1250,7 +1261,7 @@
 					setImportOpen( false );
 					setImportText( '' );
 				} )
-				.catch( () => { setIngestReport( null ); setImportOpen( false ); } );
+				.catch( ( error ) => { setIngestReport( null ); setImportOpen( false ); reportIngestError( error ); } );
 		}
 
 		function moveToDocument() {

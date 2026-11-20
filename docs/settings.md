@@ -22,8 +22,8 @@ Markup**.
 | `post_profile` | `article` | Content profile for posts: `full` / `article` / `comment` / `minimal` / `none`. Only `full` permits raw HTML (still sanitized via `wp_kses`); the others escape it. |
 | `comment_profile` | `comment` | Content profile for comments. |
 | `untrusted_max_bytes` | `65536` | Maximum source bytes for comments and shortcodes. Larger input appears as escaped text. |
-| `untrusted_max_nesting` | `4` | Maximum engine nesting depth for comments and shortcodes. Deeper input appears as escaped text. |
-| `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br`. |
+| `untrusted_max_nesting` | `4` | Maximum block container nesting (quotes, lists, divs, admonitions, description lists) for comments and shortcodes. Deeper input appears as escaped text. |
+| `post_soft_break` | `newline` | How a single newline in a paragraph renders in posts: `newline` / `space` / `br` (the engine's `softBreak` option). |
 | `comment_soft_break` | `newline` | Same for comments (set to `br` so commenters' line breaks show). |
 | `abbreviations` | `''` | Site-wide abbreviations, one `KEY: expansion` per line; matching words get an `<abbr>` tooltip everywhere. |
 
@@ -45,9 +45,9 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `external_links_new_tab` | `false` | Also add `target="_blank"`. Separate from the above because marking a link external and forcing a new tab are different decisions. |
 | `external_links_nofollow` | `false` | Also add `nofollow` to the `rel`. |
 | `mentions_enabled` | `false` | Turn `@name` into an author-archive link and `#tag` into a tag-archive link. Off, both stay literal source text. Templates come from `home_url()`; override with `wpcarve_mention_url` / `wpcarve_tag_url` if your author base or permalinks differ. |
-| `wikilinks_enabled` | `false` | Turn `[[Page Title]]` into a link to the matching post or page. Unresolved links become `href="#"` and keep their `wikilink` class, so a theme can style `a.wikilink[href="#"]` as a broken link. Override resolution with `wpcarve_wikilink_url`. |
-| `smart_quotes` | `false` | Curly quotes / dashes. |
-| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`). |
+| `wikilinks_enabled` | `false` | Turn `:wiki[Page Title]` into a link to the matching post or page. Unresolved links become `href="#"` and keep their `wikilink` class, so a theme can style `a.wikilink[href="#"]` as a broken link. Override resolution with `wpcarve_wikilink_url`. |
+| `smart_quotes` | `false` | Curly quotes / dashes (the 0.2 `smartTypography` option). |
+| `smart_quotes_locale` | `en` | Locale for quote glyphs (e.g. `en`, `de`, `fr`, `de-CH`), through the `carve.smartQuotes` extension. |
 | `mermaid_enabled` | `false` | Render ` ```mermaid ` fenced blocks as diagrams. |
 | `chart_enabled` | `false` | Render ` ```chart ` blocks with Chart.js. |
 | `vega_enabled` | `false` | Render ` ```vega-lite ` blocks with Vega-Lite. |
@@ -56,8 +56,8 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
 | `plantuml_enabled` | `false` | Render ` ```plantuml ` / ` ```puml ` blocks via the Kroki service (external request). |
 | `diagram_export` | `false` | Show hover **Copy SVG** / **Download** controls on rendered diagrams (front end). |
-| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). |
-| `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on). |
+| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). Feeds get the link. When off, the oEmbed fallback runs. |
+| `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on), through the engine's `codeBlockRenderer` option. |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).
 
@@ -68,8 +68,8 @@ Each diagram renderer is off by default; its JavaScript loads only on pages that
 With `diagram_export` enabled (off by default), hovering a rendered diagram on the front end reveals a **Download** control (and, for the SVG renderers - Mermaid, Graphviz, WaveDrom, ABC, PlantUML - a **Copy SVG**). SVG diagrams export as `.svg`; canvas renderers (Chart.js, Vega-Lite) export as `.png`. The block-editor preview stays chrome-free.
 | `torchlight_theme` | `github-light` | Default Torchlight theme name (override per block with a `{theme=...}` attribute line). |
 | `torchlight_line_numbers` | `false` | Show Torchlight line numbers for every highlighted code block. |
-| `normalize_tabs` | `false` | Convert leading tabs to spaces. |
-| `tab_width` | `2` | Spaces per tab when normalizing. |
+| `normalize_tabs` | `false` | Replace each tab in code blocks and code spans with spaces (the engine's tab-normalize transform). The visual-editor seed keeps the tabs. |
+| `tab_width` | `2` | Spaces per tab when normalizing, `0` to `16`. |
 
 ## Innovations
 
@@ -77,7 +77,7 @@ With `diagram_export` enabled (off by default), hovering a rendered diagram on t
 | --- | --- | --- |
 | `live_preview` | `true` | In-browser instant block preview (needs the bundled `assets/js/vendor/carve.js`). |
 | `visual_editor_mode` | `disabled` | Tiptap "Visual" tab in the Carve block: `disabled` / `enabled` / `enabled_default` (open in Visual). See [Visual editor](visual-editor.md). |
-| `paste_ingest` | `true` | Paste Markdown / Djot / BBCode / HTML and convert to Carve. |
+| `paste_ingest` | `true` | Offer to convert pasted Markdown, Djot, HTML or BBCode to Carve. The server converts Markdown, Djot and HTML; BBCode converts in the browser with carve-js. |
 | `frontmatter_meta` | `true` | Map `---` frontmatter to excerpt / SEO / meta. |
 | `render_cache` | `true` | Cache rendered HTML in post meta on save. |
 | `include_root` | `''` | Absolute directory that `{{ file.crv }}` include directives read from. Empty disables includes. |
