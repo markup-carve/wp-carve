@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9cc4d445797b8385afdb78d2f6fdf752",
+    "content-hash": "169635b6100220f5e0b4e5bd0aa98229",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -354,12 +354,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "6621ad191d8eddbbb931f6b9e608e6829633c3a2"
+                "reference": "ab7e7f714fcabcacde876b3fdd4b2d8b4773bf62"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/6621ad191d8eddbbb931f6b9e608e6829633c3a2",
-                "reference": "6621ad191d8eddbbb931f6b9e608e6829633c3a2",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/ab7e7f714fcabcacde876b3fdd4b2d8b4773bf62",
+                "reference": "ab7e7f714fcabcacde876b3fdd4b2d8b4773bf62",
                 "shasum": ""
             },
             "require": {
@@ -389,7 +389,7 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-11-20T10:30:07+00:00"
+            "time": "2026-11-20T12:05:50+00:00"
         },
         {
             "name": "markup-carve/carve-php",
