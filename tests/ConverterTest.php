@@ -761,4 +761,9 @@ CARVE;
             trim((new Converter(['media_embed_enabled' => true]))->toHtml($source, 'comment')),
         );
     }
+
+    public function testMediaEmbedsStayOutOfPlainText(): void
+    {
+        $this->assertSame('Watch dQw4w9WgXcQ.', trim((new Converter(['media_embed_enabled' => true]))->toText("Watch :youtube[dQw4w9WgXcQ].\n")));
+    }
 }

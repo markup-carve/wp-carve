@@ -20,7 +20,7 @@ the [`wpcarve_extensions`](hooks.md#wpcarve_extensions) filter; the 0.1
 | Torchlight highlighting | `codeBlockRenderer` option | `torchlight_enabled` |
 | Tab normalization | `Transforms::tabNormalize()` | `normalize_tabs`, `tab_width` |
 | Smart-quote locale | `SmartQuotes::bundle()` | `smart_quotes_locale` |
-| Media embeds (`:youtube[ID]`, `:vimeo[ID]`, `:media[URL]`) | `MarkupCarve\MediaEmbed\MediaEmbedExtension` provider, plus `MediaEmbedLinter` findings in lint; a feed gets the link fallback, comments and the editor seed none | `media_embed_enabled` |
+| Media embeds (`:youtube[ID]`, `:vimeo[ID]`, `:media[URL]`) | `MarkupCarve\MediaEmbed\MediaEmbedExtension` provider, plus `MediaEmbedLinter` findings in lint; a feed gets the link fallback; comments, plain-text excerpts and the editor seed none | `media_embed_enabled` |
 | Diagram fences (Mermaid, Chart.js, Vega-Lite, Graphviz, WaveDrom, ABC, PlantUML) | `WpCarve\Extension\DiagramFences` | one per diagram |
 | Wiki links (`:wiki[Page]`) | carve-php standard `carve.wiki` definition plus a document transform that writes the link | `wikilinks_enabled` |
 | Heading level shift | document transform | `heading_shift` |

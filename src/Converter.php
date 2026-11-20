@@ -844,9 +844,9 @@ class Converter
                 $renderers += $modes;
             }
         }
-        // Not in the editor seed: an iframe does not serialize back to the
-        // directive. A feed renders the link fallback (static mode).
-        if (!$isComment && !$isEditor && !empty($this->settings['media_embed_enabled']) && class_exists(MediaEmbedExtension::class)) {
+        // Render-only: an iframe does not serialize back to the directive, and
+        // an excerpt would show the embed URL. A feed gets the link (static mode).
+        if (!$isComment && !$isEditor && !$forText && !empty($this->settings['media_embed_enabled']) && class_exists(MediaEmbedExtension::class)) {
             $extensions[] = new MediaEmbedExtension();
         }
         if (!empty($this->settings['torchlight_enabled']) && !$isEditor && !$forText && class_exists(TorchlightExtension::class)) {
