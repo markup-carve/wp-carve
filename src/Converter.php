@@ -125,7 +125,7 @@ class Converter
         $options = $this->optionsFor($context, $profileOverride);
         $citationTransforms = [];
         if ($bibliography !== null && $context !== 'editor' && $context !== 'comment') {
-            $citations = Citations::bundle($citationMode, $bibliography);
+            $citations = Citations::bundle($citationMode === '' ? 'numbered' : $citationMode, $bibliography);
             $options['extensions'][] = $citations;
             $citationTransforms = $citations->transforms();
         }
