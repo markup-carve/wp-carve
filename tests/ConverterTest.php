@@ -736,4 +736,29 @@ CARVE;
         );
         $this->assertStringContainsString('%3Csvg', $m[1]);
     }
+
+    public function testMediaEmbedsRenderAsFramesInAPostAndAsLinksInAFeed(): void
+    {
+        $converter = new Converter(['media_embed_enabled' => true]);
+        $source = "Watch :youtube[dQw4w9WgXcQ] and :media[https://vimeo.com/76979871].\n";
+
+        $post = $converter->toHtml($source);
+        $this->assertStringContainsString('<iframe data-carve-source=":youtube[dQw4w9WgXcQ]" src="//www.youtube.com/embed/dQw4w9WgXcQ', $post);
+        $this->assertStringContainsString('src="//player.vimeo.com/video/76979871', $post);
+
+        $feed = $converter->toHtml($source, 'feed');
+        $this->assertStringNotContainsString('<iframe', $feed);
+        $this->assertStringContainsString('<a data-carve-source=":youtube[dQw4w9WgXcQ]" href="//www.youtube.com/embed/dQw4w9WgXcQ', $feed);
+    }
+
+    public function testMediaEmbedsStayUnclaimedWhenOffAndInComments(): void
+    {
+        $source = "Watch :youtube[dQw4w9WgXcQ].\n";
+
+        $this->assertSame('<p>Watch <span class="ext-youtube">dQw4w9WgXcQ</span>.</p>', trim((new Converter([]))->toHtml($source)));
+        $this->assertSame(
+            '<p>Watch <span class="ext-youtube">dQw4w9WgXcQ</span>.</p>',
+            trim((new Converter(['media_embed_enabled' => true]))->toHtml($source, 'comment')),
+        );
+    }
 }
