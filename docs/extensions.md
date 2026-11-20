@@ -20,6 +20,7 @@ the [`wpcarve_extensions`](hooks.md#wpcarve_extensions) filter; the 0.1
 | Torchlight highlighting | `codeBlockRenderer` option | `torchlight_enabled` |
 | Tab normalization | `Transforms::tabNormalize()` | `normalize_tabs`, `tab_width` |
 | Smart-quote locale | `SmartQuotes::bundle()` | `smart_quotes_locale` |
+| Media embeds (`:youtube[ID]`, `:vimeo[ID]`, `:media[URL]`) | `MarkupCarve\MediaEmbed\MediaEmbedExtension` provider, plus `MediaEmbedLinter` findings in lint; a feed gets the link fallback; comments, plain-text excerpts and the editor seed none | `media_embed_enabled` |
 | Diagram fences (Mermaid, Chart.js, Vega-Lite, Graphviz, WaveDrom, ABC, PlantUML) | `WpCarve\Extension\DiagramFences` | one per diagram |
 | Wiki links (`:wiki[Page]`) | carve-php standard `carve.wiki` definition plus a document transform that writes the link | `wikilinks_enabled` |
 | Heading level shift | document transform | `heading_shift` |
@@ -38,10 +39,6 @@ The `extension_*` toggles are the plugin's extension catalog
 (`WpCarve\Extensions`). The in-browser preview reads the same enabled names
 and registers the carve-js bundle of each, so the preview and the published
 post agree.
-
-## Waiting for the 0.2 engine
-
-- Media embeds: [carve-php-media-embed#23](https://github.com/markup-carve/carve-php-media-embed/issues/23).
 
 ## Adding one
 

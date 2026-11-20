@@ -166,8 +166,8 @@ Settings map to the 0.2 engine like this (most are post-only):
 - `extension_*` - the content extensions by name; see
   [extensions](extensions.md).
 - `torchlight_*` - the `codeBlockRenderer` option.
-- `media_embed_enabled` - waiting for the engine; see
-  [extensions](extensions.md#waiting-for-the-0-2-engine).
+- `media_embed_enabled` - the `MediaEmbedExtension` provider of
+  carve-php-media-embed; see [extensions](extensions.md).
 
 ### Torchlight (server-side highlighting)
 

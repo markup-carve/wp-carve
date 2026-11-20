@@ -4,8 +4,86 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3e4a5fbb2091052d2b55ef58845686fc",
+    "content-hash": "7dc26d90bcf1020e0963e489d13be81a",
     "packages": [
+        {
+            "name": "dereuromark/media-embed",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/dereuromark/media-embed.git",
+                "reference": "aa200fae31aedb61800ec237a13b243aee208ca9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/dereuromark/media-embed/zipball/aa200fae31aedb61800ec237a13b243aee208ca9",
+                "reference": "aa200fae31aedb61800ec237a13b243aee208ca9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "psr/http-client": "^1.0",
+                "psr/http-factory": "^1.0",
+                "psr/simple-cache": "^3.0"
+            },
+            "require-dev": {
+                "fig-r/psr2r-sniffer": "@stable",
+                "jbroadway/urlify": "^1.0.0",
+                "nyholm/psr7": "^1.8",
+                "phpstan/phpstan": "^2.0",
+                "phpunit/phpunit": "^10.5 || ^11.5 || ^12.1 || ^13.0",
+                "sebastian/diff": "@stable"
+            },
+            "suggest": {
+                "jbroadway/urlify": "For best transliteration of non-ASCII provider names into slugs (otherwise a built-in ASCII slugger is used)"
+            },
+            "bin": [
+                "bin/generate-docs",
+                "bin/validate-providers.php"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-next": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MediaEmbed\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Scherer",
+                    "homepage": "https://www.dereuromark.de",
+                    "role": "Author"
+                }
+            ],
+            "description": "A PHP library to deal with all those media services around, parsing their URLs and embedding their audio/video content in websites.",
+            "keywords": [
+                "audio",
+                "embed",
+                "iframe",
+                "media",
+                "php",
+                "video"
+            ],
+            "support": {
+                "issues": "https://github.com/dereuromark/media-embed/issues",
+                "source": "https://github.com/dereuromark/media-embed"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/dereuromark",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-25T16:42:22+00:00"
+        },
         {
             "name": "dflydev/dot-access-data",
             "version": "v3.0.3",
@@ -402,6 +480,89 @@
             "time": "2026-11-20T03:56:27+00:00"
         },
         {
+            "name": "markup-carve/carve-php-media-embed",
+            "version": "dev-next2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/markup-carve/carve-php-media-embed.git",
+                "reference": "ba2f989f7f3694ded934e82253cea06eb7834b53"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/ba2f989f7f3694ded934e82253cea06eb7834b53",
+                "reference": "ba2f989f7f3694ded934e82253cea06eb7834b53",
+                "shasum": ""
+            },
+            "require": {
+                "dereuromark/media-embed": "^1.0",
+                "markup-carve/carve-php": "dev-next2#1ce70376fbcb06d4ac40493efd131becaf957f29",
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "dealerdirect/phpcodesniffer-composer-installer": "*",
+                "php-collective/code-sniffer": "^0.6",
+                "phpstan/phpstan": "^2.0",
+                "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0",
+                "squizlabs/php_codesniffer": "^4.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.1.x-dev",
+                    "dev-next2": "0.2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MarkupCarve\\MediaEmbed\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "MarkupCarve\\MediaEmbed\\Test\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "stan": [
+                    "phpstan analyse"
+                ],
+                "cs-check": [
+                    "phpcs"
+                ],
+                "cs-fix": [
+                    "phpcbf"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Scherer",
+                    "homepage": "https://www.dereuromark.de"
+                }
+            ],
+            "description": "Opt-in Carve extension that embeds audio/video from 30+ providers via dereuromark/media-embed.",
+            "keywords": [
+                "audio",
+                "carve",
+                "embed",
+                "iframe",
+                "markup",
+                "media",
+                "video",
+                "youtube"
+            ],
+            "support": {
+                "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
+                "source": "https://github.com/markup-carve/carve-php-media-embed"
+            },
+            "time": "2026-11-20T05:01:26+00:00"
+        },
+        {
             "name": "nette/schema",
             "version": "v1.3.6",
             "source": {
@@ -748,6 +909,166 @@
                 "source": "https://github.com/php-fig/event-dispatcher/tree/1.0.0"
             },
             "time": "2019-01-08T18:20:26+00:00"
+        },
+        {
+            "name": "psr/http-client",
+            "version": "1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-client.git",
+                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-client/zipball/bb5906edc1c324c9a05aa0873d40117941e5fa90",
+                "reference": "bb5906edc1c324c9a05aa0873d40117941e5fa90",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.0 || ^8.0",
+                "psr/http-message": "^1.0 || ^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Client\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP clients",
+            "homepage": "https://github.com/php-fig/http-client",
+            "keywords": [
+                "http",
+                "http-client",
+                "psr",
+                "psr-18"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-client"
+            },
+            "time": "2023-09-23T14:17:50+00:00"
+        },
+        {
+            "name": "psr/http-factory",
+            "version": "1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-factory.git",
+                "reference": "2b4765fddfe3b508ac62f829e852b1501d3f6e8a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-factory/zipball/2b4765fddfe3b508ac62f829e852b1501d3f6e8a",
+                "reference": "2b4765fddfe3b508ac62f829e852b1501d3f6e8a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1",
+                "psr/http-message": "^1.0 || ^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "PSR-17: Common interfaces for PSR-7 HTTP message factories",
+            "keywords": [
+                "factory",
+                "http",
+                "message",
+                "psr",
+                "psr-17",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-factory"
+            },
+            "time": "2024-04-15T12:06:14+00:00"
+        },
+        {
+            "name": "psr/http-message",
+            "version": "2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/http-message.git",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/http-message/zipball/402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "reference": "402d35bcb92c70c026d1a6a9883f06b2ead23d71",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Http\\Message\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for HTTP messages",
+            "homepage": "https://github.com/php-fig/http-message",
+            "keywords": [
+                "http",
+                "http-message",
+                "psr",
+                "psr-7",
+                "request",
+                "response"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/http-message/tree/2.0"
+            },
+            "time": "2023-04-04T09:54:51+00:00"
         },
         {
             "name": "psr/simple-cache",
@@ -3982,7 +4303,8 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "markup-carve/carve-grammars": 20,
-        "markup-carve/carve-php": 20
+        "markup-carve/carve-php": 20,
+        "markup-carve/carve-php-media-embed": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

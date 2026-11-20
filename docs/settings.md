@@ -56,7 +56,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 | `abc_enabled` | `false` | Render ` ```abc ` music notation. |
 | `plantuml_enabled` | `false` | Render ` ```plantuml ` / ` ```puml ` blocks via the Kroki service (external request). |
 | `diagram_export` | `false` | Show hover **Copy SVG** / **Download** controls on rendered diagrams (front end). |
-| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). **Carve 0.2:** waits for [carve-php-media-embed#23](https://github.com/markup-carve/carve-php-media-embed/issues/23); the oEmbed fallback still runs. |
+| `media_embed_enabled` | `false` | Render `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]` as responsive embeds (falls back to a sanitized `<a>` link). Feeds get the link. When off, the oEmbed fallback runs. |
 | `torchlight_enabled` | `false` | Server-side syntax highlighting (bundled `torchlight/engine`; just toggle on), through the engine's `codeBlockRenderer` option. |
 
 Each diagram renderer is off by default; its JavaScript loads only on pages that both enable and use it. Custom renderers (registered via `wpcarve_diagram_renderers`) add their own `{name}_enabled` key automatically. See [hooks.md](hooks.md).

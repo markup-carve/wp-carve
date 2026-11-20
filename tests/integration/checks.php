@@ -349,6 +349,12 @@ $carve_check(
         return str_contains($h, '<iframe') && str_contains($h, 'allow="fullscreen"') && str_contains($h, 'loading="lazy"');
     })(),
 );
+$carve_media_html = (new \WpCarve\Converter(['media_embed_enabled' => true]))->toHtml("Watch :youtube[dQw4w9WgXcQ]\n");
+$carve_check(
+    'a media embed renders a sanitized youtube iframe when the setting is on',
+    str_contains($carve_media_html, '<iframe') && str_contains($carve_media_html, 'src="//www.youtube.com/embed/dQw4w9WgXcQ') && str_contains($carve_media_html, 'allowfullscreen'),
+    $carve_snippet($carve_media_html),
+);
 $carve_check(
     'kses keeps the data-carve-json diagram config attribute',
     str_contains(\WpCarve\Converter::sanitizeHtml('<div class="chart" data-carve-json="{&quot;a&quot;:1}"></div>'), 'data-carve-json'),

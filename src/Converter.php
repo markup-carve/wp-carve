@@ -23,6 +23,8 @@ use MarkupCarve\Carve\Extension\Transforms;
 use MarkupCarve\Carve\Include\FileResolver;
 use MarkupCarve\Carve\InputError;
 use MarkupCarve\Carve\Node;
+use MarkupCarve\MediaEmbed\MediaEmbedExtension;
+use MarkupCarve\MediaEmbed\MediaEmbedLinter;
 use Throwable;
 use WpCarve\Extension\DiagramFences;
 use WpCarve\Extension\TorchlightExtension;
@@ -454,9 +456,17 @@ class Converter
         }
 
         $options = $this->optionsFor($context);
+        $diagnostics = Carve::lint($carve, ['extensions' => $options['extensions'] ?? []]);
+        // Carve::lint() has no extension hook, so media-embed lints its own
+        // directives against the instance the render registered.
+        foreach ($options['extensions'] ?? [] as $extension) {
+            if ($extension instanceof MediaEmbedExtension) {
+                $diagnostics = array_merge($diagnostics, (new MediaEmbedLinter($extension))->lint($carve));
+            }
+        }
         $findings = array_map(
             static fn (Diagnostic $d): LintFinding => LintFinding::fromDiagnostic($d, $carve),
-            Carve::lint($carve, ['extensions' => $options['extensions'] ?? []]),
+            $diagnostics,
         );
         usort($findings, static fn (LintFinding $a, LintFinding $b): int => [$a->line, $a->column] <=> [$b->line, $b->column]);
 
@@ -833,6 +843,11 @@ class Converter
                 $extensions = array_merge($extensions, $items);
                 $renderers += $modes;
             }
+        }
+        // Render-only: an iframe does not serialize back to the directive, and
+        // an excerpt would show the embed URL. A feed gets the link (static mode).
+        if (!$isComment && !$isEditor && !$forText && !empty($this->settings['media_embed_enabled']) && class_exists(MediaEmbedExtension::class)) {
+            $extensions[] = new MediaEmbedExtension();
         }
         if (!empty($this->settings['torchlight_enabled']) && !$isEditor && !$forText && class_exists(TorchlightExtension::class)) {
             $options['codeBlockRenderer'] = self::torchlightRenderer($this->diffBlocks, new TorchlightExtension(
