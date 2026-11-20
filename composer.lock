@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ad9c929f2ca322cda30ab4ca5598ba7b",
+    "content-hash": "ccf28b3100372165b4303574ad1de9c6",
     "packages": [
         {
             "name": "dflydev/dot-access-data",
@@ -319,22 +319,22 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "db1624daf9"
+                "reference": "14a3fabd4b16069501b8768179a98a447449f36b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/db1624daf9",
-                "reference": "db1624daf9",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/14a3fabd4b16069501b8768179a98a447449f36b",
+                "reference": "14a3fabd4b16069501b8768179a98a447449f36b",
                 "shasum": ""
             },
             "require": {
+                "league/commonmark": "^2.7",
                 "php": "^8.2",
+                "php-collective/djot": "^0.1.35",
                 "symfony/polyfill-intl-normalizer": "^1.27"
             },
             "require-dev": {
-                "league/commonmark": "^2.7",
                 "php-collective/code-sniffer": "^0.6.8",
-                "php-collective/djot": "^0.1.35",
                 "phpstan/phpstan": "^2.1.32",
                 "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0"
             },
@@ -346,12 +346,6 @@
                 "bin/carve"
             ],
             "type": "library",
-            "extra": {
-                "require-dev-notes": {
-                    "league/commonmark": "Benchmark only (bench/bench-engines.php).",
-                    "php-collective/djot": "Benchmark only (bench/bench-engines.php)."
-                }
-            },
             "autoload": {
                 "psr-4": {
                     "MarkupCarve\\Carve\\": "src/"
@@ -415,7 +409,7 @@
                     "url": "https://github.com/dereuromark"
                 }
             ],
-            "time": "2026-11-19T01:32:40+00:00"
+            "time": "2026-11-20T01:01:01+00:00"
         },
         {
             "name": "nette/schema",
@@ -648,6 +642,72 @@
                 }
             ],
             "time": "2026-07-22T19:51:40+00:00"
+        },
+        {
+            "name": "php-collective/djot",
+            "version": "0.1.35",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-collective/djot-php.git",
+                "reference": "709058dd11572cd861aab35919244e12d84431a5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-collective/djot-php/zipball/709058dd11572cd861aab35919244e12d84431a5",
+                "reference": "709058dd11572cd861aab35919244e12d84431a5",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "nikic/php-fuzzer": "^0.0.11",
+                "php-collective/code-sniffer": "^0.6.8",
+                "phpstan/phpstan": "^2.1.32",
+                "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0"
+            },
+            "suggest": {
+                "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/Greek/punctuation identically and other scripts fall back to generated `s-N` ids."
+            },
+            "bin": [
+                "bin/djot",
+                "bin/djot-watch"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Djot\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP Collective",
+                    "homepage": "https://github.com/php-collective"
+                }
+            ],
+            "description": "A PHP parser for Djot, a modern light markup language",
+            "homepage": "https://php-collective.github.io/djot-php/",
+            "keywords": [
+                "djot",
+                "markdown",
+                "markup",
+                "parser"
+            ],
+            "support": {
+                "issues": "https://github.com/php-collective/djot-php/issues",
+                "source": "https://github.com/php-collective/djot-php/tree/0.1.35"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/dereuromark",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-11-11T11:34:56+00:00"
         },
         {
             "name": "psr/event-dispatcher",

@@ -36,8 +36,6 @@ class LinkingSettingsTest extends TestCase
 
     public function testHeadingNumbersNumberEachLevel(): void
     {
-        $this->markTestSkipped('Pending carve-php#5252: heading numbers are not in the 0.2 extension catalog yet.');
-
         $html = (new Converter(['heading_numbers' => true]))->toHtml("# Top\n\n## Sub");
 
         $this->assertStringContainsString('>1</span>', $html);

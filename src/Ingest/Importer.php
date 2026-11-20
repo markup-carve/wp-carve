@@ -14,8 +14,7 @@ use MarkupCarve\Carve\Diagnostics\Diagnostic;
 /**
  * Converts foreign markup to Carve with the carve-php 0.2 importer.
  *
- * 0.2 imports HTML only. Markdown, Djot and BBCode import left the engine
- * (C2-T-003); they fail with ImporterUnavailable until carve-php provides them.
+ * The 0.2 engine imports HTML, Markdown and Djot. BBCode remains unavailable.
  */
 final class Importer
 {
@@ -25,8 +24,6 @@ final class Importer
      * @var array<string, string>
      */
     public const PENDING = [
-        'markdown' => 'markup-carve/carve-php#5237',
-        'djot' => 'markup-carve/carve-php#5242',
         'bbcode' => 'markup-carve/carve-php#5251',
     ];
 
@@ -37,16 +34,18 @@ final class Importer
      */
     public static function import(string $from, string $source): array
     {
-        if ($from !== 'html') {
+        if (!in_array($from, ['html', 'markdown', 'djot'], true)) {
             throw new ImporterUnavailable(esc_html($from), esc_html(self::PENDING[$from] ?? ''));
         }
 
-        $result = Carve::importDocument($source, ['from' => 'html']);
+        // WordPress authors use GitHub Markdown alerts and task lists.
+        $result = Carve::importDocument($source, ['from' => $from === 'markdown' ? 'gfm' : $from]);
 
         return [
             'value' => $result->source,
             'report' => [
-                'source_format' => 'html',
+                'schemaVersion' => 2,
+                'source_format' => $from,
                 'diagnostics' => array_map(static fn (Diagnostic $d): array => self::entry($d), $result->diagnostics),
             ],
         ];

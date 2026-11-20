@@ -12,8 +12,13 @@ use Closure;
 use LengthException;
 use MarkupCarve\Carve\Carve;
 use MarkupCarve\Carve\Diagnostics\Diagnostic;
+use MarkupCarve\Carve\Extension\Citations;
+use MarkupCarve\Carve\Extension\Details;
 use MarkupCarve\Carve\Extension\DocumentTransform;
 use MarkupCarve\Carve\Extension\ImgFence;
+use MarkupCarve\Carve\Extension\ListTable;
+use MarkupCarve\Carve\Extension\Navigation;
+use MarkupCarve\Carve\Extension\Spoiler;
 use MarkupCarve\Carve\Extension\Standard;
 use MarkupCarve\Carve\Extension\Tabs;
 use MarkupCarve\Carve\Include\FileResolver;
@@ -81,7 +86,7 @@ class Converter
      * @param string $context
      * @param string|null $profileOverride
      * @param bool|null $safe Kept for callers; 0.2 sanitization does not depend on it.
-     * @param array<int, mixed>|null $bibliography Kept for callers; citation rendering waits for carve-php inline extension renderers.
+     * @param array<int, mixed>|null $bibliography External CSL-JSON entries for citations.
      * @param string $citationMode
      * @param \WpCarve\Includes\IncludeReport|null $includes Expands include directives
      *   against the configured root and records the outcome. Pass one only once
@@ -118,12 +123,18 @@ class Converter
         // the editor context renders the source alone.
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $options = $this->optionsFor($context, $profileOverride);
+        $citationTransforms = [];
+        if ($bibliography !== null && $context !== 'editor' && $context !== 'comment') {
+            $citations = Citations::bundle($citationMode === '' ? 'numbered' : $citationMode, $bibliography);
+            $options['extensions'][] = $citations;
+            $citationTransforms = $citations->transforms();
+        }
         $source = $abbrevDefs . $carve;
 
         try {
             $html = $includes !== null && $context !== 'editor' && $context !== 'comment'
-                ? $this->renderWithIncludes($source, $options, $includes, $context, $maxNesting)
-                : $this->renderSource($source, $options, $context, $maxNesting);
+                ? $this->renderWithIncludes($source, $options, $includes, $context, $maxNesting, $citationTransforms)
+                : $this->renderSource($source, $options, $context, $maxNesting, $citationTransforms);
         } catch (InputError) {
             throw new LengthException('Input length exceeds the profile limit');
         }
@@ -172,12 +183,13 @@ class Converter
      * @param array<string, mixed> $options
      * @param string $context
      * @param int|null $maxNesting
+     * @param array<\MarkupCarve\Carve\Extension\DocumentTransform> $extraTransforms
      *
      * @throws \LengthException
      */
-    private function renderSource(string $source, array $options, string $context, ?int $maxNesting): string
+    private function renderSource(string $source, array $options, string $context, ?int $maxNesting, array $extraTransforms = []): string
     {
-        $transforms = $this->documentTransforms($context);
+        $transforms = [...$this->documentTransforms($context), ...$extraTransforms];
         if ($maxNesting === null && $transforms === []) {
             return Carve::render($source, $options);
         }
@@ -200,11 +212,18 @@ class Converter
      * @param \WpCarve\Includes\IncludeReport $report
      * @param string $context
      * @param int|null $maxNesting
+     * @param array<\MarkupCarve\Carve\Extension\DocumentTransform> $extraTransforms
      */
-    private function renderWithIncludes(string $source, array $options, IncludeReport $report, string $context, ?int $maxNesting): string
-    {
+    private function renderWithIncludes(
+        string $source,
+        array $options,
+        IncludeReport $report,
+        string $context,
+        ?int $maxNesting,
+        array $extraTransforms = [],
+    ): string {
         if (!str_contains($source, '{{')) {
-            return $this->renderSource($source, $options, $context, $maxNesting);
+            return $this->renderSource($source, $options, $context, $maxNesting, $extraTransforms);
         }
 
         try {
@@ -212,7 +231,7 @@ class Converter
         } catch (Throwable) {
             $report->refuseRoot();
 
-            return $this->renderSource($source, $options, $context, $maxNesting);
+            return $this->renderSource($source, $options, $context, $maxNesting, $extraTransforms);
         }
 
         $includes = ['resolver' => $resolver, 'bytes' => self::INCLUDE_BYTE_BUDGET];
@@ -221,7 +240,7 @@ class Converter
         if ($maxNesting !== null && self::nestingDepth($tree) > $maxNesting) {
             throw new LengthException('Nesting budget exceeded');
         }
-        $transforms = $this->documentTransforms($context);
+        $transforms = [...$this->documentTransforms($context), ...$extraTransforms];
         $result = $transforms === []
             ? Carve::renderWithDiagnostics($tree, $options)
             : Carve::renderWithDocumentTransforms($tree, $transforms, $options);
@@ -746,6 +765,12 @@ class Converter
             $extensions = array_merge($extensions, Standard::definitions('carve.wiki') ?? []);
         }
         if (!$isComment && !$isEditor && !$forText) {
+            $extensions[] = Details::bundle();
+            $extensions[] = Spoiler::bundle();
+            $extensions[] = ListTable::bundle();
+            if (!empty($this->settings['heading_numbers'])) {
+                $extensions[] = Navigation::headingNumbers();
+            }
             // Tabs render as the standard radio widget the 0.1 TabsExtension wrote.
             $extensions = array_merge($extensions, Tabs::extensions(true));
             // ```img SVG fence: the sanitized SVG becomes a data:image/svg+xml <img>.
