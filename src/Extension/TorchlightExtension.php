@@ -67,9 +67,8 @@ class TorchlightExtension
     }
 
     /**
-     * Highlight one code block. Shaped for the carve-php 0.2 host code-block
-     * renderer (carve-php#5250); until that lands the converter does not call
-     * it, so code blocks render unhighlighted.
+     * Highlight one code block; the converter calls it from the engine's
+     * `codeBlockRenderer` option.
      *
      * @param string $code The block source.
      * @param string $language The fence language.

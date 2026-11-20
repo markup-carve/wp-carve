@@ -6,16 +6,18 @@ namespace WpCarve\Test;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use WpCarve\Converter;
 use WpCarve\Extension\TorchlightExtension;
 
 class TorchlightExtensionTest extends TestCase
 {
-    /**
-     * The render-path tests need the carve-php 0.2 host code-block renderer.
-     */
     private function render(string $carve, string $theme, string $dark = ''): string
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
+        return (new Converter([
+            'torchlight_enabled' => true,
+            'torchlight_theme' => $theme,
+            'torchlight_theme_dark' => $dark,
+        ]))->toHtml($carve);
     }
 
     public function testHighlightReturnsThemedHtmlForOneBlock(): void
@@ -105,7 +107,7 @@ class TorchlightExtensionTest extends TestCase
     {
         // The overlay previously styled markup.underline.carve while the
         // grammar emits markup.underline.text.carve - content lost its color.
-        $html = $this->render("```carve\n_under_\n```", 'github-light');
+        $html = $this->render("```carve\n{_under_}\n```", 'github-light');
 
         $this->assertStringContainsString('#0a6c74', $html);
     }

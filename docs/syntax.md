@@ -86,10 +86,7 @@ echo 'starts at line 42';
 
 When Torchlight is enabled, `.line-numbers` asks Torchlight to render its
 server-side gutter for that block. The global `torchlight_line_numbers` setting
-shows line numbers for every Torchlight code block by default. On Carve 0.2,
-Torchlight highlighting waits for the engine's host code-block renderer
-([carve-php#5250](https://github.com/markup-carve/carve-php/issues/5250));
-until then code blocks render unhighlighted.
+shows line numbers for every Torchlight code block by default.
 
 Torchlight annotations live inside the code and are stripped from the rendered
 output while applying highlighting, diff, or focus styles:
@@ -122,9 +119,9 @@ $focusMe();              // [tl! focus]
 | `::: note` … `:::` | admonition / generic div |
 | `[^1]` + `[^1]: …` | footnote |
 | `:: term`<br>`:  definition` (two spaces) | definition list; the term is one line |
-| `::: list-table` + nested list | renders the plain div on 0.2 until the extension returns ([carve-php#5252](https://github.com/markup-carve/carve-php/issues/5252)) |
+| `::: list-table` + nested list | table built from the nested list (`extension_list_table`) |
 | `---yaml` … `---` (top of doc) | frontmatter -> meta/SEO |
-| `:cite[key]` | citation; renders its fallback text on 0.2 until citation rendering returns ([carve-php#5252](https://github.com/markup-carve/carve-php/issues/5252)) |
+| `:cite[key]` | citation, resolved against the block's CSL-JSON bibliography |
 | `---` on the first line, no closer | frontmatter to the end of the post (write `***` for a break) |
 
 Extensions like table of contents, heading permalinks, smart quotes, Mermaid and

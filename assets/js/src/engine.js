@@ -2,20 +2,59 @@
 // Bundled by `npm run build` into ../vendor/carve.js (IIFE), exposing
 // `window.wpCarveEngine.carveToHtml`. The plugin loads it before the editor
 // script; when it is absent the editor falls back to the REST endpoint.
-import { render, lint, parse, encodeTree, stringOffsetOfByte, tabsExtensions, tabsRenderer } from '@markup-carve/carve'
+import { render, renderWithDocumentTransforms, lint, parse, encodeTree, stringOffsetOfByte, tabsExtensions, tabsRenderer } from '@markup-carve/carve'
+import { codeGroup, details, imgFence, listTable, semanticSpan, smartQuotes, spoiler, tabNormalize } from '@markup-carve/carve/extensions'
 import { analyzeDocument, semanticChanges } from './workbench.js'
 
-// The preview matches the PHP post render where carve-js 0.2 can: the standard
-// tabs widget, heading ids on the headings (`sections: false`) and smart
-// typography off, as the plugin setting defaults. The 0.1 details, spoiler,
-// code-group, list-table, img-fence and semantic-span extensions are not in
-// the 0.2 catalog; settings-dependent extras (TOC, permalinks, heading shift)
-// stay server-side as before.
-const RENDER_OPTIONS = {
-  sections: false,
-  smartTypography: false,
-  extensions: tabsExtensions,
-  renderers: { 'carve.tabs': tabsRenderer },
+// The content extensions by the names of WpCarve\Extensions::CATALOG, so the
+// preview registers what the server render registers.
+const EXTENSIONS = {
+  tabs: () => ({ extensions: tabsExtensions, renderers: { 'carve.tabs': tabsRenderer } }),
+  details,
+  spoiler,
+  codeGroup,
+  listTable,
+  // The server registers the `img` fence only.
+  imgFence: () => {
+    const bundle = imgFence()
+    return {
+      extensions: bundle.extensions.filter((d) => d.name === 'carve.imgFence.img'),
+      renderers: { 'carve.imgFence.img': bundle.renderers['carve.imgFence.img'] },
+    }
+  },
+  semanticSpan,
+}
+
+export const EXTENSION_NAMES = Object.keys(EXTENSIONS)
+
+// The preview matches the PHP post render: heading ids on the headings
+// (`sections: false`), and the typography settings the block passes in.
+// Settings-dependent extras (TOC, permalinks, heading shift) stay server-side.
+export function renderOptions(settings = {}) {
+  const names = Array.isArray(settings.extensions) ? settings.extensions : EXTENSION_NAMES
+  const bundles = names.filter((name) => Object.hasOwn(EXTENSIONS, name)).map((name) => EXTENSIONS[name]())
+  const smart = Boolean(settings.smartQuotes)
+  if (smart && settings.quoteLocale) {
+    bundles.push(smartQuotes({ locale: String(settings.quoteLocale) }))
+  }
+  const options = {
+    sections: false,
+    smartTypography: smart,
+    extensions: bundles.flatMap((b) => b.extensions),
+    renderers: Object.assign({}, ...bundles.map((b) => b.renderers)),
+  }
+  if (settings.softBreak === 'space' || settings.softBreak === 'br') {
+    options.softBreak = settings.softBreak
+  }
+  const transforms = Number.isInteger(settings.tabWidth) ? tabNormalize(settings.tabWidth).transforms ?? [] : []
+  return { options, transforms }
+}
+
+export function carveToHtml(source, settings) {
+  const { options, transforms } = renderOptions(settings)
+  return transforms.length > 0
+    ? renderWithDocumentTransforms(String(source ?? ''), transforms, options).html
+    : render(String(source ?? ''), options)
 }
 
 function position(source, byte) {
@@ -47,9 +86,8 @@ window.wpCarveEngine = {
   semanticChanges(before, after) {
     return semanticChanges(String(before ?? ''), String(after ?? ''), window.wpCarveEngine)
   },
-  // `options.bibliography` and `options.citationMode` are accepted for callers;
-  // citation rendering waits for the 0.2 extension catalog (carve-php#5252).
-  carveToHtml(source) {
-    return render(String(source ?? ''), RENDER_OPTIONS)
-  },
+  // `settings`: the enabled extension names and typography settings the
+  // plugin localizes as `wpCarve.preview`; all extensions when omitted.
+  carveToHtml,
+  extensionNames: EXTENSION_NAMES,
 }

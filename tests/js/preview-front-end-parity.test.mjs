@@ -14,10 +14,8 @@
  * trailing newline the JS renderer does not, so the comparison is on trimmed
  * output; everything else matches byte for byte.
  *
- * On 0.2 the list-table and semantic-span fixtures hold the inline and div
- * fallbacks both engines write for an extension outside the catalog
- * (C2-X-004, carve-php#5252). The img fence renders on the PHP side only until
- * carve-js ships its standard definition (carve-js#5062).
+ * The colon-spelled semantic fixture holds the span fallback both engines
+ * write for that spelling.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,6 +37,8 @@ runInNewContext(bundle, {
 	self: scope,
 	TextEncoder,
 	TextDecoder,
+	// Browsers have it; carve-js extensions fall back to plain output without it.
+	structuredClone,
 	console,
 	URL,
 	Intl,
@@ -49,17 +49,25 @@ const sources = {
 		'``` img\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>\n```\n',
 	listtable: '{header-rows=1}\n::: list-table\n- - A\n  - B\n- - 1\n  - 2\n:::\n',
 	semantic: 'A :samp[word] here.\n',
+	codegroup: "::: code-group\n```php\nx = 1;\n```\n\n```js\nconst a = 1;\n```\n:::\n",
+	details: "::: details \"More\"\nHidden body.\n:::\n",
+	spoiler: "::: spoiler \"Reveal\"\nSecret.\n:::\n",
+	tabs: "::: tabs\n::: tab \"One\"\nFirst.\n:::\n::: tab \"Two\"\nSecond.\n:::\n:::\n",
+	semanticbraced: "Press [Ctrl]{kbd} for [out]{samp}.\n",
 };
 
 const names = {
 	imgfence: 'an img fence renders a sanitized image, not a code block',
-	listtable: 'a list-table renders the same fallback as the front end',
+	listtable: 'a list-table renders the same table as the front end',
 	semantic: 'a colon-spelled semantic span renders the same fallback as the front end',
+	codegroup: 'a code group renders the same tab panels as the front end',
+	details: 'a details block renders the same disclosure as the front end',
+	spoiler: 'a spoiler renders the same disclosure as the front end',
+	tabs: 'tabs render the same radio widget as the front end',
+	semanticbraced: 'braced semantic spans render the same elements as the front end',
 };
 
-const pending = {
-	imgfence: 'Pending carve-js#5062: carve-js 0.2 has no standard img fence extension yet.',
-};
+const pending = {};
 
 for (const [key, source] of Object.entries(sources)) {
 	test(names[key], { skip: pending[key] ?? false }, () => {

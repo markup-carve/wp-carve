@@ -14,18 +14,17 @@ use MarkupCarve\Carve\Diagnostics\Diagnostic;
 /**
  * Converts foreign markup to Carve with the carve-php 0.2 importer.
  *
- * The 0.2 engine imports HTML, Markdown and Djot. BBCode remains unavailable.
+ * The server imports HTML, Markdown and Djot. BBCode import is carve-js only
+ * in Carve 0.2, so the block editor converts it in the browser.
  */
 final class Importer
 {
     /**
-     * The engine issue each missing importer waits on.
+     * The formats the server imports.
      *
-     * @var array<string, string>
+     * @var array<int, string>
      */
-    public const PENDING = [
-        'bbcode' => 'markup-carve/carve-php#5251',
-    ];
+    public const FORMATS = ['html', 'markdown', 'djot'];
 
     /**
      * @throws \WpCarve\Ingest\ImporterUnavailable
@@ -34,8 +33,8 @@ final class Importer
      */
     public static function import(string $from, string $source): array
     {
-        if (!in_array($from, ['html', 'markdown', 'djot'], true)) {
-            throw new ImporterUnavailable(esc_html($from), esc_html(self::PENDING[$from] ?? ''));
+        if (!in_array($from, self::FORMATS, true)) {
+            throw new ImporterUnavailable(esc_html($from));
         }
 
         // WordPress authors use GitHub Markdown alerts and task lists.

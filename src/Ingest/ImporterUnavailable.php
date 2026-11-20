@@ -11,16 +11,22 @@ if (!defined('ABSPATH')) {
 use RuntimeException;
 
 /**
- * An import format the Carve 0.2 engine does not provide yet.
+ * An import format the server cannot convert.
  */
 final class ImporterUnavailable extends RuntimeException
 {
-    public function __construct(public string $format, public string $issue)
+    public function __construct(public string $format)
     {
-        parent::__construct(sprintf(
-            'Importing %s is not available yet in Carve 0.2%s.',
-            $format,
-            $issue !== '' ? ' (waits on ' . $issue . ')' : '',
-        ));
+        parent::__construct($format === 'bbcode'
+            ? 'BBCode is converted in the block editor in Carve 0.2; the server does not import it.'
+            : sprintf('Importing %s is not supported.', $format));
+    }
+
+    /**
+     * Whether the block editor converts this format in the browser.
+     */
+    public function inBrowser(): bool
+    {
+        return $this->format === 'bbcode';
     }
 }

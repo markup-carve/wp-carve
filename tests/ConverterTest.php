@@ -347,8 +347,6 @@ class ConverterTest extends TestCase
 
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -387,8 +385,6 @@ CARVE;
 
     public function testTorchlightSpecialLineAttributesAreKsesSafe(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -414,8 +410,6 @@ CARVE;
 
     public function testADiffFenceKeepsBothHighlightingAndDiffRows(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -442,8 +436,6 @@ CARVE;
 
     public function testADiffFenceStripsTheMarkerBeforeHighlighting(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -464,8 +456,6 @@ CARVE;
 
     public function testADiffFenceWithLineNumbersPutsTheMarkerAfterTheNumber(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -486,8 +476,6 @@ CARVE;
 
     public function testADiffFenceWithLineNumbersOrdersGutterThenMarkerThenTokens(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -542,8 +530,6 @@ CARVE;
 
     public function testTorchlightLineNumbersCanBeEnabledGlobally(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
@@ -585,8 +571,6 @@ CARVE;
 
     public function testCarveFenceHighlightsWithTorchlightWhenGrammarInstalled(): void
     {
-        $this->markTestSkipped('Pending carve-php#5250: 0.2 host code-block renderer, which Torchlight highlighting plugs into.');
-
         $grammar = dirname(__DIR__) . '/vendor/markup-carve/carve-grammars/textmate/carve.tmLanguage.json';
         if (!file_exists($grammar)) {
             $this->markTestSkipped('markup-carve/carve-grammars TextMate grammar not installed');
@@ -639,9 +623,6 @@ CARVE;
     #[DataProvider('adjacentHighlightedFencesProvider')]
     public function testAdjacentHighlightedFencesKeepTheirCodeText(string $source, array $expected): void
     {
-        if (str_contains($source, '::: details Requirements')) {
-            $this->markTestSkipped('Carve PHP details renderer changes literal code whitespace; carve-php#5402.');
-        }
         $converter = new Converter(['post_profile' => 'full', 'torchlight_enabled' => true]);
         $html = $converter->toHtml($source, 'post');
 
