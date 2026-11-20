@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@markup-carve/carve": "github:markup-carve/carve-js#eb2ffc1a18943bc3a865639c6481a4c0bc3b87c5",
-    "@markup-carve/carve-grammars": "github:markup-carve/carve-grammars#21e80bc533024b5bf7d0c142bff4118f0df81ba8",
+    "@markup-carve/carve-grammars": "github:markup-carve/carve-grammars#79511c4ba461cb0696e0400132da9eef414147e0",
     "prismjs": "^1.30.0"
   },
   "devDependencies": {

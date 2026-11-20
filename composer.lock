@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d35686f39037577f3a8d7b5d0645b9d8",
+    "content-hash": "43c16e4ab7f7b0dd41f9b009af2ea734",
     "packages": [
         {
             "name": "dflydev/dot-access-data",
@@ -276,12 +276,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:markup-carve/carve-grammars.git",
-                "reference": "ff1d0f0dac"
+                "reference": "79511c4ba461cb0696e0400132da9eef414147e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/ff1d0f0dac",
-                "reference": "ff1d0f0dac",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/79511c4ba461cb0696e0400132da9eef414147e0",
+                "reference": "79511c4ba461cb0696e0400132da9eef414147e0",
                 "shasum": ""
             },
             "require": {
@@ -311,7 +311,7 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-11-19T01:17:26+00:00"
+            "time": "2026-11-20T03:24:10+00:00"
         },
         {
             "name": "markup-carve/carve-php",
