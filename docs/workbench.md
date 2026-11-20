@@ -27,9 +27,7 @@ Save the post to establish a new baseline.
 ## Citations
 
 The citations panel accepts a CSL-JSON array and supports numbered and
-author-date rendering. On Carve 0.2, citation rendering waits for the extension
-catalog ([carve-php#5252](https://github.com/markup-carve/carve-php/issues/5252)),
-so a citation renders its fallback text; the panel still checks the keys. Cite an
+author-date rendering, and the panel checks the keys. Cite an
 entry by its `id` with the 0.2 spelling (U-411) and place the references list:
 
 ```carve

@@ -12,13 +12,14 @@ use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * Innovation B: convert pasted Markdown / Djot / BBCode / HTML into Carve
- * source, using carve-php's source-to-source converters.
+ * Innovation B: convert pasted Markdown / Djot / HTML into Carve source with
+ * the carve-php importer.
  *
  *   POST /wp-json/carve/v1/ingest { "source": "...", "from": "markdown" }
  *   -> { "carve": "..." }
  *
- * `from` = markdown | djot | bbcode | html | auto (sniffed).
+ * `from` = markdown | djot | html | auto (sniffed). BBCode (given or sniffed)
+ * answers 422 with `browser: true`: the block editor converts it with carve-js.
  */
 class PasteController
 {
@@ -64,7 +65,7 @@ class PasteController
         try {
             $result = Importer::import($from, $source);
         } catch (ImporterUnavailable $e) {
-            return new WP_REST_Response(['message' => $e->getMessage(), 'from' => $from, 'pending' => $e->issue], 501);
+            return new WP_REST_Response(['message' => $e->getMessage(), 'from' => $from, 'browser' => $e->inBrowser()], 422);
         }
 
         return new WP_REST_Response([

@@ -499,6 +499,13 @@ class Plugin
             $deps[] = 'wpcarve-engine';
         }
 
+        // BBCode paste and import convert in the browser (carve-js only in 0.2).
+        $importer = WPCARVE_DIR . 'assets/js/vendor/carve-import.js';
+        if (Settings::get('paste_ingest') && is_readable($importer)) {
+            wp_enqueue_script('wpcarve-import', WPCARVE_URL . 'assets/js/vendor/carve-import.js', [], $this->assetVersion('assets/js/vendor/carve-import.js'), true);
+            $deps[] = 'wpcarve-import';
+        }
+
         $deps[] = MediaPicker::HANDLE;
         $deps[] = InlineToggle::register();
         $deps[] = ListContinuation::register();
@@ -519,6 +526,7 @@ class Plugin
             'restIngest' => esc_url_raw(rest_url('carve/v1/ingest')),
             'nonce' => wp_create_nonce('wp_rest'),
             'livePreview' => (bool)Settings::get('live_preview'),
+            'preview' => self::previewSettings(),
             'pasteIngest' => (bool)Settings::get('paste_ingest'),
             // Tiptap visual editor: the locally-bundled ES module (esbuild;
             // no CDN). Empty string hides the Visual tab. Lazy-loaded via
@@ -539,6 +547,24 @@ class Plugin
                 'wpcarve_to_document_' . (int)get_the_ID(),
             ) : '',
         ]);
+    }
+
+    /**
+     * The render settings the in-browser preview applies, matching the post render.
+     *
+     * @return array<string, mixed>
+     */
+    public static function previewSettings(): array
+    {
+        $settings = Settings::all();
+
+        return [
+            'extensions' => Extensions::enabled($settings),
+            'softBreak' => (string)($settings['post_soft_break'] ?? 'newline'),
+            'smartQuotes' => !empty($settings['smart_quotes']),
+            'quoteLocale' => (string)($settings['smart_quotes_locale'] ?? ''),
+            'tabWidth' => !empty($settings['normalize_tabs']) ? max(0, min(16, (int)($settings['tab_width'] ?? 2))) : null,
+        ];
     }
 
     /**

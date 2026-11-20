@@ -81,6 +81,9 @@ class Settings
         foreach (array_keys(Diagrams::all()) as $name) {
             $defaults[Diagrams::settingKey($name)] = false;
         }
+        foreach (array_keys(Extensions::CATALOG) as $name) {
+            $defaults[Extensions::settingKey($name)] = true;
+        }
 
         return $defaults;
     }

@@ -2,6 +2,7 @@
 /node_modules/
 /assets/js/vendor/*
 !/assets/js/vendor/carve.js
+!/assets/js/vendor/carve-import.js
 !/assets/js/vendor/carve-editor.js
 !/assets/js/vendor/carve-source-highlight.js
 !/assets/js/vendor/mermaid.min.js

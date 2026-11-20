@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "43c16e4ab7f7b0dd41f9b009af2ea734",
+    "content-hash": "3e4a5fbb2091052d2b55ef58845686fc",
     "packages": [
         {
             "name": "dflydev/dot-access-data",
@@ -318,13 +318,13 @@
             "version": "dev-next2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "1ce70376fbcb06d4ac40493efd131becaf957f29"
+                "url": "git@github.com:markup-carve/carve-php.git",
+                "reference": "e84ca2189d42e6cdde4acf7d5949e1f2c3763b7d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/1ce70376fbcb06d4ac40493efd131becaf957f29",
-                "reference": "1ce70376fbcb06d4ac40493efd131becaf957f29",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/e84ca2189d42e6cdde4acf7d5949e1f2c3763b7d",
+                "reference": "e84ca2189d42e6cdde4acf7d5949e1f2c3763b7d",
                 "shasum": ""
             },
             "require": {
@@ -399,17 +399,7 @@
                 "markup",
                 "parser"
             ],
-            "support": {
-                "source": "https://github.com/markup-carve/carve-php/tree/next2",
-                "issues": "https://github.com/markup-carve/carve-php/issues"
-            },
-            "funding": [
-                {
-                    "type": "github",
-                    "url": "https://github.com/dereuromark"
-                }
-            ],
-            "time": "2026-11-20T01:01:01+00:00"
+            "time": "2026-11-20T03:56:27+00:00"
         },
         {
             "name": "nette/schema",

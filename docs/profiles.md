@@ -141,8 +141,8 @@ mirrors how WordPress core sanitizes author-supplied HTML in post content.
 
 A single source newline inside a paragraph is a soft break: it stays inside the
 paragraph and the browser collapses it to a space. The `post_soft_break` and
-`comment_soft_break` settings have no Carve 0.2 option yet, so soft breaks render
-as newlines. For a visible line break use a trailing backslash `` \ `` (a hard
+`comment_soft_break` settings pass the engine's `softBreak` option: `space`
+joins the lines and `br` writes a `<br>`. For a visible line break in any mode use a trailing backslash `` \ `` (a hard
 break, always renders as `<br>`) or a `::: |` line block (poetry, addresses).
 
 ## Features
@@ -152,15 +152,21 @@ Settings map to the 0.2 engine like this (most are post-only):
 - `heading_shift` - a document transform that raises heading levels.
 - `toc_*`, `permalinks_enabled`, `external_links*` - processing of the
   rendered HTML.
-- `smart_quotes` - the core `smartTypography` option (the locale has no 0.2
-  counterpart).
+- `smart_quotes` - the core `smartTypography` option; `smart_quotes_locale`
+  registers `SmartQuotes::bundle()` with that locale.
 - `mentions_enabled` - core mentions and tags with the archive URLs in the
   `social` option.
 - `wikilinks_enabled` - the standard `:wiki[Page]` definition and a document
   transform that writes the link.
 - `<diagram>_enabled` - the `DiagramFences` extension provider.
-- `torchlight_*`, `normalize_tabs`, `tab_width`, `heading_numbers`,
-  `media_embed_enabled` - waiting for the engine; see
+- `post_soft_break`, `comment_soft_break` - the `softBreak` option.
+- `normalize_tabs`, `tab_width` - the `Transforms::tabNormalize()` document
+  transform.
+- `heading_numbers` - `Navigation::headingNumbers()`.
+- `extension_*` - the content extensions by name; see
+  [extensions](extensions.md).
+- `torchlight_*` - the `codeBlockRenderer` option.
+- `media_embed_enabled` - waiting for the engine; see
   [extensions](extensions.md#waiting-for-the-0-2-engine).
 
 ### Torchlight (server-side highlighting)
@@ -168,9 +174,7 @@ Settings map to the 0.2 engine like this (most are post-only):
 `WpCarve\Extension\TorchlightExtension::highlight()` turns one code block into
 themed, highlighted HTML with `torchlight/engine`, which highlights locally with
 TextMate grammars - no API token, no network. On Carve 0.2 it plugs into the
-engine's host code-block renderer, which has not landed yet
-([carve-php#5250](https://github.com/markup-carve/carve-php/issues/5250)), so
-code blocks currently render unhighlighted even with `torchlight_enabled` on.
+engine's `codeBlockRenderer` option.
 `carve`, `csv` and `tsv` fences use the grammars from carve-grammars (the 0.2
 Carve grammar on this branch).
 

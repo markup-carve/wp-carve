@@ -52,7 +52,7 @@ auto-migrated:
 | `none` | no | Missing or empty content. |
 | `blocks` | no | Uses the block editor; convert manually (or `--force`). |
 | `shortcodes` | no | Contains non-Carve shortcodes; convert manually (or `--force`). |
-| `markdown` | no | Markdown-looking source. Carve 0.2 has no Markdown importer yet ([carve-php#5237](https://github.com/markup-carve/carve-php/issues/5237)), so these posts are held back, even with `--force`. |
+| `markdown` | yes | Markdown-looking source; converted with the Carve 0.2 Markdown (GFM) importer. |
 | `html` | yes | HTML source; converted with the Carve 0.2 HTML importer (`Carve::importDocument()`). |
 
 The HTML importer reads only `data-carve-*` carrier attributes; the older

@@ -8,24 +8,24 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use ArrayObject;
 use Closure;
 use LengthException;
+use MarkupCarve\Carve\Attrs;
 use MarkupCarve\Carve\Carve;
 use MarkupCarve\Carve\Diagnostics\Diagnostic;
 use MarkupCarve\Carve\Extension\Citations;
-use MarkupCarve\Carve\Extension\Details;
 use MarkupCarve\Carve\Extension\DocumentTransform;
-use MarkupCarve\Carve\Extension\ImgFence;
-use MarkupCarve\Carve\Extension\ListTable;
 use MarkupCarve\Carve\Extension\Navigation;
-use MarkupCarve\Carve\Extension\Spoiler;
+use MarkupCarve\Carve\Extension\SmartQuotes;
 use MarkupCarve\Carve\Extension\Standard;
-use MarkupCarve\Carve\Extension\Tabs;
+use MarkupCarve\Carve\Extension\Transforms;
 use MarkupCarve\Carve\Include\FileResolver;
 use MarkupCarve\Carve\InputError;
 use MarkupCarve\Carve\Node;
 use Throwable;
 use WpCarve\Extension\DiagramFences;
+use WpCarve\Extension\TorchlightExtension;
 use WpCarve\Includes\IncludeReport;
 use WpCarve\Includes\RecordingResolver;
 
@@ -62,10 +62,20 @@ class Converter
     private array $cache = [];
 
     /**
+     * End offsets of captioned `{.diff}` code blocks in the render in progress.
+     * The engine hands `codeBlockRenderer` a captioned block without its
+     * attributes, which stay on the figure.
+     *
+     * @var \ArrayObject<string, true>
+     */
+    private ArrayObject $diffBlocks;
+
+    /**
      * @param array<string, mixed> $settings Resolved plugin settings.
      */
     public function __construct(private array $settings)
     {
+        $this->diffBlocks = new ArrayObject();
     }
 
     public static function fromSettings(): self
@@ -296,6 +306,24 @@ class Converter
                 return $doc;
             });
         }
+        if (!empty($this->settings['torchlight_enabled']) && !$forText && $base !== 'editor') {
+            $diffBlocks = $this->diffBlocks;
+            $transforms[] = new DocumentTransform('wpcarve.diffFigures', static function (Node $doc) use ($diffBlocks): Node {
+                $diffBlocks->exchangeArray([]);
+                self::walk($doc, static function (Node $node) use ($diffBlocks): void {
+                    $attrs = $node->f['attrs'] ?? null;
+                    if ($node->type === 'code_block' && isset($node->f['caption']) && $attrs instanceof Attrs && in_array('diff', $attrs->classes, true)) {
+                        $diffBlocks[$node->file . ':' . $node->end] = true;
+                    }
+                });
+
+                return $doc;
+            });
+        }
+        // The editor seed keeps the author's tabs so the source round-trips.
+        if (!empty($this->settings['normalize_tabs']) && $base !== 'editor') {
+            array_push($transforms, ...Transforms::tabNormalize(max(0, min(16, (int)($this->settings['tab_width'] ?? 2))))->transforms());
+        }
         if ($base !== 'comment' && !empty($this->settings['wikilinks_enabled'])) {
             // Plain text discards the href, so the text path never looks a page up.
             $transforms[] = new DocumentTransform('wpcarve.wikilinks', static function (Node $doc) use ($forText): Node {
@@ -438,10 +466,8 @@ class Converter
     /**
      * Render Carve source as plain text for a given context.
      *
-     * Goes through the writer registry's `text` target. carve-php 0.2 has not
-     * registered that writer yet (carve-php#5235), so until it does the text is
-     * derived from the HTML render of the same profile, with the footnote
-     * section dropped as the 0.1 text target did.
+     * Goes through the engine's `plain` writer; the HTML-derived text below is
+     * the fallback for an engine without it.
      */
     public function toText(string $carve, string $context = 'post', ?string $profileOverride = null): string
     {
@@ -460,8 +486,8 @@ class Converter
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
         $source = $abbrevDefs . $carve;
         $options = $this->optionsFor($context === 'editor' ? 'editor' : 'text:' . $context, $profileOverride);
-        if (self::hasWriter('text')) {
-            return Carve::writeTo('text', Carve::parse($source, ['extensions' => $options['extensions'] ?? []]), $options);
+        if (self::hasWriter('plain')) {
+            return trim(Carve::writeTo('plain', $this->textTree($source, $options, $context), ['smartTypography' => $options['smartTypography']]));
         }
 
         $html = $this->renderSource($source, $options, $context === 'editor' ? 'editor' : 'text:' . $context, null);
@@ -472,6 +498,33 @@ class Converter
         $text = html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return trim((string)preg_replace("/\n{2,}/", "\n", $text));
+    }
+
+    /**
+     * The parsed tree of the plain-text path with the context's document transforms applied.
+     *
+     * @param string $source
+     * @param array<string, mixed> $options
+     * @param string $context
+     */
+    private function textTree(string $source, array $options, string $context): Node
+    {
+        $parseOptions = array_intersect_key($options, ['extensions' => true, 'headingIds' => true]);
+        $tree = Carve::parse($source, $parseOptions);
+        foreach ($this->documentTransforms($context === 'editor' ? 'editor' : 'text:' . $context) as $transform) {
+            $tree = ($transform->run)($tree);
+        }
+        // Notes stay out of excerpts and feeds, as the 0.1 text target did.
+        self::walk($tree, static function (Node $node): void {
+            if ($node->children !== null) {
+                $node->children = array_values(array_filter(
+                    $node->children,
+                    static fn (Node $child): bool => !in_array($child->type, ['footnote', 'footnote_ref', 'inline_footnote'], true),
+                ));
+            }
+        });
+
+        return $tree;
     }
 
     /**
@@ -746,9 +799,13 @@ class Converter
             // and permalink anchors resolve.
             'sections' => false,
             // 0.2 makes smart typography core and on by default; the plugin
-            // setting keeps its 0.1 default (off). Locales are gone in 0.2.
+            // setting keeps its 0.1 default (off).
             'smartTypography' => !empty($this->settings['smart_quotes']) && !$isComment,
         ];
+        $softBreak = (string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline');
+        if (in_array($softBreak, ['space', 'br'], true)) {
+            $options['softBreak'] = $softBreak;
+        }
         if ($isFeed) {
             $options['mode'] = 'static';
         }
@@ -764,18 +821,30 @@ class Converter
         if (!$isComment && !empty($this->settings['wikilinks_enabled'])) {
             $extensions = array_merge($extensions, Standard::definitions('carve.wiki') ?? []);
         }
+        if ($options['smartTypography'] && is_string($this->settings['smart_quotes_locale'] ?? null) && $this->settings['smart_quotes_locale'] !== '') {
+            $extensions[] = SmartQuotes::bundle($this->settings['smart_quotes_locale']);
+        }
+        if (!$isComment) {
+            foreach (Extensions::enabled($this->settings) as $name) {
+                if (($isEditor || $forText) && !in_array($name, Extensions::INLINE, true)) {
+                    continue;
+                }
+                [$items, $modes] = Extensions::registration($name);
+                $extensions = array_merge($extensions, $items);
+                $renderers += $modes;
+            }
+        }
+        if (!empty($this->settings['torchlight_enabled']) && !$isEditor && !$forText && class_exists(TorchlightExtension::class)) {
+            $options['codeBlockRenderer'] = self::torchlightRenderer($this->diffBlocks, new TorchlightExtension(
+                (string)($this->settings['torchlight_theme'] ?? 'github-light'),
+                (bool)($this->settings['torchlight_line_numbers'] ?? false),
+                (string)($this->settings['torchlight_theme_dark'] ?? ''),
+            ));
+        }
         if (!$isComment && !$isEditor && !$forText) {
-            $extensions[] = Details::bundle();
-            $extensions[] = Spoiler::bundle();
-            $extensions[] = ListTable::bundle();
             if (!empty($this->settings['heading_numbers'])) {
                 $extensions[] = Navigation::headingNumbers();
             }
-            // Tabs render as the standard radio widget the 0.1 TabsExtension wrote.
-            $extensions = array_merge($extensions, Tabs::extensions(true));
-            // ```img SVG fence: the sanitized SVG becomes a data:image/svg+xml <img>.
-            $extensions[] = ImgFence::definition('img');
-            $renderers['carve.imgFence.img'] = 'standard';
             $enabled = [];
             foreach (Diagrams::all() as $name => $diagram) {
                 if (!empty($this->settings[Diagrams::settingKey($name)])) {
@@ -801,6 +870,39 @@ class Converter
         }
 
         return $this->cache[$cacheKey] = $options;
+    }
+
+    /**
+     * The engine's `codeBlockRenderer`: Torchlight HTML for a code block, or
+     * null to keep the engine's block.
+     *
+     * @param \ArrayObject<string, true> $diffBlocks
+     * @param \WpCarve\Extension\TorchlightExtension $torchlight
+     */
+    private static function torchlightRenderer(ArrayObject $diffBlocks, TorchlightExtension $torchlight): Closure
+    {
+        return static function (Node $node, string $html) use ($diffBlocks, $torchlight): ?string {
+            $attrs = [];
+            $own = $node->f['attrs'] ?? null;
+            if ($own instanceof Attrs) {
+                if ($own->classes !== []) {
+                    $attrs['class'] = implode(' ', $own->classes);
+                }
+                foreach ($own->pairs as [$name, $value]) {
+                    $attrs[$name] = $value;
+                }
+            }
+            if (!isset($attrs['title']) && preg_match('/^<pre\b[^>]*\stitle="([^"]*)"/', $html, $m) === 1) {
+                $attrs['title'] = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+
+            return $torchlight->highlight(
+                (string)($node->f['value'] ?? ''),
+                (string)($node->f['syntax'] ?? ''),
+                $attrs,
+                isset($diffBlocks[$node->file . ':' . $node->end]),
+            );
+        };
     }
 
     /**

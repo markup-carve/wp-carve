@@ -6,8 +6,9 @@
   "description": "Build tooling for the in-browser Carve engine bundle used by wp-carve.",
   "license": "MIT",
   "scripts": {
-    "build": "npm run build:engine && npm run build:editor && npm run build:highlight",
+    "build": "npm run build:engine && npm run build:import && npm run build:editor && npm run build:highlight",
     "build:engine": "esbuild assets/js/src/engine.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve.js",
+    "build:import": "esbuild assets/js/src/import.js --bundle --format=iife --minify --outfile=assets/js/vendor/carve-import.js",
     "build:editor": "esbuild assets/js/tiptap/visual-editor.js --bundle --format=esm --minify --outfile=assets/js/vendor/carve-editor.js",
     "build:highlight": "node assets/js/src/build-highlight.mjs",
     "palette:build": "node scripts/sync-syntax-palette.mjs",
@@ -17,7 +18,7 @@
     "test:js": "npm run palette:check && node --test tests/js/*.test.mjs"
   },
   "dependencies": {
-    "@markup-carve/carve": "github:markup-carve/carve-js#eb2ffc1a18943bc3a865639c6481a4c0bc3b87c5",
+    "@markup-carve/carve": "github:markup-carve/carve-js#456e04a9fb0b9e8b4315bade2d4012357235e410",
     "@markup-carve/carve-grammars": "github:markup-carve/carve-grammars#79511c4ba461cb0696e0400132da9eef414147e0",
     "prismjs": "^1.30.0"
   },

@@ -123,7 +123,7 @@
 		const serverIncludes = cfg.includes && source.indexOf( '{{' ) !== -1;
 		if ( ctx === 'post' && ! forceServer && ! serverIncludes && ! profile && cfg.livePreview && engine && typeof engine.carveToHtml === 'function' ) {
 			try {
-				done( engine.carveToHtml( source ) );
+				done( engine.carveToHtml( source, cfg.preview ) );
 				return;
 			} catch ( e ) {
 				// fall through to server render
@@ -257,7 +257,7 @@
 						let rendersSame = false;
 						if ( engine && typeof engine.carveToHtml === 'function' ) {
 							try {
-								rendersSame = normHtml( engine.carveToHtml( attributes.carve || '' ) ) === normHtml( engine.carveToHtml( rt ) );
+								rendersSame = normHtml( engine.carveToHtml( attributes.carve || '', cfg.preview ) ) === normHtml( engine.carveToHtml( rt, cfg.preview ) );
 							} catch ( e ) {
 								rendersSame = false;
 							}
@@ -1214,11 +1214,31 @@
 		}
 
 		function ingestNow( raw, from ) {
+			// BBCode imports in carve-js only (Carve 0.2): convert it here.
+			const importer = window.wpCarveImport;
+			const bbcode = from === 'bbcode' || ( ( ! from || from === 'auto' ) && importer && importer.looksLikeBbcode( raw ) );
+			if ( bbcode ) {
+				if ( ! importer ) {
+					return Promise.reject( new Error( __( 'BBCode import needs the in-browser Carve importer, which did not load.', 'carve-markup' ) ) );
+				}
+				try {
+					return Promise.resolve( importer.importBbcode( raw ) );
+				} catch ( error ) {
+					return Promise.reject( error );
+				}
+			}
 			return wp.apiFetch( {
 				url: cfg.restIngest,
 				method: 'POST',
 				data: { source: raw, from: from || 'auto' },
 			} );
+		}
+
+		function reportIngestError( error ) {
+			const notices = wp.data && wp.data.dispatch( 'core/notices' );
+			if ( notices && notices.createErrorNotice ) {
+				notices.createErrorNotice( ( error && error.message ) || __( 'The content could not be converted to Carve.', 'carve-markup' ), { type: 'snackbar' } );
+			}
 		}
 
 		function doPasteIngest() {
@@ -1229,7 +1249,7 @@
 					setIngestReport( res.report || null );
 					setIngest( null );
 				} )
-				.catch( () => { setIngestReport( null ); setIngest( null ); } );
+				.catch( ( error ) => { setIngestReport( null ); setIngest( null ); reportIngestError( error ); } );
 		}
 
 		function doImport() {
@@ -1241,7 +1261,7 @@
 					setImportOpen( false );
 					setImportText( '' );
 				} )
-				.catch( () => { setIngestReport( null ); setImportOpen( false ); } );
+				.catch( ( error ) => { setIngestReport( null ); setImportOpen( false ); reportIngestError( error ); } );
 		}
 
 		function moveToDocument() {
