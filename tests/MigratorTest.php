@@ -57,8 +57,6 @@ class MigratorTest extends TestCase
 
     public function testOwnCarveShortcodeIsNotComplex(): void
     {
-        $this->markTestSkipped('Pending markup-carve/carve-php#5237: Carve 0.2 has no Markdown importer yet.');
-
         wpcarve_test_set_post(4, ['post_content' => "# Heading\n\n[carve]more[/carve]"]);
 
         $migrator = new Migrator();
@@ -72,8 +70,6 @@ class MigratorTest extends TestCase
 
     public function testMarkdownIsDetected(): void
     {
-        $this->markTestSkipped('Pending markup-carve/carve-php#5237: Carve 0.2 has no Markdown importer yet.');
-
         wpcarve_test_set_post(5, ['post_content' => "# Heading\n\n- a\n- b\n\n**bold**"]);
 
         $analysis = (new Migrator())->analyze(5);
@@ -81,11 +77,10 @@ class MigratorTest extends TestCase
         $this->assertSame('markdown', $analysis['source']);
         $this->assertTrue($analysis['can_auto_migrate']);
         $this->assertSame('OK', $analysis['reason']);
-        $this->assertSame('markdown-bullet-list', $analysis['report']['diagnostics'][1]['code']);
-        $this->assertSame('preserved', $analysis['report']['diagnostics'][1]['fidelity']);
+        $this->assertSame([], $analysis['report']['diagnostics']);
     }
 
-    public function testMarkdownPostIsHeldBackUntilTheImporterExists(): void
+    public function testMarkdownPostCanMigrateWithTheImporter(): void
     {
         wpcarve_test_set_post(15, ['post_content' => "# Heading\n\n- a\n- b\n\n**bold**"]);
 
@@ -93,9 +88,9 @@ class MigratorTest extends TestCase
         $analysis = $migrator->analyze(15);
 
         $this->assertSame('markdown', $analysis['source']);
-        $this->assertFalse($analysis['can_auto_migrate']);
-        $this->assertStringContainsString('carve-php#5237', $analysis['reason']);
-        $this->assertNull($migrator->migrate(15, true));
+        $this->assertTrue($analysis['can_auto_migrate']);
+        $this->assertSame('OK', $analysis['reason']);
+        $this->assertNotNull($migrator->migrate(15, true));
     }
 
     public function testHtmlMigrationUsesTheZeroTwoImporter(): void
@@ -117,8 +112,6 @@ class MigratorTest extends TestCase
 
     public function testMigrateConvertsAndFlagsPost(): void
     {
-        $this->markTestSkipped('Pending markup-carve/carve-php#5237: Carve 0.2 has no Markdown importer yet.');
-
         wpcarve_test_set_post(7, ['post_content' => "# Heading\n\nsome **text**"]);
 
         $len = (new Migrator())->migrate(7, true);
@@ -132,8 +125,6 @@ class MigratorTest extends TestCase
 
     public function testMigrateTurnsAGitHubAlertIntoAnAdmonition(): void
     {
-        $this->markTestSkipped('Pending markup-carve/carve-php#5237: Carve 0.2 has no Markdown importer yet.');
-
         wpcarve_test_set_post(8, ['post_content' => "# Heading\n\n> [!NOTE]\n> Read **this** first.\n"]);
 
         (new Migrator())->migrate(8, true);

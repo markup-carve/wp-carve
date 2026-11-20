@@ -91,8 +91,6 @@ class FeedRenderTest extends TestCase
 
     public function testAFeedKEEPSHeadingNumbers(): void
     {
-        $this->markTestSkipped('Pending carve-php#5252: heading numbers are not in the 0.2 extension catalog yet.');
-
         // Unlike the two above: a section number is static text that reads
         // correctly with no CSS, no JavaScript and no page to anchor into.
         $html = (new Converter(['heading_numbers' => true]))->toHtml("# One\n\n## Two", 'feed');
