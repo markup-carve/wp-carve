@@ -6,6 +6,7 @@ namespace WpCarve\Test;
 
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use WpCarve\Admin\SettingsPage;
 use WpCarve\Settings;
 
 /**
@@ -104,5 +105,14 @@ class SettingsTest extends TestCase
 
         $this->store(['comment_profile' => 'full']);
         $this->assertSame($before, Settings::renderSignature(), 'Comment-only settings must not change the post render signature.');
+    }
+
+    public function testHeadingShiftIsSanitizedToZeroToFive(): void
+    {
+        $page = new SettingsPage();
+
+        $this->assertSame(5, $page->sanitize(['heading_shift' => '9'])['heading_shift']);
+        $this->assertSame(0, $page->sanitize(['heading_shift' => '-2'])['heading_shift']);
+        $this->assertSame(2, $page->sanitize(['heading_shift' => '2'])['heading_shift']);
     }
 }

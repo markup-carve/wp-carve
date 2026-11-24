@@ -81,7 +81,11 @@ class SettingsPage
                 $out[$key] = !empty($input[$key]);
             } elseif (is_int($default)) {
                 $value = (int)($input[$key] ?? $default);
-                $out[$key] = str_starts_with($key, 'untrusted_max_') ? max(1, $value) : $value;
+                $out[$key] = match (true) {
+                    str_starts_with($key, 'untrusted_max_') => max(1, $value),
+                    $key === 'heading_shift' => max(0, min(5, $value)),
+                    default => $value,
+                };
             } elseif ($key === 'include_root') {
                 // Stored verbatim: trimming or normalizing could turn a refused
                 // relative root into an accepted absolute one.

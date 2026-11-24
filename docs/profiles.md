@@ -149,7 +149,8 @@ break, always renders as `<br>`) or a `::: |` line block (poetry, addresses).
 
 Settings map to the 0.2 engine like this (most are post-only):
 
-- `heading_shift` - a document transform that raises heading levels.
+- `heading_shift` - the core `headingShift` option, which raises heading
+  levels by 0 to 5.
 - `toc_*`, `permalinks_enabled`, `external_links*` - processing of the
   rendered HTML.
 - `smart_quotes` - the core `smartTypography` option; `smart_quotes_locale`

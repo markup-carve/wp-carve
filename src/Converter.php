@@ -286,8 +286,8 @@ class Converter
     }
 
     /**
-     * Host document transforms for a context: the heading level shift and
-     * wiki link resolution, which 0.1 shipped as extensions.
+     * Host document transforms for a context, such as wiki link resolution,
+     * which 0.1 shipped as an extension.
      *
      * @return array<\MarkupCarve\Carve\Extension\DocumentTransform>
      */
@@ -296,18 +296,6 @@ class Converter
         $forText = str_starts_with($context, 'text:');
         $base = $forText ? substr($context, 5) : $context;
         $transforms = [];
-        $shift = (int)($this->settings['heading_shift'] ?? 0);
-        if ($shift > 0 && !$forText && $base !== 'editor' && $base !== 'comment') {
-            $transforms[] = new DocumentTransform('wpcarve.headingShift', static function (Node $doc) use ($shift): Node {
-                self::walk($doc, static function (Node $node) use ($shift): void {
-                    if ($node->type === 'heading') {
-                        $node->f['level'] = min(6, (int)($node->f['level'] ?? 1) + $shift);
-                    }
-                });
-
-                return $doc;
-            });
-        }
         if (!empty($this->settings['torchlight_enabled']) && !$forText && $base !== 'editor') {
             $diffBlocks = $this->diffBlocks;
             $transforms[] = new DocumentTransform('wpcarve.diffFigures', static function (Node $doc) use ($diffBlocks): Node {
@@ -819,6 +807,10 @@ class Converter
         if ($isFeed) {
             $options['mode'] = 'static';
         }
+        $headingShift = max(0, min(5, (int)($this->settings['heading_shift'] ?? 0)));
+        if ($headingShift > 0 && !$forText && !$isEditor && !$isComment) {
+            $options['headingShift'] = $headingShift;
+        }
         if (!$isComment && !empty($this->settings['mentions_enabled'])) {
             $options['social'] = [
                 'mentionUrl' => self::archiveTemplate('wpcarve_mention_url', 'author'),
@@ -965,11 +957,10 @@ class Converter
         }
         // A feed carries no CSS, so a hover-only anchor would show as a bare pilcrow.
         if (!empty($s['permalinks_enabled']) && !$isFeed) {
-            $html = (string)preg_replace(
-                '/<h([1-6])( id="([^"]+)")([^>]*)>(.*?)<\/h\1>/s',
-                '<h$1$2$4>$5<span class="permalink-wrapper"><a class="permalink" href="#$3" aria-label="' . esc_attr__('Permalink', 'carve-markup') . '">¶</a></span></h$1>',
-                $html,
-            );
+            $anchor = '<span class="permalink-wrapper"><a class="permalink" href="#$3" aria-label="' . esc_attr__('Permalink', 'carve-markup') . '">¶</a></span>';
+            $html = (string)preg_replace('/<h([1-6])( id="([^"]+)")([^>]*)>(.*?)<\/h\1>/s', '<h$1$2$4>$5' . $anchor . '</h$1>', $html);
+            // A shifted level above 6 renders as a div heading (C2-H-021).
+            $html = (string)preg_replace('/<div( role="heading" aria-level="\d+")( id="([^"]+)")([^>]*)>(.*?)<\/div>/s', '<div$1$2$4>$5' . $anchor . '</div>', $html);
         }
 
         return $html;

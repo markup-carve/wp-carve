@@ -11,9 +11,11 @@
     ],
     "require": {
         "php": ">=8.2",
+        "league/commonmark": "^2.9.2",
         "markup-carve/carve-grammars": "dev-next2#31215996ebba0cad12d958275ba87fad1d99991a",
-        "markup-carve/carve-php": "dev-next2#0f547121adf666fda67828ab37a6d9e2fd70d418",
+        "markup-carve/carve-php": "dev-next2#c82c14f20e85479a5f44da1f5bc281ccd20e8236",
         "markup-carve/carve-php-media-embed": "dev-next2#27498d470f6c4dd8bffd6cee271ef9af5811dca7",
+        "php-collective/djot": "^0.1.35",
         "torchlight/engine": "^1.0"
     },
     "minimum-stability": "dev",
