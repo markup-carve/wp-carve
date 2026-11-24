@@ -766,4 +766,32 @@ CARVE;
     {
         $this->assertSame('Watch dQw4w9WgXcQ.', trim((new Converter(['media_embed_enabled' => true]))->toText("Watch :youtube[dQw4w9WgXcQ].\n")));
     }
+
+    public function testHeadingShiftReachesTheEngine(): void
+    {
+        // carve#6325: the engine shifts levels; ids keep the authored text.
+        $html = (new Converter(['heading_shift' => 1]))->toHtml("# Chapter\n\n## Section\n");
+
+        $this->assertStringContainsString('<h2 id="Chapter">Chapter</h2>', $html);
+        $this->assertStringContainsString('<h3 id="Section">Section</h3>', $html);
+    }
+
+    public function testHeadingShiftAboveSixKeepsTheLevel(): void
+    {
+        // C2-H-021: a shifted level above 6 is an aria heading, not a clamped h6.
+        $html = (new Converter(['heading_shift' => 2]))->toHtml("##### Deep\n");
+
+        $this->assertStringContainsString('aria-level="7"', $html);
+    }
+
+    public function testHeadingShiftOutsideTheRangeIsClamped(): void
+    {
+        $this->assertStringContainsString('<h6', (new Converter(['heading_shift' => 9]))->toHtml("# A\n"));
+        $this->assertStringContainsString('<h1', (new Converter(['heading_shift' => -3]))->toHtml("# A\n"));
+    }
+
+    public function testHeadingShiftSkipsComments(): void
+    {
+        $this->assertStringContainsString('<h1', (new Converter(['heading_shift' => 2, 'comment_profile' => 'article']))->toHtml("# A\n", 'comment'));
+    }
 }

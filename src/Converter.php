@@ -286,8 +286,8 @@ class Converter
     }
 
     /**
-     * Host document transforms for a context: the heading level shift and
-     * wiki link resolution, which 0.1 shipped as extensions.
+     * Host document transforms for a context, such as wiki link resolution,
+     * which 0.1 shipped as an extension.
      *
      * @return array<\MarkupCarve\Carve\Extension\DocumentTransform>
      */
@@ -296,18 +296,6 @@ class Converter
         $forText = str_starts_with($context, 'text:');
         $base = $forText ? substr($context, 5) : $context;
         $transforms = [];
-        $shift = (int)($this->settings['heading_shift'] ?? 0);
-        if ($shift > 0 && !$forText && $base !== 'editor' && $base !== 'comment') {
-            $transforms[] = new DocumentTransform('wpcarve.headingShift', static function (Node $doc) use ($shift): Node {
-                self::walk($doc, static function (Node $node) use ($shift): void {
-                    if ($node->type === 'heading') {
-                        $node->f['level'] = min(6, (int)($node->f['level'] ?? 1) + $shift);
-                    }
-                });
-
-                return $doc;
-            });
-        }
         if (!empty($this->settings['torchlight_enabled']) && !$forText && $base !== 'editor') {
             $diffBlocks = $this->diffBlocks;
             $transforms[] = new DocumentTransform('wpcarve.diffFigures', static function (Node $doc) use ($diffBlocks): Node {
@@ -818,6 +806,10 @@ class Converter
         }
         if ($isFeed) {
             $options['mode'] = 'static';
+        }
+        $headingShift = max(0, min(5, (int)($this->settings['heading_shift'] ?? 0)));
+        if ($headingShift > 0 && !$forText && !$isEditor && !$isComment) {
+            $options['headingShift'] = $headingShift;
         }
         if (!$isComment && !empty($this->settings['mentions_enabled'])) {
             $options['social'] = [

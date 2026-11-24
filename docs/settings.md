@@ -33,7 +33,7 @@ See [Profiles & rendering](profiles.md) for what each profile means.
 
 | Key | Default | What it does |
 | --- | --- | --- |
-| `heading_shift` | `0` | Shift all heading levels down by N (e.g. `1` turns `#` into `<h2>`). |
+| `heading_shift` | `0` | Shift all heading levels down by N, 0 to 5 (e.g. `1` turns `#` into `<h2>`). Posts and pages only; comments and the editor keep authored levels. A level above 6 renders as `<div role="heading" aria-level="N">`. |
 | `toc_enabled` | `false` | Insert a table of contents. |
 | `toc_position` | `top` | `top` / `bottom` / `none` (manual marker). |
 | `toc_min_level` | `2` | Lowest heading level included. |
