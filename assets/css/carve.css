@@ -1020,7 +1020,7 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 
 /* A heading shifted past h6 renders as div[role=heading][aria-level=7+]; the
    theme styles only h1-h6, so give it the look of a step below h6. */
-.wpcarve [role="heading"][aria-level] {
+.wpcarve [role="heading"][aria-level]:not([aria-level="1"], [aria-level="2"], [aria-level="3"], [aria-level="4"], [aria-level="5"], [aria-level="6"]) {
 	font-size: 0.8em;
 	font-weight: 700;
 	line-height: 1.25;
@@ -2227,24 +2227,24 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	font-size: 1em;
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
-	color: #57606a;
+	color: color-mix(in srgb, currentColor 72%, transparent);
 }
 
 .wpcarve-ve-surface .ProseMirror h6,
 .wpcarve-preview h6,
 #wpcarve-live-preview h6 {
 	font-size: 0.9em;
-	color: #57606a;
+	color: color-mix(in srgb, currentColor 72%, transparent);
 }
 
-.wpcarve-ve-surface .ProseMirror [role="heading"][aria-level],
-.wpcarve-preview [role="heading"][aria-level],
-#wpcarve-live-preview [role="heading"][aria-level] {
+.wpcarve-ve-surface .ProseMirror [role="heading"][aria-level]:not([aria-level="1"], [aria-level="2"], [aria-level="3"], [aria-level="4"], [aria-level="5"], [aria-level="6"]),
+.wpcarve-preview [role="heading"][aria-level]:not([aria-level="1"], [aria-level="2"], [aria-level="3"], [aria-level="4"], [aria-level="5"], [aria-level="6"]),
+#wpcarve-live-preview [role="heading"][aria-level]:not([aria-level="1"], [aria-level="2"], [aria-level="3"], [aria-level="4"], [aria-level="5"], [aria-level="6"]) {
 	font-size: 0.8em;
 	font-weight: 700;
 	line-height: 1.25;
 	margin: 1.1em 0 0.4em;
-	color: #57606a;
+	color: color-mix(in srgb, currentColor 72%, transparent);
 }
 
 .wpcarve-ve-surface:focus-within {
