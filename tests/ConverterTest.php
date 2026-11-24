@@ -794,4 +794,12 @@ CARVE;
     {
         $this->assertStringContainsString('<h1', (new Converter(['heading_shift' => 2, 'comment_profile' => 'article']))->toHtml("# A\n", 'comment'));
     }
+
+    public function testPermalinksReachShiftedHeadingsAboveSix(): void
+    {
+        $html = (new Converter(['heading_shift' => 2, 'permalinks_enabled' => true]))->toHtml("# Top\n\n##### Deep\n");
+
+        $this->assertStringContainsString('<h3 id="Top">Top<span class="permalink-wrapper"><a class="permalink" href="#Top"', $html);
+        $this->assertStringContainsString('aria-level="7" id="Deep">Deep<span class="permalink-wrapper"><a class="permalink" href="#Deep"', $html);
+    }
 }

@@ -957,11 +957,10 @@ class Converter
         }
         // A feed carries no CSS, so a hover-only anchor would show as a bare pilcrow.
         if (!empty($s['permalinks_enabled']) && !$isFeed) {
-            $html = (string)preg_replace(
-                '/<h([1-6])( id="([^"]+)")([^>]*)>(.*?)<\/h\1>/s',
-                '<h$1$2$4>$5<span class="permalink-wrapper"><a class="permalink" href="#$3" aria-label="' . esc_attr__('Permalink', 'carve-markup') . '">¶</a></span></h$1>',
-                $html,
-            );
+            $anchor = '<span class="permalink-wrapper"><a class="permalink" href="#$3" aria-label="' . esc_attr__('Permalink', 'carve-markup') . '">¶</a></span>';
+            $html = (string)preg_replace('/<h([1-6])( id="([^"]+)")([^>]*)>(.*?)<\/h\1>/s', '<h$1$2$4>$5' . $anchor . '</h$1>', $html);
+            // A shifted level above 6 renders as a div heading (C2-H-021).
+            $html = (string)preg_replace('/<div( role="heading" aria-level="\d+")( id="([^"]+)")([^>]*)>(.*?)<\/div>/s', '<div$1$2$4>$5' . $anchor . '</div>', $html);
         }
 
         return $html;
