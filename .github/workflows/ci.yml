@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 68f420b3bcd5c030486f281352089d71a5b54ea4 # next2
+          ref: 1c8d567927ff22e99cb4950e226dbee29b127fd7 # next2
           path: carve-next2
 
       - name: Setup PHP
