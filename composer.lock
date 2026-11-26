@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c64febdfd69a58594937c2c12be49739",
+    "content-hash": "2b96c1067b394f28c3d2ccbe6a488c19",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -393,7 +393,7 @@
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "dev-next2",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
@@ -422,6 +422,7 @@
                 "league/commonmark": "Required for Markdown and GFM import (^2.9.2).",
                 "php-collective/djot": "Required for Djot import (^0.1.35)."
             },
+            "default-branch": true,
             "bin": [
                 "bin/carve"
             ],
@@ -482,21 +483,11 @@
                 "markup",
                 "parser"
             ],
-            "support": {
-                "source": "https://github.com/markup-carve/carve-php/tree/next2",
-                "issues": "https://github.com/markup-carve/carve-php/issues"
-            },
-            "funding": [
-                {
-                    "type": "github",
-                    "url": "https://github.com/dereuromark"
-                }
-            ],
-            "time": "2026-11-24T06:10:24+00:00"
+            "time": "2026-11-26T20:57:39+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
-            "version": "dev-next2",
+            "version": "dev-main",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php-media-embed.git",
@@ -510,7 +501,7 @@
             },
             "require": {
                 "dereuromark/media-embed": "^1.0",
-                "markup-carve/carve-php": "dev-next2#6ceebc52181efc1f5dfe6f5e7964b75c43f13a90",
+                "markup-carve/carve-php": "dev-main#440e3274753acc37b621014ce1e3bf06c864b6d9",
                 "php": ">=8.2"
             },
             "require-dev": {
@@ -520,11 +511,11 @@
                 "phpunit/phpunit": "^11.5 || ^12.0 || ^13.0",
                 "squizlabs/php_codesniffer": "^4.0"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.1.x-dev",
-                    "dev-next2": "0.2.x-dev"
+                    "dev-main": "0.2.x-dev"
                 }
             },
             "autoload": {
@@ -575,7 +566,7 @@
                 "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
                 "source": "https://github.com/markup-carve/carve-php-media-embed"
             },
-            "time": "2026-11-20T10:26:50+00:00"
+            "time": "2026-11-26T21:35:08+00:00"
         },
         {
             "name": "nette/schema",
@@ -4330,5 +4321,5 @@
     "platform-overrides": {
         "php": "8.2.10"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

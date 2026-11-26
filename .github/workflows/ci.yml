@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - next2
   pull_request:
 
 permissions:
@@ -46,14 +45,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # A fixed carve `next2` commit, so the job tests this plugin's locked
+      # A fixed carve `main` commit, so the job tests this plugin's locked
       # engine, not an upstream change.
       - name: Check out the 0.2 conformance examples
         uses: actions/checkout@v6
         with:
           repository: markup-carve/carve
-          ref: 1c8d567927ff22e99cb4950e226dbee29b127fd7 # next2
-          path: carve-next2
+          ref: 1c8d567927ff22e99cb4950e226dbee29b127fd7 # main
+          path: carve-spec
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -67,7 +66,7 @@ jobs:
       - name: Render every conformance example through the shipped engine
         run: |
           set -euo pipefail
-          php scripts/conformance-through-engine.php carve-next2/spec/0.2/conformance/examples.json \
+          php scripts/conformance-through-engine.php carve-spec/spec/0.2/conformance/examples.json \
             --list --baseline=scripts/conformance-divergences.txt | tee "${RUNNER_TEMP}/conformance-run.txt"
           documents="$(sed -n 's/^documents=//p' "${RUNNER_TEMP}/conformance-run.txt")"
           wrong="$(sed -n 's/^wrong=//p' "${RUNNER_TEMP}/conformance-run.txt")"
