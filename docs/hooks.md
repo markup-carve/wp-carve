@@ -248,5 +248,5 @@ add_filter('wpcarve_extensions', function (array $extensions, string $context): 
 }, 10, 2);
 ```
 
-See the [carve-php 0.2 guide](https://github.com/markup-carve/carve-php/blob/next2/docs/README.md#extensions-provisional)
+See the [carve-php 0.2 guide](https://github.com/markup-carve/carve-php/blob/main/docs/README.md#extensions-provisional)
 for the transform and renderer signatures.

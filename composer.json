@@ -13,8 +13,8 @@
         "php": ">=8.2",
         "league/commonmark": "^2.9.2",
         "markup-carve/carve-grammars": "dev-next2#558680dd08616f3bb30a83d069e114b6ca899cde",
-        "markup-carve/carve-php": "dev-next2#c82c14f20e85479a5f44da1f5bc281ccd20e8236",
-        "markup-carve/carve-php-media-embed": "dev-next2#27498d470f6c4dd8bffd6cee271ef9af5811dca7",
+        "markup-carve/carve-php": "dev-main#c82c14f20e85479a5f44da1f5bc281ccd20e8236",
+        "markup-carve/carve-php-media-embed": "dev-main#27498d470f6c4dd8bffd6cee271ef9af5811dca7",
         "php-collective/djot": "^0.1.35",
         "torchlight/engine": "^1.0"
     },

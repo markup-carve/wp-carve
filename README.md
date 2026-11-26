@@ -12,9 +12,9 @@ A WordPress plugin for the [Carve](https://github.com/markup-carve/carve) markup
 Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-php`](https://github.com/markup-carve/carve-php) engine.
 
 > [!NOTE]
-> This branch (`next2`) targets Carve 0.2. The engines are pinned to unreleased
-> `next2` commits of carve-php, carve-js and carve-grammars. Differences from
-> 0.1 are listed under [Carve 0.2 status](#carve-02-status).
+> This branch targets Carve 0.2; Carve 0.1 users stay on the `0.1` branch. The
+> engines are pinned to unreleased commits of carve-php, carve-js and
+> carve-grammars. Differences from 0.1 are listed under [Carve 0.2 status](#carve-02-status).
 
 [Watch the WordPress demo](https://www.youtube.com/watch?v=FT_IMW8ABng)
 

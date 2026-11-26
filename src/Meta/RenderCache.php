@@ -129,7 +129,7 @@ class RenderCache
      * so read() treats the stored HTML as stale and re-renders on the fly.
      *
      * The engine version is the installed carve-php version plus its source
-     * reference, so a moved `next2` commit pin also invalidates the cache.
+     * reference, so a moved commit pin also invalidates the cache.
      */
     private static function signature(): string
     {
