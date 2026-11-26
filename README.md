@@ -11,24 +11,30 @@
 A WordPress plugin for the [Carve](https://github.com/markup-carve/carve) markup language - lightweight markup for documents and the web.
 Render Carve in posts, pages and comments, powered by the [`markup-carve/carve-php`](https://github.com/markup-carve/carve-php) engine.
 
+> [!NOTE]
+> This branch (`next2`) targets Carve 0.2. The engines are pinned to unreleased
+> `next2` commits of carve-php, carve-js and carve-grammars. Differences from
+> 0.1 are listed under [Carve 0.2 status](#carve-02-status).
+
 [Watch the WordPress demo](https://www.youtube.com/watch?v=FT_IMW8ABng)
 
 ## Features
 
 - **Carve rendering** in posts/pages (per-post "Render as Carve" toggle), the `[carve]…[/carve]` shortcode, and comments.
 - **Gutenberg block** with a source editor and preview. Its optional Tiptap
-  visual editor loads directly from the Carve AST and preserves unsupported
-  constructs as source instead of dropping them through an HTML conversion.
+  visual editor is seeded from the carve-js 0.2 render and writes Carve back
+  through the 0.2 HTML importer; an untouched document keeps its exact source.
 - **Focused native blocks** for admonitions, code groups, and tables with spans,
   while the general Carve block remains best for complete documents.
 - **In-browser live preview.** Carve has a real JS engine (`@markup-carve/carve`), so the block previews **instantly client-side**, no server round-trip. Run `npm run build` to bundle the engine (`assets/js/vendor/carve.js`); without it the editor falls back to the REST render endpoint.
-- **Content profiles** (`full` / `article` / `comment` / `minimal`) + **safe mode** (XSS hardening) via carve-php's `Profile` + `SafeMode`.
-- **Table of contents**, **heading permalinks**, **smart quotes**, **Mermaid**, **tab normalization**, **Torchlight syntax highlighting** - carve-php extensions, toggled in settings.
+- **Content profiles** (`full` / `article` / `comment` / `minimal`) through the 0.2 `profile` option. Raw HTML renders only on authored surfaces whose profile allows it (`rawHtml`), and everything passes through `wp_kses`.
+- **Table of contents**, **heading permalinks**, **external link attributes**, **heading level shift**, **heading numbers**, **wiki links**, **smart typography** with a quote locale, **soft-break mode**, **tab normalization**, **Torchlight** highlighting, **Mermaid** and the other diagram fences - toggled in settings.
+- **Extensions by name.** Tabs, details, spoiler, code group, list table, the SVG image fence and semantic spans each have a toggle under **Settings → Carve Markup → Content → Extensions**. The server render and the live preview register the same set.
 - **Media embeds** via `:youtube[ID]` / `:vimeo[ID]` / `:media[URL]`, with a WordPress **oEmbed fallback** when the media-embed extension is off.
-- **Multi-format paste.** Paste Markdown / Djot / BBCode / HTML and convert to Carve in place, using carve-php's `*ToCarve` converters. `POST /wp-json/carve/v1/ingest`.
+- **Paste conversion.** Paste or import Markdown, Djot, HTML or BBCode and convert it to Carve in place. The server converts Markdown, Djot and HTML (`POST /wp-json/carve/v1/ingest`); BBCode is converted in the browser by the carve-js importer (`assets/js/vendor/carve-import.js`), because Carve 0.2 imports BBCode in carve-js only.
 - **Frontmatter → meta/SEO.** Typed `---yaml` / `---json` / `---toml` frontmatter maps to excerpt, SEO description (Yoast/AIOSEO when present), canonical, and `_wpcarve_frontmatter` meta. Non-destructive.
 - **Bulk migrate**: convert existing posts to Carve in bulk. `wp carve migrate` - analyzes each post (skips block-editor / foreign-shortcode content), auto-detects Markdown vs HTML, converts safely (`--dry-run`, `--force`); or **Tools → Carve Migrate** for the same thing without CLI (the post list doubles as the dry-run preview). `wp carve lint` - read-only health check reporting render errors and visual-editor round-trip caveats.
-- **Import / export**: Tools → Carve Import loads a Markdown / Djot / HTML / Carve file as a draft; an "Export Carve" row action downloads a post's `.crv` source.
+- **Import / export**: Tools → Carve Import loads a Markdown, Djot, HTML or Carve file as a draft; an "Export Carve" row action downloads a post's `.crv` source.
 - **Render caching + REST.** Rendered HTML is cached in post meta at save (fast views); `POST /wp-json/carve/v1/render` serves headless WordPress.
 
 ## Requirements
@@ -67,17 +73,28 @@ For new content that you expect to move between systems with its source, use
 | Route | Body | Returns |
 | --- | --- | --- |
 | `POST /wp-json/carve/v1/render` | `{ carve, context }` | `{ html, include_warnings }` |
-| `POST /wp-json/carve/v1/ingest` | `{ source, from }` | `{ carve, from }` |
+| `POST /wp-json/carve/v1/ingest` | `{ source, from }` | `{ carve, from, report }` |
 
-Both require the `edit_posts` capability.
+Both require the `edit_posts` capability. `from` is `markdown`, `djot`, `html`
+or `auto`. BBCode (given or detected) answers `422` with `browser: true`: the
+server cannot import it on Carve 0.2, and the block editor converts it with
+carve-js instead.
 
 ## Hooks
 
 - `wpcarve_rendered_html` (filter): `(string $html, string $carve, string $context)`
-- `wpcarve_converter` (action): `(\MarkupCarve\Carve\CarveConverter $converter, string $context)` - register further carve-php extensions.
+- `wpcarve_extensions` (filter): `(array $extensions, string $context)` - add carve-php 0.2 extension definitions (replaces the 0.1 `wpcarve_converter` action).
 - `wpcarve_source` (filter): `(string $carve, string $context)` - modify source before conversion.
 
 See [docs/hooks.md](docs/hooks.md) for the full list (oEmbed, OG image, diagram renderer API, KaTeX base).
+
+## Carve 0.2 status
+
+- **BBCode** paste and import run in the browser only: Carve 0.2 imports
+  BBCode in carve-js, not carve-php. The REST ingest endpoint, file import and
+  bulk migration do not take BBCode.
+- **Plain-text excerpts** come from the engine's `plain` writer, without
+  footnotes.
 
 ## Documentation
 

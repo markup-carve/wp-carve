@@ -8,51 +8,34 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+use ArrayObject;
+use Closure;
 use LengthException;
-use MarkupCarve\Carve\CarveConverter;
-use MarkupCarve\Carve\Event\RenderEvent;
-use MarkupCarve\Carve\Extension\CitationsExtension;
-use MarkupCarve\Carve\Extension\CodeGroupExtension;
-use MarkupCarve\Carve\Extension\DetailsExtension;
-use MarkupCarve\Carve\Extension\ExternalLinksExtension;
-use MarkupCarve\Carve\Extension\FencedRenderExtension;
-use MarkupCarve\Carve\Extension\HeadingLevelShiftExtension;
-use MarkupCarve\Carve\Extension\HeadingNumbersExtension;
-use MarkupCarve\Carve\Extension\HeadingPermalinksExtension;
-use MarkupCarve\Carve\Extension\ImgFenceExtension;
-use MarkupCarve\Carve\Extension\ListTableExtension;
-use MarkupCarve\Carve\Extension\MentionsExtension;
-use MarkupCarve\Carve\Extension\SemanticSpanExtension;
-use MarkupCarve\Carve\Extension\SmartQuotesExtension;
-use MarkupCarve\Carve\Extension\SpoilerExtension;
-use MarkupCarve\Carve\Extension\TableOfContentsExtension;
-use MarkupCarve\Carve\Extension\TabNormalizeExtension;
-use MarkupCarve\Carve\Extension\TabsExtension;
-use MarkupCarve\Carve\Extension\TocPlacementExtension;
-use MarkupCarve\Carve\Extension\WikilinksExtension;
-use MarkupCarve\Carve\Lint\DocumentLinter;
-use MarkupCarve\Carve\Lint\LintWarning;
-use MarkupCarve\Carve\NodeType;
-use MarkupCarve\Carve\Profile;
-use MarkupCarve\Carve\Renderer\PlainTextRenderer;
-use MarkupCarve\Carve\Renderer\RenderMode;
-use MarkupCarve\Carve\Renderer\SoftBreakMode;
-use MarkupCarve\Carve\SafeMode;
-use MarkupCarve\Carve\Transform\FilesystemIncludeResolver;
-use MarkupCarve\Carve\Transform\IncludeExpander;
+use MarkupCarve\Carve\Attrs;
+use MarkupCarve\Carve\Carve;
+use MarkupCarve\Carve\Diagnostics\Diagnostic;
+use MarkupCarve\Carve\Extension\Citations;
+use MarkupCarve\Carve\Extension\DocumentTransform;
+use MarkupCarve\Carve\Extension\Navigation;
+use MarkupCarve\Carve\Extension\SmartQuotes;
+use MarkupCarve\Carve\Extension\Standard;
+use MarkupCarve\Carve\Extension\Transforms;
+use MarkupCarve\Carve\Include\FileResolver;
+use MarkupCarve\Carve\InputError;
+use MarkupCarve\Carve\Node;
 use MarkupCarve\MediaEmbed\MediaEmbedExtension;
 use MarkupCarve\MediaEmbed\MediaEmbedLinter;
 use Throwable;
+use WpCarve\Extension\DiagramFences;
 use WpCarve\Extension\TorchlightExtension;
 use WpCarve\Includes\IncludeReport;
 use WpCarve\Includes\RecordingResolver;
 
 /**
- * WordPress-facing wrapper around the carve-php CarveConverter.
+ * WordPress-facing wrapper around the carve-php 0.2 engine (`Carve::render()`).
  *
- * Builds a converter per context (post vs comment) applying the configured
- * content profile and feature extensions, and renders Carve to HTML or plain
- * text.
+ * Builds the option array per context (post vs comment) from the configured
+ * content profile and features, and renders Carve to HTML or plain text.
  */
 class Converter
 {
@@ -62,15 +45,39 @@ class Converter
     private const INCLUDE_BYTE_BUDGET = 4194304;
 
     /**
-     * @var array<string, \MarkupCarve\Carve\CarveConverter>
+     * Block containers counted against the untrusted nesting budget.
+     *
+     * @var array<string, true>
+     */
+    private const NESTING_TYPES = [
+        'block_quote' => true,
+        'list' => true,
+        'div' => true,
+        'admonition' => true,
+        'definition_list' => true,
+        'block_extension' => true,
+    ];
+
+    /**
+     * @var array<string, array<string, mixed>>
      */
     private array $cache = [];
+
+    /**
+     * End offsets of captioned `{.diff}` code blocks in the render in progress.
+     * The engine hands `codeBlockRenderer` a captioned block without its
+     * attributes, which stay on the figure.
+     *
+     * @var \ArrayObject<string, true>
+     */
+    private ArrayObject $diffBlocks;
 
     /**
      * @param array<string, mixed> $settings Resolved plugin settings.
      */
     public function __construct(private array $settings)
     {
+        $this->diffBlocks = new ArrayObject();
     }
 
     public static function fromSettings(): self
@@ -79,27 +86,26 @@ class Converter
     }
 
     /**
-     * Render Carve source to HTML for a given context ('post', 'comment', or
-     * 'editor' - the visual-editor seed, which omits non-round-trippable markup).
+     * Render Carve source to HTML for a given context ('post', 'comment',
+     * 'feed', or 'editor' - the visual-editor seed, which omits
+     * non-round-trippable markup).
      *
      * $profileOverride forces a specific content profile (full / article /
      * comment / minimal / none) regardless of the context default - used by the
      * Carve block's per-block profile attribute.
-     */
-
-    /**
+     *
      * @param string $carve
      * @param string $context
      * @param string|null $profileOverride
-     * @param bool|null $safe
-     * @param array<int, mixed>|null $bibliography
+     * @param bool|null $safe Kept for callers; 0.2 sanitization does not depend on it.
+     * @param array<int, mixed>|null $bibliography External CSL-JSON entries for citations.
      * @param string $citationMode
      * @param \WpCarve\Includes\IncludeReport|null $includes Expands include directives
      *   against the configured root and records the outcome. Pass one only once
      *   IncludePolicy has allowed it.
-     * @param int|null $maxNesting Maximum engine profile nesting for this render.
+     * @param int|null $maxNesting Maximum block container nesting for this render.
      *
-     * @throws \LengthException When the nesting budget is exceeded.
+     * @throws \LengthException When the nesting or length budget is exceeded.
      */
     public function toHtml(
         string $carve,
@@ -128,41 +134,27 @@ class Converter
         // back into per-post source (freezing a global setting into the post). So
         // the editor context renders the source alone.
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
-        $converter = $this->converterFor($context, $profileOverride, $safe, $bibliography, $citationMode);
-        $profile = $converter->getProfile();
-        $previousNesting = $profile?->getMaxNesting();
-        if ($maxNesting !== null && $profile !== null) {
-            $profile->setMaxNesting($maxNesting);
+        $options = $this->optionsFor($context, $profileOverride);
+        $citationTransforms = [];
+        if ($bibliography !== null && $context !== 'editor' && $context !== 'comment') {
+            $citations = Citations::bundle($citationMode === '' ? 'numbered' : $citationMode, $bibliography);
+            $options['extensions'][] = $citations;
+            $citationTransforms = $citations->transforms();
         }
+        $source = $abbrevDefs . $carve;
+
         try {
             $html = $includes !== null && $context !== 'editor' && $context !== 'comment'
-                ? $this->convertWithIncludes($converter, $abbrevDefs . $carve, $includes)
-                : $converter->convert($abbrevDefs . $carve);
-            if ($maxNesting !== null) {
-                foreach ($converter->getProfileViolations() as $violation) {
-                    if ($violation->reason === 'max_nesting_exceeded') {
-                        throw new LengthException('Nesting budget exceeded');
-                    }
-                }
-            }
-        } finally {
-            if ($maxNesting !== null && $profile !== null && $previousNesting !== null) {
-                $profile->setMaxNesting($previousNesting);
-            }
+                ? $this->renderWithIncludes($source, $options, $includes, $context, $maxNesting, $citationTransforms)
+                : $this->renderSource($source, $options, $context, $maxNesting, $citationTransforms);
+        } catch (InputError) {
+            throw new LengthException('Input length exceeds the profile limit');
         }
 
-        // JSON diagram configs (chart, vega-lite) ship in a script tag the
-        // engine emits - but wp_kses strips every script tag, and wptexturize
-        // then curls the quotes of the leftover text, so the config could
-        // never reach the front-end JS intact. Move it into a data attribute:
-        // kses allows data-* globally and texturize ignores attributes.
-        // Chart.js configs additionally get their dataset appended as a plain
-        // table - readable without JS, indexable, and screen-reader friendly.
-        // The container carries engine-authored attributes besides the class
-        // - carve-php 0.1.6 began emitting role="img" and an aria-label - so
-        // they are matched and carried over rather than dropped. Requiring the
-        // class to be the only attribute silently stopped matching when those
-        // arrived, which left the config in a script tag for kses to strip.
+        // JSON diagram configs (chart, vega-lite) that an add-on still emits in a
+        // script tag are moved into a data attribute: wp_kses strips every script
+        // tag, and wptexturize then curls the quotes of the leftover text. The
+        // built-in diagram fences already write the attribute (DiagramFences).
         $html = (string)preg_replace_callback(
             '/<div class="([^"]*)"([^>]*)>\s*<script type="application\/json">(.*?)<\/script>\s*<\/div>/s',
             static function (array $m): string {
@@ -180,11 +172,12 @@ class Converter
         // become diff markers. The engine leaves them as text; present them here,
         // before sanitizing (the added spans are allowlisted).
         $html = self::presentLanguageDiff($html);
+        $html = $this->presentHostFeatures($html, $context);
 
-        // Rendering is always sanitized: the engine escapes raw HTML and strips
-        // event handlers, and the generated markup additionally passes through
-        // wp_kses so only allowlisted tags/attributes ever reach output. There is
-        // no unsafe/raw-HTML passthrough - script/style can never be emitted.
+        // Rendering is always sanitized: the engine escapes raw HTML unless the
+        // profile and `rawHtml` both allow it, and the generated markup
+        // additionally passes through wp_kses so only allowlisted
+        // tags/attributes ever reach output.
         $html = self::sanitizeHtml($html);
 
         /**
@@ -197,30 +190,202 @@ class Converter
         return (string)apply_filters('wpcarve_rendered_html', $html, $carve, $context);
     }
 
-    private function convertWithIncludes(CarveConverter $converter, string $source, IncludeReport $report): string
+    /**
+     * @param string $source
+     * @param array<string, mixed> $options
+     * @param string $context
+     * @param int|null $maxNesting
+     * @param array<\MarkupCarve\Carve\Extension\DocumentTransform> $extraTransforms
+     *
+     * @throws \LengthException
+     */
+    private function renderSource(string $source, array $options, string $context, ?int $maxNesting, array $extraTransforms = []): string
     {
+        $transforms = [...$this->documentTransforms($context), ...$extraTransforms];
+        if ($maxNesting === null && $transforms === []) {
+            return Carve::render($source, $options);
+        }
+
+        $parseOptions = array_intersect_key($options, ['extensions' => true, 'includes' => true, 'headingIds' => true]);
+        $tree = Carve::parse($source, $parseOptions);
+        if ($maxNesting !== null && self::nestingDepth($tree) > $maxNesting) {
+            throw new LengthException('Nesting budget exceeded');
+        }
+        if ($transforms === []) {
+            return Carve::render($tree, $options);
+        }
+
+        return Carve::renderWithDocumentTransforms($tree, $transforms, $options)->html;
+    }
+
+    /**
+     * @param string $source
+     * @param array<string, mixed> $options
+     * @param \WpCarve\Includes\IncludeReport $report
+     * @param string $context
+     * @param int|null $maxNesting
+     * @param array<\MarkupCarve\Carve\Extension\DocumentTransform> $extraTransforms
+     */
+    private function renderWithIncludes(
+        string $source,
+        array $options,
+        IncludeReport $report,
+        string $context,
+        ?int $maxNesting,
+        array $extraTransforms = [],
+    ): string {
         if (!str_contains($source, '{{')) {
-            return $converter->convert($source);
+            return $this->renderSource($source, $options, $context, $maxNesting, $extraTransforms);
         }
 
         try {
-            $resolver = new RecordingResolver(new FilesystemIncludeResolver($report->root()));
+            $resolver = new RecordingResolver(FileResolver::forRoot($report->root()));
         } catch (Throwable) {
             $report->refuseRoot();
 
-            return $converter->convert($source);
+            return $this->renderSource($source, $options, $context, $maxNesting, $extraTransforms);
         }
 
-        $expander = new IncludeExpander(
-            resolver: $resolver,
-            byteBudget: self::INCLUDE_BYTE_BUDGET,
-            source: $source,
-            extensions: $converter->getExtensions(),
+        $includes = ['resolver' => $resolver, 'bytes' => self::INCLUDE_BYTE_BUDGET];
+        $parseOptions = array_intersect_key($options, ['extensions' => true, 'headingIds' => true]) + ['includes' => $includes];
+        $tree = Carve::parse($source, $parseOptions);
+        if ($maxNesting !== null && self::nestingDepth($tree) > $maxNesting) {
+            throw new LengthException('Nesting budget exceeded');
+        }
+        $transforms = [...$this->documentTransforms($context), ...$extraTransforms];
+        $result = $transforms === []
+            ? Carve::renderWithDiagnostics($tree, $options)
+            : Carve::renderWithDocumentTransforms($tree, $transforms, $options);
+        // The render-loss entries carry no resolver detail (no reason a path
+        // was refused), unlike the parse entries, so only they are recorded.
+        $report->record(
+            Carve::includeDependencies($tree),
+            $resolver->lookups(),
+            array_values(array_filter(
+                $result->diagnostics,
+                static fn (Diagnostic $d): bool => $d->channel === 'render-loss' && str_starts_with($d->code, 'include-'),
+            )),
         );
-        $html = $converter->render($converter->transform($converter->parse($source), $expander));
-        $report->record($expander->getDependencies(), $resolver->lookups(), $expander->getWarnings(), $expander->getSuppressedWarnings());
 
-        return $html;
+        return $result->html;
+    }
+
+    /**
+     * Deepest nesting of block containers in a tree.
+     */
+    private static function nestingDepth(Node $node): int
+    {
+        $max = 0;
+        foreach ($node->children ?? [] as $child) {
+            if ($child instanceof Node) {
+                $max = max($max, self::nestingDepth($child));
+            }
+        }
+
+        return $max + (isset(self::NESTING_TYPES[$node->type]) ? 1 : 0);
+    }
+
+    /**
+     * Host document transforms for a context, such as wiki link resolution,
+     * which 0.1 shipped as an extension.
+     *
+     * @return array<\MarkupCarve\Carve\Extension\DocumentTransform>
+     */
+    private function documentTransforms(string $context): array
+    {
+        $forText = str_starts_with($context, 'text:');
+        $base = $forText ? substr($context, 5) : $context;
+        $transforms = [];
+        if (!empty($this->settings['torchlight_enabled']) && !$forText && $base !== 'editor') {
+            $diffBlocks = $this->diffBlocks;
+            $transforms[] = new DocumentTransform('wpcarve.diffFigures', static function (Node $doc) use ($diffBlocks): Node {
+                $diffBlocks->exchangeArray([]);
+                self::walk($doc, static function (Node $node) use ($diffBlocks): void {
+                    $attrs = $node->f['attrs'] ?? null;
+                    if ($node->type === 'code_block' && isset($node->f['caption']) && $attrs instanceof Attrs && in_array('diff', $attrs->classes, true)) {
+                        $diffBlocks[$node->file . ':' . $node->end] = true;
+                    }
+                });
+
+                return $doc;
+            });
+        }
+        // The editor seed keeps the author's tabs so the source round-trips.
+        if (!empty($this->settings['normalize_tabs']) && $base !== 'editor') {
+            array_push($transforms, ...Transforms::tabNormalize(max(0, min(16, (int)($this->settings['tab_width'] ?? 2))))->transforms());
+        }
+        if ($base !== 'comment' && !empty($this->settings['wikilinks_enabled'])) {
+            // Plain text discards the href, so the text path never looks a page up.
+            $transforms[] = new DocumentTransform('wpcarve.wikilinks', static function (Node $doc) use ($forText): Node {
+                self::walk($doc, static function (Node $node) use ($forText): void {
+                    foreach ($node->children ?? [] as $i => $child) {
+                        if (!$child instanceof Node || $child->type !== 'inline_extension' || ($child->f['name'] ?? '') !== 'carve.wiki') {
+                            continue;
+                        }
+                        $label = array_values(array_filter($child->f['fallback'] ?? [], static fn ($c): bool => $c instanceof Node));
+                        $page = trim(implode('', array_map(static fn (Node $c): string => (string)($c->f['value'] ?? ''), $label)));
+                        // Built through the public parser so the attributes take the
+                        // engine's own shape.
+                        $link = Carve::parse('[x](#){.wikilink data-wikilink="p"}')->children[0]->children[0] ?? null;
+                        $attrs = $link instanceof Node ? ($link->f['attrs'] ?? null) : null;
+                        if (!$link instanceof Node || !is_object($attrs) || !isset($attrs->pairs[0][1])) {
+                            continue;
+                        }
+                        $attrs->pairs[0][1] = $page;
+                        $link->f['href'] = $forText ? '#' : self::wikilinkUrl($page);
+                        $link->children = $label;
+                        $node->children[$i] = $link;
+                    }
+                });
+
+                return $doc;
+            });
+        }
+
+        return $transforms;
+    }
+
+    /**
+     * Visit a node and every descendant, parents first.
+     *
+     * @param \MarkupCarve\Carve\Node $node
+     * @param \Closure(\MarkupCarve\Carve\Node): void $visit
+     */
+    private static function walk(Node $node, Closure $visit): void
+    {
+        $visit($node);
+        foreach ($node->children ?? [] as $child) {
+            if ($child instanceof Node) {
+                self::walk($child, $visit);
+            }
+        }
+    }
+
+    /**
+     * Resolve `:wiki[Page Title]` against real content.
+     *
+     * An unresolved link becomes `#` rather than disappearing: the anchor keeps
+     * its `wikilink` class and `data-wikilink` title, so a theme can style
+     * `a.wikilink[href="#"]` as a broken link the way a wiki does.
+     */
+    private static function wikilinkUrl(string $page): string
+    {
+        /** @var string|null $resolved */
+        $resolved = apply_filters('wpcarve_wikilink_url', null, $page);
+        if (is_string($resolved) && $resolved !== '') {
+            return $resolved;
+        }
+
+        if (!function_exists('get_page_by_path') || !function_exists('sanitize_title')) {
+            return '#';
+        }
+
+        $post = get_page_by_path(sanitize_title($page), OBJECT, ['post', 'page']);
+        if ($post === null || !function_exists('get_permalink')) {
+            return '#';
+        }
+
+        return (string)get_permalink($post);
     }
 
     /**
@@ -267,10 +432,10 @@ class Converter
     }
 
     /**
-     * Run carve-php's document linter over the authored source, with the
+     * Run the carve-php 0.2 linter over the authored source, with the
      * extensions this context renders with so their references resolve.
      *
-     * @return array<int, \MarkupCarve\Carve\Lint\LintWarning>
+     * @return array<int, \WpCarve\LintFinding>
      */
     public function lint(string $carve, string $context = 'post'): array
     {
@@ -278,24 +443,29 @@ class Converter
             return [];
         }
 
-        $extensions = $this->converterFor($context)->getExtensions();
-        $warnings = (new DocumentLinter())->lint($carve, ['extensions' => $extensions]);
-        // DocumentLinter has no extension hook, so media-embed lints its own
+        $options = $this->optionsFor($context);
+        $diagnostics = Carve::lint($carve, ['extensions' => $options['extensions'] ?? []]);
+        // Carve::lint() has no extension hook, so media-embed lints its own
         // directives against the instance the render registered.
-        foreach ($extensions as $extension) {
+        foreach ($options['extensions'] ?? [] as $extension) {
             if ($extension instanceof MediaEmbedExtension) {
-                $warnings = array_merge($warnings, (new MediaEmbedLinter($extension))->lint($carve));
+                $diagnostics = array_merge($diagnostics, (new MediaEmbedLinter($extension))->lint($carve));
             }
         }
-        usort($warnings, static fn (LintWarning $a, LintWarning $b): int => [$a->line, $a->column] <=> [$b->line, $b->column]);
+        $findings = array_map(
+            static fn (Diagnostic $d): LintFinding => LintFinding::fromDiagnostic($d, $carve),
+            $diagnostics,
+        );
+        usort($findings, static fn (LintFinding $a, LintFinding $b): int => [$a->line, $a->column] <=> [$b->line, $b->column]);
 
-        return $warnings;
+        return $findings;
     }
 
     /**
-     * Render Carve source as plain text for a given context. The text renderer
-     * emits no markup; HTML safe mode and HTML-only output processing therefore
-     * do not apply.
+     * Render Carve source as plain text for a given context.
+     *
+     * Goes through the engine's `plain` writer; the HTML-derived text below is
+     * the fallback for an engine without it.
      */
     public function toText(string $carve, string $context = 'post', ?string $profileOverride = null): string
     {
@@ -312,8 +482,59 @@ class Converter
         $carve = (string)apply_filters('wpcarve_source', $carve, $context);
 
         $abbrevDefs = $context === 'editor' ? '' : $this->abbreviationDefs();
+        $source = $abbrevDefs . $carve;
+        $options = $this->optionsFor($context === 'editor' ? 'editor' : 'text:' . $context, $profileOverride);
+        if (self::hasWriter('plain')) {
+            return trim(Carve::writeTo('plain', $this->textTree($source, $options, $context), ['smartTypography' => $options['smartTypography']]));
+        }
 
-        return $this->textConverterFor($context, $profileOverride)->convert($abbrevDefs . $carve);
+        $html = $this->renderSource($source, $options, $context === 'editor' ? 'editor' : 'text:' . $context, null);
+        $html = (string)preg_replace('/<section role="doc-endnotes".*?<\/section>/s', '', $html);
+        $html = (string)preg_replace('/<a [^>]*role="doc-noteref"[^>]*>.*?<\/a>/s', '', $html);
+        $html = (string)preg_replace('/<\/(p|h[1-6]|li|blockquote|pre|tr|dt|dd|div|aside|section|figure)>/', "$0\n", $html);
+        $html = (string)preg_replace('/<\/t[dh]>/', '$0 ', $html);
+        $text = html_entity_decode(wp_strip_all_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim((string)preg_replace("/\n{2,}/", "\n", $text));
+    }
+
+    /**
+     * The parsed tree of the plain-text path with the context's document transforms applied.
+     *
+     * @param string $source
+     * @param array<string, mixed> $options
+     * @param string $context
+     */
+    private function textTree(string $source, array $options, string $context): Node
+    {
+        $parseOptions = array_intersect_key($options, ['extensions' => true, 'headingIds' => true]);
+        $tree = Carve::parse($source, $parseOptions);
+        foreach ($this->documentTransforms($context === 'editor' ? 'editor' : 'text:' . $context) as $transform) {
+            $tree = ($transform->run)($tree);
+        }
+        // Notes stay out of excerpts and feeds, as the 0.1 text target did.
+        self::walk($tree, static function (Node $node): void {
+            if ($node->children !== null) {
+                $node->children = array_values(array_filter(
+                    $node->children,
+                    static fn (Node $child): bool => !in_array($child->type, ['footnote', 'footnote_ref', 'inline_footnote'], true),
+                ));
+            }
+        });
+
+        return $tree;
+    }
+
+    /**
+     * Whether the engine's writer registry has a target yet.
+     */
+    public static function hasWriter(string $target): bool
+    {
+        try {
+            return Carve::writers()->has($target);
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**
@@ -384,31 +605,6 @@ class Converter
         }
 
         return $defs !== [] ? implode("\n", $defs) . "\n\n" : '';
-    }
-
-    /**
-     * The engine safe-mode configuration for a context. Sanitization is always
-     * on - there is no setting or capability that turns it off.
-     *
-     * Comments are untrusted: raw HTML is stripped outright (and the style
-     * attribute blocked) by the engine, before wp_kses runs.
-     *
-     * Authored surfaces (posts, pages, blocks, the editor seed) use ALLOW, so
-     * that raw HTML - written with Djot's explicit `=html` raw block / inline
-     * syntax and only permitted by a profile that allows raw nodes (the Full
-     * profile; the default Article profile still denies it) - renders instead of
-     * being escaped. That raw HTML then passes through wp_kses with the Carve
-     * allowlist (see toHtml/allowedHtml), which is the authoritative gate:
-     * <script>/<style>, event handlers and unsafe URL schemes can never reach
-     * output. This matches how core sanitizes author post content.
-     */
-    private function safeModeFor(string $context): SafeMode
-    {
-        if ($context === 'comment') {
-            return SafeMode::strict();
-        }
-
-        return SafeMode::defaults()->setRawHtmlMode(SafeMode::RAW_HTML_ALLOW);
     }
 
     /**
@@ -563,90 +759,25 @@ class Converter
     }
 
     /**
-     * @param string $context
-     * @param string|null $profileOverride
-     * @param bool|null $safe
-@param array<int, mixed>|null $bibliography
-     * @param string $citationMode
+     * The engine options for a context. `text:<context>` builds the options of
+     * the plain-text derivation: no render-only widgets.
+     *
+     * @return array<string, mixed>
      */
-    private function converterFor(
-        string $context,
-        ?string $profileOverride = null,
-        ?bool $safe = null,
-        ?array $bibliography = null,
-        string $citationMode = 'numbered',
-    ): CarveConverter {
-        $isComment = $context === 'comment';
-        // The visual editor seeds itself from rendered HTML and serializes it
-        // back to Carve source on every edit. Generated, non-round-trippable
-        // markup (a TOC nav, heading permalink anchors, shifted heading levels,
-        // rendered diagram containers) would be frozen into the source on that
-        // round trip, so the 'editor' context renders like a post but omits those
-        // extensions (and the abbreviation defs, see toHtml()).
-        $isEditor = $context === 'editor';
-        // A feed renders like a post and then degrades. Nothing in a feed
-        // reader runs the plugin's JavaScript, so a diagram's hydration
-        // container arrives as an EMPTY div and the diagram is simply gone -
-        // not broken-looking, gone. Static mode falls back to the source as a
-        // code block, which a reader can at least read.
-        $isFeed = $context === 'feed';
-        $safeMode = $this->safeModeFor($context);
-        $cacheKey = $context
-            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '')
-            . ':cite:' . $citationMode . ':' . md5((string)wp_json_encode($bibliography));
-        if (isset($this->cache[$cacheKey])) {
-            return $this->cache[$cacheKey];
-        }
-
-        $profileName = $profileOverride !== null && $profileOverride !== ''
-            ? $profileOverride
-            : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
-        $softBreak = (string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline');
-
-        $converter = new CarveConverter(
-            safeMode: $safeMode,
-            profile: $this->profile($profileName),
-            softBreakMode: SoftBreakMode::tryFrom($softBreak) ?? SoftBreakMode::Newline,
-        );
-
-        // Carve preserves tabs by default; opt into normalization for consistent display.
-        if (!empty($this->settings['normalize_tabs'])) {
-            $converter->addExtension(new TabNormalizeExtension(width: (int)($this->settings['tab_width'] ?? 2)));
-        }
-
-        if ($isFeed) {
-            $converter->setRenderMode(RenderMode::STATIC);
-        }
-
-        if (!$isComment) {
-            $this->addPostExtensions($converter, $isEditor, $bibliography, $citationMode, $isFeed);
-        }
-
-        /**
-         * Allow add-ons to register further carve-php extensions on the converter.
-         *
-         * The 'editor' context is the visual-editor seed: add-ons should apply
-         * round-trippable content extensions for 'post' and 'editor' alike, but
-         * generated markup (TOC-like) for 'post' only. See docs/hooks.md.
-         *
-         * @param \MarkupCarve\Carve\CarveConverter $converter
-         * @param string $context 'post', 'comment', or 'editor'.
-         */
-        do_action('wpcarve_converter', $converter, $context);
-
-        return $this->cache[$cacheKey] = $converter;
-    }
-
-    /**
-     * Build the plain-text target with the same context profile and
-     * parser-level configuration as the HTML target. Render-only extensions
-     * are intentionally omitted because their output is HTML UI markup.
-     */
-    private function textConverterFor(string $context, ?string $profileOverride = null): CarveConverter
+    private function optionsFor(string $context, ?string $profileOverride = null): array
     {
-        $isComment = $context === 'comment';
-        $cacheKey = 'text:' . $context
-            . ($profileOverride !== null && $profileOverride !== '' ? ':' . $profileOverride : '');
+        $forText = str_starts_with($context, 'text:');
+        $base = $forText ? substr($context, 5) : $context;
+        $isComment = $base === 'comment';
+        // The visual editor seeds itself from rendered HTML and serializes it
+        // back to Carve source, so generated, non-round-trippable markup stays
+        // out of the 'editor' context (and the abbreviation defs, see toHtml()).
+        $isEditor = $base === 'editor';
+        // A feed renders like a post and then degrades: nothing in a feed reader
+        // runs the plugin's JavaScript, so static mode writes the extension
+        // fallbacks (a diagram becomes its readable source block).
+        $isFeed = $base === 'feed';
+        $cacheKey = $context . ':' . ($profileOverride ?? '');
         if (isset($this->cache[$cacheKey])) {
             return $this->cache[$cacheKey];
         }
@@ -654,56 +785,241 @@ class Converter
         $profileName = $profileOverride !== null && $profileOverride !== ''
             ? $profileOverride
             : (string)($this->settings[$isComment ? 'comment_profile' : 'post_profile'] ?? ($isComment ? 'comment' : 'article'));
-        $converter = CarveConverter::plainText()->setProfile($this->profile($profileName));
 
-        // Footnote references remain useful in prose, but definitions are
-        // document-end apparatus and should not become excerpt/search text.
-        $renderer = $converter->getRenderer();
-        if ($renderer instanceof PlainTextRenderer) {
-            $renderer->on('render.footnote', static function (RenderEvent $event): void {
-                $event->setHtml('');
-            });
+        $options = [
+            // 0.2 has no profile-free mode; 'none' was full without denials.
+            'profile' => in_array($profileName, ['full', 'article', 'comment', 'minimal'], true) ? $profileName : ($profileName === 'none' ? 'full' : 'article'),
+            // Authored surfaces may emit raw HTML where the profile allows raw
+            // nodes (Full only); wp_kses stays the authoritative gate. Comments
+            // never do (upgrade row U-076: rawHtml defaults to false).
+            'rawHtml' => !$isComment,
+            // Headings keep their ids on the heading element, as in 0.1, so TOC
+            // and permalink anchors resolve.
+            'sections' => false,
+            // 0.2 makes smart typography core and on by default; the plugin
+            // setting keeps its 0.1 default (off).
+            'smartTypography' => !empty($this->settings['smart_quotes']) && !$isComment,
+        ];
+        $softBreak = (string)($this->settings[$isComment ? 'comment_soft_break' : 'post_soft_break'] ?? 'newline');
+        if (in_array($softBreak, ['space', 'br'], true)) {
+            $options['softBreak'] = $softBreak;
+        }
+        if ($isFeed) {
+            $options['mode'] = 'static';
+        }
+        $headingShift = max(0, min(5, (int)($this->settings['heading_shift'] ?? 0)));
+        if ($headingShift > 0 && !$forText && !$isEditor && !$isComment) {
+            $options['headingShift'] = $headingShift;
+        }
+        if (!$isComment && !empty($this->settings['mentions_enabled'])) {
+            $options['social'] = [
+                'mentionUrl' => self::archiveTemplate('wpcarve_mention_url', 'author'),
+                'tagUrl' => self::archiveTemplate('wpcarve_tag_url', 'tag'),
+            ];
         }
 
-        if (!empty($this->settings['normalize_tabs'])) {
-            $converter->addExtension(new TabNormalizeExtension(width: (int)($this->settings['tab_width'] ?? 2)));
-        }
-
-        // Wiki links have to be recognized here too, or `[[Page Title]]` reaches
-        // an excerpt as its markup - which is the one thing an excerpt must not
-        // show. Every other construct is already handled: the plain-text
-        // renderer knows the core markers, and a mention or tag reads correctly
-        // as `@name` and `#tag` whether or not it became a link.
-        //
-        // The resolver deliberately does NOT look anything up. Plain text
-        // discards the href, so resolving would spend a get_page_by_path() per
-        // link on every archive page to produce a string nothing reads.
+        $extensions = [];
+        $renderers = [];
         if (!$isComment && !empty($this->settings['wikilinks_enabled'])) {
-            $converter->addExtension(new WikilinksExtension(
-                urlGenerator: static fn (string $page): string => '#',
+            $extensions = array_merge($extensions, Standard::definitions('carve.wiki') ?? []);
+        }
+        if ($options['smartTypography'] && is_string($this->settings['smart_quotes_locale'] ?? null) && $this->settings['smart_quotes_locale'] !== '') {
+            $extensions[] = SmartQuotes::bundle($this->settings['smart_quotes_locale']);
+        }
+        if (!$isComment) {
+            foreach (Extensions::enabled($this->settings) as $name) {
+                if (($isEditor || $forText) && !in_array($name, Extensions::INLINE, true)) {
+                    continue;
+                }
+                [$items, $modes] = Extensions::registration($name);
+                $extensions = array_merge($extensions, $items);
+                $renderers += $modes;
+            }
+        }
+        // Render-only: an iframe does not serialize back to the directive, and
+        // an excerpt would show the embed URL. A feed gets the link (static mode).
+        if (!$isComment && !$isEditor && !$forText && !empty($this->settings['media_embed_enabled']) && class_exists(MediaEmbedExtension::class)) {
+            $extensions[] = new MediaEmbedExtension();
+        }
+        if (!empty($this->settings['torchlight_enabled']) && !$isEditor && !$forText && class_exists(TorchlightExtension::class)) {
+            $options['codeBlockRenderer'] = self::torchlightRenderer($this->diffBlocks, new TorchlightExtension(
+                (string)($this->settings['torchlight_theme'] ?? 'github-light'),
+                (bool)($this->settings['torchlight_line_numbers'] ?? false),
+                (string)($this->settings['torchlight_theme_dark'] ?? ''),
             ));
         }
+        if (!$isComment && !$isEditor && !$forText) {
+            if (!empty($this->settings['heading_numbers'])) {
+                $extensions[] = Navigation::headingNumbers();
+            }
+            $enabled = [];
+            foreach (Diagrams::all() as $name => $diagram) {
+                if (!empty($this->settings[Diagrams::settingKey($name)])) {
+                    $enabled[$name] = $diagram;
+                }
+            }
+            if ($enabled !== []) {
+                $extensions[] = new DiagramFences($enabled);
+            }
+        }
 
         /**
-         * Allow add-ons to register parser-level carve-php extensions on the
-         * plain-text converter.
+         * Filter the carve-php 0.2 extensions for a context: a list of
+         * ExtensionDefinition or ExtensionProvider instances (the `extensions`
+         * option). Replaces the 0.1 `wpcarve_converter` action. See docs/hooks.md.
          *
-         * @param \MarkupCarve\Carve\CarveConverter $converter
-         * @param string $context 'post', 'comment', or 'editor'.
+         * @param array<mixed> $extensions
+         * @param string $context 'post', 'comment', 'feed', 'editor' or 'text:<context>'.
          */
-        do_action('wpcarve_converter', $converter, $context);
+        $options['extensions'] = array_values((array)apply_filters('wpcarve_extensions', $extensions, $context));
+        if ($renderers !== []) {
+            $options['renderers'] = $renderers;
+        }
 
-        return $this->cache[$cacheKey] = $converter;
+        return $this->cache[$cacheKey] = $options;
     }
 
     /**
-     * @param \MarkupCarve\Carve\CarveConverter $converter
-     * @param bool $forEditor Rendering to seed the visual editor. Skips generated
-     *   markup that cannot survive the HTML -> Carve round trip (TOC, heading
-     *   permalinks, heading level shift, diagram renderers), mirroring wp-djot's
-     *   editor render path. All content-authoring extensions stay enabled.
-     *   (Abbreviation defs are handled separately in toHtml().)
+     * The engine's `codeBlockRenderer`: Torchlight HTML for a code block, or
+     * null to keep the engine's block.
+     *
+     * @param \ArrayObject<string, true> $diffBlocks
+     * @param \WpCarve\Extension\TorchlightExtension $torchlight
      */
+    private static function torchlightRenderer(ArrayObject $diffBlocks, TorchlightExtension $torchlight): Closure
+    {
+        return static function (Node $node, string $html) use ($diffBlocks, $torchlight): ?string {
+            $attrs = [];
+            $own = $node->f['attrs'] ?? null;
+            if ($own instanceof Attrs) {
+                if ($own->classes !== []) {
+                    $attrs['class'] = implode(' ', $own->classes);
+                }
+                foreach ($own->pairs as [$name, $value]) {
+                    $attrs[$name] = $value;
+                }
+            }
+            if (!isset($attrs['title']) && preg_match('/^<pre\b[^>]*\stitle="([^"]*)"/', $html, $m) === 1) {
+                $attrs['title'] = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            }
+
+            return $torchlight->highlight(
+                (string)($node->f['value'] ?? ''),
+                (string)($node->f['syntax'] ?? ''),
+                $attrs,
+                isset($diffBlocks[$node->file . ':' . $node->end]),
+            );
+        };
+    }
+
+    /**
+     * Features the 0.1 engine provided as extensions and 0.2 dropped, rebuilt
+     * on the rendered HTML: external link attributes, heading permalinks, the
+     * injected table of contents and turning mentions off.
+     */
+    private function presentHostFeatures(string $html, string $context): string
+    {
+        $s = $this->settings;
+        $isComment = $context === 'comment';
+        $isEditor = $context === 'editor';
+        $isFeed = $context === 'feed';
+
+        // @mention and #tag are core syntax in 0.2 and cannot be denied, so with
+        // mentions off the span the engine writes goes back to its text.
+        if (empty($s['mentions_enabled'])) {
+            $html = (string)preg_replace('/<span class="(?:mention|tag)"><strong>([@#][^<]*)<\/strong><\/span>/', '$1', $html);
+        }
+        if ($isComment) {
+            return $html;
+        }
+        if (!empty($s['external_links'])) {
+            $html = self::markExternalLinks($html, !empty($s['external_links_new_tab']), !empty($s['external_links_nofollow']));
+        }
+        if ($isEditor) {
+            return $html;
+        }
+        // `::: toc` places a contents list where the author wrote it (the 0.1
+        // TocPlacementExtension); not gated on toc_enabled, which controls the
+        // injected list below.
+        $html = (string)preg_replace_callback(
+            '/<div class="toc">\s*<\/div>/',
+            static fn (): string => '<nav class="toc"><ul>' . self::tocItems($html, 2, 6) . '</ul></nav>',
+            $html,
+        );
+        if (!empty($s['toc_enabled']) && !$isFeed) {
+            $html = self::injectToc(
+                $html,
+                (int)($s['toc_min_level'] ?? 2),
+                (int)($s['toc_max_level'] ?? 4),
+                (string)($s['toc_list_type'] ?? 'ul') === 'ol' ? 'ol' : 'ul',
+                (string)($s['toc_position'] ?? 'top'),
+            );
+        }
+        // A feed carries no CSS, so a hover-only anchor would show as a bare pilcrow.
+        if (!empty($s['permalinks_enabled']) && !$isFeed) {
+            $anchor = '<span class="permalink-wrapper"><a class="permalink" href="#$3" aria-label="' . esc_attr__('Permalink', 'carve-markup') . '">¶</a></span>';
+            $html = (string)preg_replace('/<h([1-6])( id="([^"]+)")([^>]*)>(.*?)<\/h\1>/s', '<h$1$2$4>$5' . $anchor . '</h$1>', $html);
+            // A shifted level above 6 renders as a div heading (C2-H-021).
+            $html = (string)preg_replace('/<div( role="heading" aria-level="\d+")( id="([^"]+)")([^>]*)>(.*?)<\/div>/s', '<div$1$2$4>$5' . $anchor . '</div>', $html);
+        }
+
+        return $html;
+    }
+
+    private static function markExternalLinks(string $html, bool $newTab, bool $nofollow): string
+    {
+        $internal = self::internalHosts();
+
+        return (string)preg_replace_callback(
+            '/<a href="(https?:\/\/[^"]+)"([^>]*)>/i',
+            static function (array $m) use ($internal, $newTab, $nofollow): string {
+                $host = wp_parse_url(html_entity_decode($m[1]), PHP_URL_HOST);
+                if (!is_string($host) || in_array(strtolower($host), array_map('strtolower', $internal), true)) {
+                    return $m[0];
+                }
+                $attrs = $m[2];
+                $authored = preg_match('/ rel="([^"]*)"/', $attrs, $rm) === 1 ? preg_split('/\s+/', trim($rm[1])) ?: [] : [];
+                $rel = array_values(array_unique(array_filter(array_merge($authored, ['noopener', 'noreferrer', $nofollow ? 'nofollow' : '']))));
+                $attrs = (string)preg_replace('/ rel="[^"]*"/', '', $attrs) . ' rel="' . implode(' ', $rel) . '"';
+                if ($newTab && !str_contains($attrs, ' target=')) {
+                    $attrs .= ' target="_blank"';
+                }
+
+                return '<a href="' . $m[1] . '"' . $attrs . '>';
+            },
+            $html,
+        );
+    }
+
+    /**
+     * A collapsible contents list of the headings in a level range, placed at
+     * the top or bottom of the content (`none` places nothing).
+     */
+    private static function tocItems(string $html, int $min, int $max): string
+    {
+        preg_match_all('/<h([1-6]) id="([^"]+)"[^>]*>(.*?)<\/h\1>/s', $html, $matches, PREG_SET_ORDER);
+        $items = '';
+        foreach ($matches as $m) {
+            $level = (int)$m[1];
+            if ($level >= $min && $level <= $max) {
+                $items .= '<li class="toc-level-' . $level . '"><a href="#' . $m[2] . '">' . wp_strip_all_tags($m[3]) . '</a></li>';
+            }
+        }
+
+        return $items;
+    }
+
+    private static function injectToc(string $html, int $min, int $max, string $listType, string $position): string
+    {
+        $items = $position === 'none' ? '' : self::tocItems($html, $min, $max);
+        if ($items === '') {
+            return $html;
+        }
+        $toc = '<details class="toc"><summary>' . esc_html__('Table of Contents', 'carve-markup') . '</summary><'
+            . $listType . '>' . $items . '</' . $listType . '></details>';
+
+        return $position === 'bottom' ? $html . "\n" . $toc : $toc . "\n" . $html;
+    }
 
     /**
      * The hosts that count as this site, so everything else is "external".
@@ -747,232 +1063,5 @@ class Converter
         }
 
         return (string)apply_filters($filter, $template, $base);
-    }
-
-    /**
-     * Resolve `[[Page Title]]` against real content.
-     *
-     * An unresolved link deliberately becomes `#` rather than disappearing or
-     * guessing a URL: the anchor stays in the document, keeps its `wikilink`
-     * class and its `data-wikilink` title, and a theme can style
-     * `a.wikilink[href="#"]` as a broken link the way a wiki does. Silently
-     * dropping it would hide the fact that a page is missing, which is the one
-     * thing this construct is for.
-     */
-    private static function wikilinkUrl(string $page): string
-    {
-        /** @var string|null $resolved */
-        $resolved = apply_filters('wpcarve_wikilink_url', null, $page);
-        if (is_string($resolved) && $resolved !== '') {
-            return $resolved;
-        }
-
-        if (!function_exists('get_page_by_path') || !function_exists('sanitize_title')) {
-            return '#';
-        }
-
-        $post = get_page_by_path(sanitize_title($page), OBJECT, ['post', 'page']);
-        if ($post === null || !function_exists('get_permalink')) {
-            return '#';
-        }
-
-        return (string)get_permalink($post);
-    }
-
-    /**
-     * @param \MarkupCarve\Carve\CarveConverter $converter
-     * @param bool $forEditor
-     * @param array<int, mixed>|null $bibliography
-     * @param string $citationMode
-     * @param bool $forFeed
-     */
-    private function addPostExtensions(
-        CarveConverter $converter,
-        bool $forEditor = false,
-        ?array $bibliography = null,
-        string $citationMode = 'numbered',
-        bool $forFeed = false,
-    ): void {
-        $s = $this->settings;
-
-        // carve-php ships more extensions than this method registers, and every
-        // one of them is reachable through the `wpcarve_converter` action
-        // without patching the plugin. docs/extensions.md accounts for each
-        // absence - an unexplained one reads as an oversight rather than a
-        // decision, and the question gets re-asked every release.
-        //
-        // Semantic inline spans round-trip; always on.
-        $converter->addExtension(new SemanticSpanExtension());
-        $converter->addExtension(new CitationsExtension(
-            mode: $citationMode === 'author-date' ? 'author-date' : 'numbered',
-            bibliography: $bibliography,
-        ));
-
-        // These turn ::: fenced divs into HTML5 <details>/tab interfaces the
-        // visual editor cannot parse back (their content is lost on the round
-        // trip). The editor seed keeps the raw generic <div class="..."> instead,
-        // which carveDiv round-trips; the front end still gets the rich markup.
-        // A quoted summary seeds as an admonition-title paragraph, which
-        // carve-grammars' carveDiv captures as a title attribute and serializes
-        // back as ::: class "title" - titled disclosures and admonitions
-        // round-trip losslessly.
-        if (!$forEditor) {
-            $converter->addExtension(new CodeGroupExtension());
-            $converter->addExtension(new TabsExtension());
-            $converter->addExtension(new DetailsExtension());
-            $converter->addExtension(new SpoilerExtension());
-            $converter->addExtension(new ListTableExtension());
-            // ```img SVG fence, rendered on the front end only. Sandbox mode
-            // (the default): the sanitized SVG is encoded into a
-            // data:image/svg+xml <img> the browser isolates. Inline mode is
-            // deliberately NOT enabled - it would put author SVG in the live
-            // page DOM, unsafe for user-submitted content. The editor seed
-            // keeps the raw ```img source so it round-trips.
-            $converter->addExtension(new ImgFenceExtension());
-            // `::: toc` places a contents list where the author wrote it. Not
-            // gated on toc_enabled: that setting controls the TOC the plugin
-            // INJECTS at the top or bottom of every post, while this directive
-            // is authored content. Gating it would reproduce the bug it fixes -
-            // without the extension the div is claimed by nothing and renders as
-            // an empty, CSS-styled `<div class="toc">` box.
-            //
-            // Out of the editor seed with the rest of the generated markup: the
-            // unregistered path leaves the generic div, which carveDiv
-            // serializes straight back to `::: toc`, so the directive survives
-            // the round trip intact.
-            $converter->addExtension(new TocPlacementExtension());
-        }
-
-        $shift = (int)($s['heading_shift'] ?? 0);
-        if ($shift > 0 && !$forEditor) {
-            $converter->addExtension(new HeadingLevelShiftExtension(shift: $shift));
-        }
-
-        // Not in a feed: a table of contents is a list of `#anchor` links into
-        // a page the reader is not on, so every entry is dead there.
-        if (!empty($s['toc_enabled']) && !$forEditor && !$forFeed) {
-            $position = (string)($s['toc_position'] ?? 'top');
-            $converter->addExtension(new TableOfContentsExtension(
-                minLevel: (int)($s['toc_min_level'] ?? 2),
-                maxLevel: (int)($s['toc_max_level'] ?? 4),
-                listType: (string)($s['toc_list_type'] ?? 'ul'),
-                position: $position === 'none' ? null : $position,
-                // Render the TOC as a collapsible disclosure (closed by default,
-                // opens on click) so a long contents list stays out of the way.
-                collapsible: true,
-                summary: __('Table of Contents', 'carve-markup'),
-            ));
-        }
-
-        // Not in a feed either, and for a sharper reason: `showOnHover` marks
-        // the anchor for CSS that hides it until hover, and a feed carries no
-        // CSS - so every heading arrives with a bare visible pilcrow.
-        if (!empty($s['permalinks_enabled']) && !$forEditor && !$forFeed) {
-            $converter->addExtension(new HeadingPermalinksExtension(showOnHover: true));
-        }
-
-        // Numbering is generated markup, not content, so it stays out of the
-        // editor - serializing it back would freeze a site setting into the
-        // post source, the same reason permalinks are gated above.
-        //
-        // It DOES go in a feed, unlike the two above: a section number is
-        // static text that reads correctly with no CSS, no JavaScript and no
-        // page to anchor into.
-        if (!empty($s['heading_numbers']) && !$forEditor) {
-            $converter->addExtension(new HeadingNumbersExtension());
-        }
-
-        if (!empty($s['external_links'])) {
-            $converter->addExtension(new ExternalLinksExtension(
-                internalHosts: self::internalHosts(),
-                target: !empty($s['external_links_new_tab']) ? '_blank' : '',
-                nofollow: !empty($s['external_links_nofollow']),
-            ));
-        }
-
-        if (!empty($s['mentions_enabled'])) {
-            $converter->addExtension(new MentionsExtension(
-                mentionUrl: self::archiveTemplate('wpcarve_mention_url', 'author'),
-                tagUrl: self::archiveTemplate('wpcarve_tag_url', 'tag'),
-            ));
-        }
-
-        if (!empty($s['wikilinks_enabled'])) {
-            $converter->addExtension(new WikilinksExtension(
-                urlGenerator: static fn (string $page): string => self::wikilinkUrl($page),
-            ));
-        }
-
-        if (!empty($s['smart_quotes'])) {
-            $converter->addExtension(new SmartQuotesExtension(locale: (string)($s['smart_quotes_locale'] ?? 'en')));
-        }
-
-        // Diagram renderers turn a fenced block (```mermaid, ```chart, ...) into a
-        // rendered container whose fence language is lost on the HTML -> Carve
-        // round trip, degrading the diagram to a plain code block. The editor seed
-        // keeps the raw fence instead - it round-trips and stays editable.
-        foreach ($forEditor ? [] : Diagrams::all() as $name => $diagram) {
-            if (empty($s[Diagrams::settingKey($name)])) {
-                continue;
-            }
-            $preset = $diagram['preset'] ?? null;
-            if (is_string($preset) && method_exists(FencedRenderExtension::class, $preset)) {
-                $converter->addExtension(FencedRenderExtension::$preset());
-
-                continue;
-            }
-            $class = (string)($diagram['class'] ?? $name);
-            $mode = ($diagram['mode'] ?? 'text') === 'json'
-                ? FencedRenderExtension::MODE_JSON
-                : FencedRenderExtension::MODE_TEXT;
-            // The fence word(s) this instance claims: the class plus any
-            // aliases (e.g. `puml` -> `<pre class="plantuml">`), so alias
-            // fences work even without a dedicated carve-php preset factory.
-            $languages = array_merge([$class], array_map('strval', (array)($diagram['aliases'] ?? [])));
-            $converter->addExtension(new FencedRenderExtension(
-                language: $languages,
-                cssClass: $class,
-                contentMode: $mode,
-            ));
-        }
-
-        if (!empty($s['media_embed_enabled']) && class_exists(MediaEmbedExtension::class)) {
-            $converter->addExtension(new MediaEmbedExtension());
-        }
-
-        // Torchlight rewrites <pre> blocks into highlighted line spans that the
-        // visual editor cannot fold back into a code block - the whole fence
-        // degrades to inline-code lines on round-trip. Editor ingest needs the
-        // plain fence, like the other display-only extensions above.
-        if (!empty($s['torchlight_enabled']) && !$forEditor && class_exists(TorchlightExtension::class)) {
-            $converter->addExtension(new TorchlightExtension(
-                (string)($s['torchlight_theme'] ?? 'github-light'),
-                (bool)($s['torchlight_line_numbers'] ?? false),
-                (string)($s['torchlight_theme_dark'] ?? ''),
-            ));
-        }
-    }
-
-    private function profile(string $name): ?Profile
-    {
-        $profile = match ($name) {
-            'full' => Profile::full(),
-            'comment' => Profile::comment(),
-            'minimal' => Profile::minimal(),
-            'none' => null,
-            default => Profile::article(),
-        };
-
-        if (!empty($this->settings['mentions_enabled'])) {
-            return $profile;
-        }
-
-        // @mention and #tag are core engine syntax that CarveConverter::parse()
-        // auto-registers on first parse, so NOT adding MentionsExtension hands
-        // the job to the engine default rather than turning it off. The deny
-        // list is the engine's own off switch: ACTION_TO_TEXT (the default)
-        // returns the node to its literal `@name` source text. A 'none' profile
-        // carries no other denials, so Profile::full() matches it.
-        return ($profile ?? Profile::full())->denyInline([NodeType::MENTION]);
     }
 }

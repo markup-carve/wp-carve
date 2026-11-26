@@ -7,6 +7,7 @@ namespace WpCarve\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Torchlight\Engine\Engine;
 use WpCarve\Converter;
 
 #[UsesClass(Converter::class)]
@@ -211,6 +212,8 @@ class ConverterTest extends TestCase
      * here whenever a new render-side extension is introduced.
      *
      * @param array<string, mixed> $settings
+     * @param string $generatedMarker
+     * @param string $carve
      */
     #[DataProvider('editorSeedProvider')]
     public function testEditorSeedOmitsGeneratedMarkup(array $settings, string $carve, string $generatedMarker): void
@@ -221,14 +224,14 @@ class ConverterTest extends TestCase
         $this->assertStringContainsString(
             $generatedMarker,
             $converter->toHtml($carve, 'post'),
-            'post context should inject the generated markup'
+            'post context should inject the generated markup',
         );
 
         // 'editor' seeds the visual editor: nothing generated to freeze into source.
         $this->assertStringNotContainsString(
             $generatedMarker,
             $converter->toHtml($carve, 'editor'),
-            'editor seed must not carry non-round-trippable markup'
+            'editor seed must not carry non-round-trippable markup',
         );
     }
 
@@ -239,19 +242,19 @@ class ConverterTest extends TestCase
     {
         return [
             // name              => [ settings,                              carve source,                              marker only 'post' should render ]
-            'table of contents'  => [['toc_enabled' => true],               "# A\n\n## B\n\ntext",                      'class="toc"'],
-            'heading permalinks' => [['permalinks_enabled' => true],        "# A\n\n## B",                              'class="permalink"'],
-            'abbreviations'      => [['abbreviations' => 'HTML: HyperText Markup Language'], 'We use HTML often.',        '<abbr'],
-            'diagram (mermaid)'  => [['mermaid_enabled' => true],           "``` mermaid\ngraph TD; A-->B;\n```",        'class="mermaid"'],
-            'heading level shift' => [['heading_shift' => 2],               '# A',                                      '<h3'],
+            'table of contents' => [['toc_enabled' => true], "# A\n\n## B\n\ntext", 'class="toc"'],
+            'heading permalinks' => [['permalinks_enabled' => true], "# A\n\n## B", 'class="permalink"'],
+            'abbreviations' => [['abbreviations' => 'HTML: HyperText Markup Language'], 'We use HTML often.', '<abbr'],
+            'diagram (mermaid)' => [['mermaid_enabled' => true], "``` mermaid\ngraph TD; A-->B;\n```", 'class="mermaid"'],
+            'heading level shift' => [['heading_shift' => 2], '# A', '<h3'],
             // Details/spoiler render <details> on the front end but the editor
             // seed keeps the generic <div class="..."> so carveDiv round-trips.
-            'details disclosure' => [[],                                    "::: details \"More\"\nBody.\n:::",         '<details'],
-            'spoiler disclosure' => [[],                                    "::: spoiler \"Reveal\"\nSecret.\n:::",     '<details'],
+            'details disclosure' => [[], "::: details \"More\"\nBody.\n:::", '<details'],
+            'spoiler disclosure' => [[], "::: spoiler \"Reveal\"\nSecret.\n:::", '<details'],
             // ```img renders a sandboxed data:image/svg+xml <img> on the front
             // end; the editor seed keeps the raw ```img code block (no data URI)
             // so the source round-trips.
-            'svg img fence'      => [[], "``` img\n<svg viewBox=\"0 0 24 24\"><path d=\"M4 12l4 4 8-8\"/></svg>\n```", 'data:image/svg+xml'],
+            'svg img fence' => [[], "``` img\n<svg viewBox=\"0 0 24 24\"><path d=\"M4 12l4 4 8-8\"/></svg>\n```", 'data:image/svg+xml'],
         ];
     }
 
@@ -344,7 +347,7 @@ class ConverterTest extends TestCase
 
     public function testTorchlightCodeBlockPreservesAttributesAndLineNumbers(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -382,7 +385,7 @@ CARVE;
 
     public function testTorchlightSpecialLineAttributesAreKsesSafe(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -407,7 +410,7 @@ CARVE;
 
     public function testADiffFenceKeepsBothHighlightingAndDiffRows(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -433,7 +436,7 @@ CARVE;
 
     public function testADiffFenceStripsTheMarkerBeforeHighlighting(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -453,7 +456,7 @@ CARVE;
 
     public function testADiffFenceWithLineNumbersPutsTheMarkerAfterTheNumber(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -473,7 +476,7 @@ CARVE;
 
     public function testADiffFenceWithLineNumbersOrdersGutterThenMarkerThenTokens(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -527,7 +530,7 @@ CARVE;
 
     public function testTorchlightLineNumbersCanBeEnabledGlobally(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -544,7 +547,7 @@ CARVE;
 
     public function testTorchlightPerBlockThemeOverridesGlobalSetting(): void
     {
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('Torchlight Engine is not installed.');
         }
 
@@ -572,7 +575,7 @@ CARVE;
         if (!file_exists($grammar)) {
             $this->markTestSkipped('markup-carve/carve-grammars TextMate grammar not installed');
         }
-        if (!class_exists(\Torchlight\Engine\Engine::class)) {
+        if (!class_exists(Engine::class)) {
             $this->markTestSkipped('torchlight/engine not installed');
         }
 
@@ -614,6 +617,7 @@ CARVE;
     }
 
     /**
+     * @param string $source
      * @param array<string> $expected
      */
     #[DataProvider('adjacentHighlightedFencesProvider')]
@@ -633,15 +637,17 @@ CARVE;
     public function testCslBibliographyRendersNumberedCitationsAndReferences(): void
     {
         $converter = new Converter(['post_profile' => 'article']);
-        $bibliography = [[
-            'id' => 'knuth84',
-            'author' => [['family' => 'Knuth', 'given' => 'Donald']],
-            'issued' => ['date-parts' => [[1984]]],
-            'title' => 'Literate Programming',
-        ]];
+        $bibliography = [
+            [
+                'id' => 'knuth84',
+                'author' => [['family' => 'Knuth', 'given' => 'Donald']],
+                'issued' => ['date-parts' => [[1984]]],
+                'title' => 'Literate Programming',
+            ],
+        ];
 
         $html = $converter->toHtml(
-            "See [@knuth84].\n\n::: references\n:::",
+            "See :cite[knuth84].\n\n::: references\n:::",
             bibliography: $bibliography,
         );
 
@@ -716,16 +722,84 @@ CARVE;
     {
         $converter = new Converter([]);
 
+        // 0.2 (C2-X-060): the sanitizer keeps only inert shape elements, so a
+        // `<title>` refuses the image, and the image has an empty alt.
         $html = $converter->toHtml(
             "```img\n<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\">"
-            . "<title>A dot</title><circle cx=\"5\" cy=\"5\" r=\"4\"/></svg>\n```\n",
+            . "<circle cx=\"5\" cy=\"5\" r=\"4\"/></svg>\n```\n",
         );
 
-        $this->assertSame(1, preg_match('/<img src="([^"]*)" alt="A dot">/', $html, $m), $html);
+        $this->assertSame(1, preg_match('/<img src="([^"]*)" alt="">/', $html, $m), $html);
         $this->assertMatchesRegularExpression(
             '/^data:image\/svg\+xml,[A-Za-z0-9%\-_.~!*\'()]*$/',
             $m[1],
         );
         $this->assertStringContainsString('%3Csvg', $m[1]);
+    }
+
+    public function testMediaEmbedsRenderAsFramesInAPostAndAsLinksInAFeed(): void
+    {
+        $converter = new Converter(['media_embed_enabled' => true]);
+        $source = "Watch :youtube[dQw4w9WgXcQ] and :media[https://vimeo.com/76979871].\n";
+
+        $post = $converter->toHtml($source);
+        $this->assertStringContainsString('<iframe data-carve-source=":youtube[dQw4w9WgXcQ]" src="//www.youtube.com/embed/dQw4w9WgXcQ', $post);
+        $this->assertStringContainsString('src="//player.vimeo.com/video/76979871', $post);
+
+        $feed = $converter->toHtml($source, 'feed');
+        $this->assertStringNotContainsString('<iframe', $feed);
+        $this->assertStringContainsString('<a data-carve-source=":youtube[dQw4w9WgXcQ]" href="//www.youtube.com/embed/dQw4w9WgXcQ', $feed);
+    }
+
+    public function testMediaEmbedsStayUnclaimedWhenOffAndInComments(): void
+    {
+        $source = "Watch :youtube[dQw4w9WgXcQ].\n";
+
+        $this->assertSame('<p>Watch <span class="ext-youtube">dQw4w9WgXcQ</span>.</p>', trim((new Converter([]))->toHtml($source)));
+        $this->assertSame(
+            '<p>Watch <span class="ext-youtube">dQw4w9WgXcQ</span>.</p>',
+            trim((new Converter(['media_embed_enabled' => true]))->toHtml($source, 'comment')),
+        );
+    }
+
+    public function testMediaEmbedsStayOutOfPlainText(): void
+    {
+        $this->assertSame('Watch dQw4w9WgXcQ.', trim((new Converter(['media_embed_enabled' => true]))->toText("Watch :youtube[dQw4w9WgXcQ].\n")));
+    }
+
+    public function testHeadingShiftReachesTheEngine(): void
+    {
+        // carve#6325: the engine shifts levels; ids keep the authored text.
+        $html = (new Converter(['heading_shift' => 1]))->toHtml("# Chapter\n\n## Section\n");
+
+        $this->assertStringContainsString('<h2 id="Chapter">Chapter</h2>', $html);
+        $this->assertStringContainsString('<h3 id="Section">Section</h3>', $html);
+    }
+
+    public function testHeadingShiftAboveSixKeepsTheLevel(): void
+    {
+        // C2-H-021: a shifted level above 6 is an aria heading, not a clamped h6.
+        $html = (new Converter(['heading_shift' => 2]))->toHtml("##### Deep\n");
+
+        $this->assertStringContainsString('aria-level="7"', $html);
+    }
+
+    public function testHeadingShiftOutsideTheRangeIsClamped(): void
+    {
+        $this->assertStringContainsString('<h6', (new Converter(['heading_shift' => 9]))->toHtml("# A\n"));
+        $this->assertStringContainsString('<h1', (new Converter(['heading_shift' => -3]))->toHtml("# A\n"));
+    }
+
+    public function testHeadingShiftSkipsComments(): void
+    {
+        $this->assertStringContainsString('<h1', (new Converter(['heading_shift' => 2, 'comment_profile' => 'article']))->toHtml("# A\n", 'comment'));
+    }
+
+    public function testPermalinksReachShiftedHeadingsAboveSix(): void
+    {
+        $html = (new Converter(['heading_shift' => 2, 'permalinks_enabled' => true]))->toHtml("# Top\n\n##### Deep\n");
+
+        $this->assertStringContainsString('<h3 id="Top">Top<span class="permalink-wrapper"><a class="permalink" href="#Top"', $html);
+        $this->assertStringContainsString('aria-level="7" id="Deep">Deep<span class="permalink-wrapper"><a class="permalink" href="#Deep"', $html);
     }
 }

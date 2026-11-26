@@ -8,11 +8,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\CarveConverter;
-use MarkupCarve\Carve\Event\RenderEvent;
-use MarkupCarve\Carve\Extension\ExtensionInterface;
-use MarkupCarve\Carve\Node\Block\CodeBlock;
-use MarkupCarve\Carve\Node\Block\Figure;
 use Phiki\Theme\Theme;
 use Throwable;
 use Torchlight\Engine\Engine;
@@ -22,11 +17,11 @@ use Torchlight\Engine\Options;
  * Server-side syntax highlighting via Torchlight Engine (parity with wp-djot).
  *
  * Torchlight Engine highlights with TextMate grammars locally -- no API token,
- * no network. Hooks carve-php's `render.code_block` event and replaces each
+ * no network. Replaces each
  * fenced block's `<pre><code>` with themed, highlighted HTML. Opt-in; requires
  * the suggested `torchlight/engine` package (it no-ops if absent).
  */
-class TorchlightExtension implements ExtensionInterface
+class TorchlightExtension
 {
     private ?Engine $engine = null;
 
@@ -71,97 +66,82 @@ class TorchlightExtension implements ExtensionInterface
         }
     }
 
-    public function register(CarveConverter $converter): void
+    /**
+     * Highlight one code block; the converter calls it from the engine's
+     * `codeBlockRenderer` option.
+     *
+     * @param string $code The block source.
+     * @param string $language The fence language.
+     * @param array<string, mixed> $attrs Block attributes; `class` is a space-separated list.
+     * @param bool $isDiff Whether the block or its figure carries the `diff` class.
+     *
+     * @return string|null The highlighted HTML, or null to keep the engine's block.
+     */
+    public function highlight(string $code, string $language, array $attrs = [], bool $isDiff = false): ?string
     {
         if ($this->engine === null) {
-            return;
+            return null;
+        }
+        $language = $language !== '' ? $language : 'text';
+        $classes = array_values(array_filter(explode(' ', (string)($attrs['class'] ?? ''))));
+        // In a tsv body the tab is the separator the grammar scopes. A tsv
+        // fence nested in a carve fence still gets spaces, so it stays plain.
+        $code = $language === 'tsv' ? $code : str_replace("\t", '    ', $code);
+        // A `{.diff}` fence keeps its markers out of the highlighter: they are
+        // stripped here and restored after, the same order
+        // carve-grammars/diff/index.js uses.
+        $diffMarkers = [];
+        if ($isDiff || in_array('diff', $classes, true)) {
+            [$code, $diffMarkers] = self::stripDiffMarkers($code);
+        }
+        $gutter = in_array('line-numbers', $classes, true) || $this->showLineNumbers;
+        $start = isset($attrs['data-line-start']) ? (int)$attrs['data-line-start'] : 1;
+        $overrides = ['withGutter' => $gutter];
+        if ($start !== 1) {
+            $overrides['lineNumbersStart'] = $start;
         }
 
-        $converter->on('render.code_block', function (RenderEvent $event): void {
-            $block = $event->getNode();
-            if (!$block instanceof CodeBlock || $this->engine === null) {
-                return;
-            }
-            $language = (string)($block->getLanguage() ?: 'text');
-            // In a tsv body the tab is the separator the grammar scopes. A tsv
-            // fence nested in a carve fence still gets spaces, so it stays plain.
-            $code = $language === 'tsv' ? $block->getContent() : str_replace("\t", '    ', $block->getContent());
-            // A `{.diff}` fence keeps its markers out of the highlighter: they
-            // are stripped here and restored after, the same order
-            // carve-grammars/diff/index.js uses. Highlighting marker-bearing
-            // code mis-tokenizes the body (`-*/ end` lexes `-*/` as an
-            // operator in C), and Converter::presentLanguageDiff cannot run
-            // afterwards because the lines are spans by then.
-            $diffMarkers = [];
-            if (self::isDiffBlock($block)) {
-                [$code, $diffMarkers] = self::stripDiffMarkers($code);
-            }
-            $attrs = $block->getAttributes();
-            $gutter = $block->hasClass('line-numbers') || $this->showLineNumbers;
-            $start = isset($attrs['data-line-start']) ? (int)$attrs['data-line-start'] : 1;
-            $overrides = ['withGutter' => $gutter];
-            if ($start !== 1) {
-                $overrides['lineNumbersStart'] = $start;
+        // Per-block theme override: `{theme=dracula}` on the fence wins over
+        // the global setting. An unknown theme throws and falls back below.
+        $blockTheme = isset($attrs['theme']) && is_string($attrs['theme']) && $attrs['theme'] !== ''
+            ? $attrs['theme']
+            : null;
+        $light = $blockTheme ?? $this->theme;
+        $dark = $blockTheme === null && $this->themeDark !== '' && $this->themeDark !== $light
+            ? $this->themeDark
+            : null;
+        if ($language === 'carve') {
+            $light = $this->carveTheme($light);
+            $dark = $dark === null ? null : $this->carveTheme($dark);
+        }
+        $theme = $dark === null ? $light : ['light' => $light, 'dark' => $dark];
+
+        try {
+            $this->engine->setTorchlightOptions(Options::default()->mergeWith($overrides));
+            $html = $this->engine->codeToHtml($code, $language, $theme);
+            // The engine glues the class attribute onto the preceding quoted
+            // style value (`style="..."class='...'`), which wp_kses drops.
+            $html = preg_replace('/(["\'])class=/', '$1 class=', $html) ?? $html;
+            // Normalize glued dual-theme variables INSIDE style attributes only.
+            $html = preg_replace_callback(
+                '/style=([\'"])(.*?)\1/s',
+                static function (array $m): string {
+                    $value = preg_replace('/(#[0-9a-fA-F]{3,8})(--)/', '$1;$2', $m[2]) ?? $m[2];
+                    $value = preg_replace('/;{2,}/', ';', $value) ?? $value;
+
+                    return 'style=' . $m[1] . $value . $m[1];
+                },
+                $html,
+            ) ?? $html;
+            if ($diffMarkers !== []) {
+                $html = self::restoreDiffMarkers($html, $diffMarkers);
             }
 
-            // Per-block theme override: `{theme=dracula}` on the fence wins over
-            // the global setting. An unknown theme throws and falls back below.
-            $blockTheme = isset($attrs['theme']) && is_string($attrs['theme']) && $attrs['theme'] !== ''
-                ? $attrs['theme']
-                : null;
-            $light = $blockTheme ?? $this->theme;
-            // A configured dark theme renders a second palette in the same
-            // markup (phiki emits --phiki-dark-* custom properties); the
-            // stylesheet switches on prefers-color-scheme. A per-block
-            // {theme=...} override forces that single theme.
-            $dark = $blockTheme === null && $this->themeDark !== '' && $this->themeDark !== $light
-                ? $this->themeDark
-                : null;
-            // For carve fences, use a carve-tuned variant of the theme so the
-            // inline-markup scopes (bold/italic/highlight/...) render distinctly.
-            if ($language === 'carve') {
-                $light = $this->carveTheme($light);
-                $dark = $dark === null ? null : $this->carveTheme($dark);
-            }
-            $theme = $dark === null ? $light : ['light' => $light, 'dark' => $dark];
-
-            try {
-                $this->engine->setTorchlightOptions(Options::default()->mergeWith($overrides));
-                $html = $this->engine->codeToHtml($code, $language, $theme);
-                // The engine glues the class attribute onto the preceding quoted
-                // style value on highlight/diff/focus lines (`style="..."class='...'`).
-                // wp_kses drops such mangled attribute runs entirely, so the line
-                // loses its `line line-highlight` classes on render. Re-insert the
-                // missing space; code content itself is entity-escaped, so the
-                // quote-followed-by-class pattern only occurs at this junction.
-                $html = preg_replace('/(["\'])class=/', '$1 class=', $html) ?? $html;
-                // The dual-theme style attribute glues variable pairs together
-                // (`#e1e4e8--phiki-...`) and doubles semicolons; normalize
-                // INSIDE style attributes only (code text may legitimately
-                // contain `;;`) so wp_kses keeps the attribute and the
-                // browser reads every declaration.
-                $html = preg_replace_callback(
-                    '/style=([\'"])(.*?)\1/s',
-                    static function (array $m): string {
-                        $value = preg_replace('/(#[0-9a-fA-F]{3,8})(--)/', '$1;$2', $m[2]) ?? $m[2];
-                        $value = preg_replace('/;{2,}/', ';', $value) ?? $value;
-
-                        return 'style=' . $m[1] . $value . $m[1];
-                    },
-                    $html,
-                ) ?? $html;
-                if ($diffMarkers !== []) {
-                    $html = self::restoreDiffMarkers($html, $diffMarkers);
-                }
-                // carve-php's own code block ends with a newline, and its
-                // container indentation relies on it: without one the next
-                // <pre> shares this line and its code lines gain the padding.
-                $html = rtrim($this->reapplyPreAttributes($html, $block, $diffMarkers !== [] ? ['has-diff'] : []), "\n") . "\n";
-                $event->setHtml($html);
-            } catch (Throwable) {
-                // Unknown grammar / theme: leave carve-php's plain output in place.
-            }
-        });
+            return rtrim($this->reapplyPreAttributes($html, $language, $classes, $attrs, $diffMarkers !== [] ? ['has-diff'] : []), "\n") . "\n";
+        } catch (Throwable) {
+            // Unknown grammar / theme: keep the engine's plain output.
+            return null;
+        }
     }
 
     /**
@@ -363,22 +343,6 @@ class TorchlightExtension implements ExtensionInterface
     }
 
     /**
-     * A captioned fence's attribute line belongs to its figure, so the
-     * `diff` class sits on the wrapping figure, not on the code block.
-     */
-    private static function isDiffBlock(CodeBlock $block): bool
-    {
-        if ($block->hasClass('diff')) {
-            return true;
-        }
-        $parent = $block->getParent();
-
-        return $parent instanceof Figure
-            && $parent->hasClass('diff')
-            && in_array($block, $parent->getTargets(), true);
-    }
-
-    /**
      * Split a diff fence's code into marker-free lines and the markers.
      *
      * @return array{string, list<string>} The code the highlighter sees, and
@@ -448,14 +412,15 @@ class TorchlightExtension implements ExtensionInterface
 
     /**
      * @param string $html
-     * @param \MarkupCarve\Carve\Node\Block\CodeBlock $block
+     * @param string $language
+     * @param list<string> $classes
+     * @param array<string, mixed> $attrs
      * @param list<string> $additionalClasses
      */
-    private function reapplyPreAttributes(string $html, CodeBlock $block, array $additionalClasses = []): string
+    private function reapplyPreAttributes(string $html, string $language, array $classes, array $attrs, array $additionalClasses = []): string
     {
-        $attrs = $block->getAttributes();
         $extraClasses = array_values(array_filter(
-            array_merge($block->getClassList(), $additionalClasses),
+            array_merge($classes, $additionalClasses),
             static fn (string $class): bool => $class !== 'line-numbers',
         ));
         $extraAttrs = [];
@@ -466,8 +431,7 @@ class TorchlightExtension implements ExtensionInterface
 
         // Expose the language on the <pre> (the engine only sets it on the
         // scrolling <code>) so the stylesheet can pin a language pill.
-        $language = (string)($block->getLanguage() ?? '');
-        if ($language !== '') {
+        if ($language !== '' && $language !== 'text') {
             $extraAttrs['data-lang'] = $language;
         }
 

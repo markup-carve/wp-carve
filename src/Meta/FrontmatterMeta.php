@@ -8,8 +8,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\CarveConverter;
-use MarkupCarve\Carve\Extension\FrontmatterExtension;
+use MarkupCarve\Carve\Carve;
 use WP_Post;
 
 /**
@@ -65,17 +64,14 @@ class FrontmatterMeta
      */
     private function extract(string $content): array
     {
-        $ext = new FrontmatterExtension();
-        $converter = new CarveConverter();
-        $converter->addExtension($ext);
-        $converter->convert($content);
-
-        if (!$ext->hasFrontmatter()) {
+        // Frontmatter is a core node in 0.2: the first child of the document.
+        $first = Carve::parse($content)->children[0] ?? null;
+        if ($first === null || $first->type !== 'frontmatter') {
             return [];
         }
 
-        $format = (string)$ext->getFormat();
-        $raw = (string)$ext->getContent();
+        $format = (string)($first->f['format'] ?? '');
+        $raw = (string)($first->f['value'] ?? '');
 
         if ($format === 'json') {
             $decoded = json_decode($raw, true);

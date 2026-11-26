@@ -77,7 +77,9 @@ class UntrustedBudgetTest extends TestCase
 
     public function testDepthFallbackIsReevaluatedAfterRaisingBudget(): void
     {
-        $source = "> a\n> > b\n> > > c";
+        // 0.2 (U-002): a quote line directly under quoted text continues the
+        // paragraph, so the nested quotes need a blank quoted line each.
+        $source = "> a\n>\n> > b\n> >\n> > > c";
         \update_comment_meta(19, '_wpcarve_raw', $source);
         $GLOBALS['_wpcarve_test_options'][Settings::OPTION] = ['untrusted_max_nesting' => 1];
         $plugin = $this->plugin();

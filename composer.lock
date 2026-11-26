@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "eab0b2e481cfc178775636d910359f4a",
+    "content-hash": "c64febdfd69a58594937c2c12be49739",
     "packages": [
         {
             "name": "dereuromark/media-embed",
@@ -161,16 +161,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.10.3",
+            "version": "2.10.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "6efbd9c472b91db0a3350fcd601c8332c2382e1f"
+                "reference": "8eb53e906fd60c67038d22f1f1cab420ed58b8be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/6efbd9c472b91db0a3350fcd601c8332c2382e1f",
-                "reference": "6efbd9c472b91db0a3350fcd601c8332c2382e1f",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/8eb53e906fd60c67038d22f1f1cab420ed58b8be",
+                "reference": "8eb53e906fd60c67038d22f1f1cab420ed58b8be",
                 "shasum": ""
             },
             "require": {
@@ -264,7 +264,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-21T13:07:34+00:00"
+            "time": "2026-10-31T13:35:37+00:00"
         },
         {
             "name": "league/config",
@@ -350,16 +350,16 @@
         },
         {
             "name": "markup-carve/carve-grammars",
-            "version": "v0.1.24",
+            "version": "dev-next2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-grammars.git",
-                "reference": "7049c3bd6cd7c0d5bd12bf92c565f6ad61b8265c"
+                "reference": "558680dd08616f3bb30a83d069e114b6ca899cde"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/7049c3bd6cd7c0d5bd12bf92c565f6ad61b8265c",
-                "reference": "7049c3bd6cd7c0d5bd12bf92c565f6ad61b8265c",
+                "url": "https://api.github.com/repos/markup-carve/carve-grammars/zipball/558680dd08616f3bb30a83d069e114b6ca899cde",
+                "reference": "558680dd08616f3bb30a83d069e114b6ca899cde",
                 "shasum": ""
             },
             "require": {
@@ -389,35 +389,38 @@
                 "issues": "https://github.com/markup-carve/carve-grammars/issues",
                 "source": "https://github.com/markup-carve/carve-grammars"
             },
-            "time": "2026-11-12T18:49:13+00:00"
+            "time": "2026-11-25T18:49:53+00:00"
         },
         {
             "name": "markup-carve/carve-php",
-            "version": "0.1.17",
+            "version": "dev-next2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php.git",
-                "reference": "fa017b5e5260180e45cf8cb2add16c9adaad74a3"
+                "reference": "c82c14f20e85479a5f44da1f5bc281ccd20e8236"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/fa017b5e5260180e45cf8cb2add16c9adaad74a3",
-                "reference": "fa017b5e5260180e45cf8cb2add16c9adaad74a3",
+                "url": "https://api.github.com/repos/markup-carve/carve-php/zipball/c82c14f20e85479a5f44da1f5bc281ccd20e8236",
+                "reference": "c82c14f20e85479a5f44da1f5bc281ccd20e8236",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.2"
+                "php": "^8.2",
+                "symfony/polyfill-intl-normalizer": "^1.27"
             },
             "require-dev": {
-                "brianium/paratest": "^7.8",
-                "nikic/php-fuzzer": "^0.0.11",
+                "league/commonmark": "^2.9.2",
                 "php-collective/code-sniffer": "^0.6.8",
+                "php-collective/djot": "^0.1.35",
                 "phpstan/phpstan": "^2.1.32",
                 "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0"
             },
             "suggest": {
                 "ext-dom": "Required for HTML import and HTML heading-ID conversion.",
-                "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/punctuation identically and other scripts fall back to the generated `section` id."
+                "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/punctuation identically and other scripts fall back to the generated `section` id.",
+                "league/commonmark": "Required for Markdown and GFM import (^2.9.2).",
+                "php-collective/djot": "Required for Djot import (^0.1.35)."
             },
             "bin": [
                 "bin/carve"
@@ -428,7 +431,36 @@
                     "MarkupCarve\\Carve\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "MarkupCarve\\Carve\\Test\\": "tests/"
+                }
+            },
+            "scripts": {
+                "check": [
+                    "@cs-check",
+                    "@stan",
+                    "@test"
+                ],
+                "cs-check": [
+                    "phpcs --colors --parallel=16"
+                ],
+                "cs-fix": [
+                    "phpcbf --colors --parallel=16"
+                ],
+                "fuzz": [
+                    "@php -d pcov.enabled=0 scripts/fuzz.php"
+                ],
+                "stan": [
+                    "phpstan analyze --memory-limit=1G"
+                ],
+                "tables-check": [
+                    "@php scripts/generate-tables.php --check"
+                ],
+                "test": [
+                    "@php -d pcov.enabled=0 vendor/bin/phpunit"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -451,34 +483,34 @@
                 "parser"
             ],
             "support": {
-                "issues": "https://github.com/markup-carve/carve-php/issues",
-                "source": "https://github.com/markup-carve/carve-php/tree/0.1.17"
+                "source": "https://github.com/markup-carve/carve-php/tree/next2",
+                "issues": "https://github.com/markup-carve/carve-php/issues"
             },
             "funding": [
                 {
-                    "url": "https://github.com/dereuromark",
-                    "type": "github"
+                    "type": "github",
+                    "url": "https://github.com/dereuromark"
                 }
             ],
-            "time": "2026-11-12T09:37:21+00:00"
+            "time": "2026-11-24T06:10:24+00:00"
         },
         {
             "name": "markup-carve/carve-php-media-embed",
-            "version": "0.1.7",
+            "version": "dev-next2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/markup-carve/carve-php-media-embed.git",
-                "reference": "a19c67fe766001178b86800fd4de5080196150d2"
+                "reference": "27498d470f6c4dd8bffd6cee271ef9af5811dca7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/a19c67fe766001178b86800fd4de5080196150d2",
-                "reference": "a19c67fe766001178b86800fd4de5080196150d2",
+                "url": "https://api.github.com/repos/markup-carve/carve-php-media-embed/zipball/27498d470f6c4dd8bffd6cee271ef9af5811dca7",
+                "reference": "27498d470f6c4dd8bffd6cee271ef9af5811dca7",
                 "shasum": ""
             },
             "require": {
                 "dereuromark/media-embed": "^1.0",
-                "markup-carve/carve-php": "^0.1.17",
+                "markup-carve/carve-php": "dev-next2#6ceebc52181efc1f5dfe6f5e7964b75c43f13a90",
                 "php": ">=8.2"
             },
             "require-dev": {
@@ -491,7 +523,8 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.1.x-dev"
+                    "dev-main": "0.1.x-dev",
+                    "dev-next2": "0.2.x-dev"
                 }
             },
             "autoload": {
@@ -499,7 +532,25 @@
                     "MarkupCarve\\MediaEmbed\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "MarkupCarve\\MediaEmbed\\Test\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "stan": [
+                    "phpstan analyse"
+                ],
+                "cs-check": [
+                    "phpcs"
+                ],
+                "cs-fix": [
+                    "phpcbf"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -524,7 +575,7 @@
                 "issues": "https://github.com/markup-carve/carve-php-media-embed/issues",
                 "source": "https://github.com/markup-carve/carve-php-media-embed"
             },
-            "time": "2026-11-12T10:24:33+00:00"
+            "time": "2026-11-20T10:26:50+00:00"
         },
         {
             "name": "nette/schema",
@@ -757,6 +808,72 @@
                 }
             ],
             "time": "2026-07-22T19:51:40+00:00"
+        },
+        {
+            "name": "php-collective/djot",
+            "version": "0.1.35",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-collective/djot-php.git",
+                "reference": "709058dd11572cd861aab35919244e12d84431a5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-collective/djot-php/zipball/709058dd11572cd861aab35919244e12d84431a5",
+                "reference": "709058dd11572cd861aab35919244e12d84431a5",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "nikic/php-fuzzer": "^0.0.11",
+                "php-collective/code-sniffer": "^0.6.8",
+                "phpstan/phpstan": "^2.1.32",
+                "phpunit/phpunit": "^11.0 || ^12.0 || ^13.0"
+            },
+            "suggest": {
+                "ext-intl": "Recommended for heading-ID transliteration: enables ICU romanization of non-Latin scripts (e.g. CJK, Arabic). Without it, a baked map covers Latin/Cyrillic/Greek/punctuation identically and other scripts fall back to generated `s-N` ids."
+            },
+            "bin": [
+                "bin/djot",
+                "bin/djot-watch"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Djot\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP Collective",
+                    "homepage": "https://github.com/php-collective"
+                }
+            ],
+            "description": "A PHP parser for Djot, a modern light markup language",
+            "homepage": "https://php-collective.github.io/djot-php/",
+            "keywords": [
+                "djot",
+                "markdown",
+                "markup",
+                "parser"
+            ],
+            "support": {
+                "issues": "https://github.com/php-collective/djot-php/issues",
+                "source": "https://github.com/php-collective/djot-php/tree/0.1.35"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/dereuromark",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-11-11T11:34:56+00:00"
         },
         {
             "name": "psr/event-dispatcher",
@@ -1089,6 +1206,91 @@
                 }
             ],
             "time": "2026-06-05T06:23:12+00:00"
+        },
+        {
+            "name": "symfony/polyfill-intl-normalizer",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-intl-normalizer.git",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "suggest": {
+                "ext-intl": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for intl's Normalizer class and related functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "intl",
+                "normalizer",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-23T22:02:09+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
@@ -4113,8 +4315,12 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": {},
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "markup-carve/carve-grammars": 20,
+        "markup-carve/carve-php": 20,
+        "markup-carve/carve-php-media-embed": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

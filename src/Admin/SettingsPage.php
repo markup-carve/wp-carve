@@ -9,6 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 use WpCarve\Diagrams;
+use WpCarve\Extensions;
 use WpCarve\Settings;
 
 /**
@@ -80,7 +81,11 @@ class SettingsPage
                 $out[$key] = !empty($input[$key]);
             } elseif (is_int($default)) {
                 $value = (int)($input[$key] ?? $default);
-                $out[$key] = str_starts_with($key, 'untrusted_max_') ? max(1, $value) : $value;
+                $out[$key] = match (true) {
+                    str_starts_with($key, 'untrusted_max_') => max(1, $value),
+                    $key === 'heading_shift' => max(0, min(5, $value)),
+                    default => $value,
+                };
             } elseif ($key === 'include_root') {
                 // Stored verbatim: trimming or normalizing could turn a refused
                 // relative root into an accepted absolute one.
@@ -179,7 +184,15 @@ class SettingsPage
         $this->grid();
         $this->toggle($s, 'smart_quotes', __('Smart quotes', 'carve-markup'), __('Curly quotes, dashes, and ellipses.', 'carve-markup'));
         $this->text($s, 'smart_quotes_locale', __('Locale', 'carve-markup'), __('Quote style, e.g. en, de, fr.', 'carve-markup'), 'smart_quotes');
-        $this->toggle($s, 'normalize_tabs', __('Normalize tabs', 'carve-markup'), __('Convert leading tabs in code to spaces.', 'carve-markup'));
+        $this->toggle($s, 'normalize_tabs', __('Normalize tabs', 'carve-markup'), __('Replace tabs in code blocks and code spans with spaces (width below).', 'carve-markup'));
+        $this->number($s, 'tab_width', __('Tab width', 'carve-markup'), __('Spaces per tab (0-16).', 'carve-markup'), 'normalize_tabs');
+        $this->gridEnd();
+        $this->group(__('Extensions', 'carve-markup'), __('Carve extensions by name. The server render and the live preview register the same set; a disabled extension renders its plain fallback.', 'carve-markup'));
+        $this->grid();
+        foreach (Extensions::CATALOG as $name => [$label, $syntax]) {
+            // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- labels come from the extension catalog.
+            $this->toggle($s, Extensions::settingKey($name), $label . ' (' . $name . ')', $syntax);
+        }
         $this->gridEnd();
         $this->group(__('Abbreviations', 'carve-markup'));
         $this->textarea($s, 'abbreviations', __('Site-wide abbreviations', 'carve-markup'), __('One per line as KEY: expansion (e.g. HTML: HyperText Markup Language). Matching words get an <abbr> tooltip everywhere.', 'carve-markup'));
@@ -221,7 +234,7 @@ class SettingsPage
             ],
             __('Adds a Tiptap WYSIWYG tab to the Carve block (experimental).', 'carve-markup'),
         );
-        $this->toggle($s, 'paste_ingest', __('Paste ingest', 'carve-markup'), __('Convert pasted Markdown/Djot/BBCode/HTML to Carve.', 'carve-markup'));
+        $this->toggle($s, 'paste_ingest', __('Paste ingest', 'carve-markup'), __('Convert pasted Markdown, Djot or HTML to Carve on the server, and BBCode in the browser.', 'carve-markup'));
         $this->toggle($s, 'frontmatter_meta', __('Frontmatter to meta', 'carve-markup'), __('Map frontmatter to post meta and SEO fields.', 'carve-markup'));
         $this->toggle($s, 'render_cache', __('Render cache', 'carve-markup'), __('Cache rendered HTML on save.', 'carve-markup'));
         $this->text($s, 'include_root', __('Include root', 'carve-markup'), __('Absolute server directory that {{ file.crv }} include directives may read from. Only posts last saved by a user who can post unfiltered HTML expand them. Empty disables includes.', 'carve-markup'));

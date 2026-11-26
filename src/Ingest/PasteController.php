@@ -8,21 +8,18 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-use MarkupCarve\Carve\Converter\BbcodeToCarve;
-use MarkupCarve\Carve\Converter\DjotToCarve;
-use MarkupCarve\Carve\Converter\HtmlToCarve;
-use MarkupCarve\Carve\Converter\MarkdownToCarve;
 use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * Innovation B: convert pasted Markdown / Djot / BBCode / HTML into Carve
- * source, using carve-php's source-to-source converters.
+ * Innovation B: convert pasted Markdown / Djot / HTML into Carve source with
+ * the carve-php importer.
  *
  *   POST /wp-json/carve/v1/ingest { "source": "...", "from": "markdown" }
  *   -> { "carve": "..." }
  *
- * `from` = markdown | djot | bbcode | html | auto (sniffed).
+ * `from` = markdown | djot | html | auto (sniffed). BBCode (given or sniffed)
+ * answers 422 with `browser: true`: the block editor converts it with carve-js.
  */
 class PasteController
 {
@@ -65,17 +62,16 @@ class PasteController
             return new WP_REST_Response(['carve' => $source, 'from' => $from, 'report' => null], 200);
         }
 
-        $result = match ($from) {
-            'markdown' => (new MarkdownToCarve())->convertWithFidelityReport($source),
-            'djot' => (new DjotToCarve())->convertWithFidelityReport($source),
-            'bbcode' => (new BbcodeToCarve())->convertWithFidelityReport($source),
-            'html' => (new HtmlToCarve())->convertWithFidelityReport($source),
-        };
+        try {
+            $result = Importer::import($from, $source);
+        } catch (ImporterUnavailable $e) {
+            return new WP_REST_Response(['message' => $e->getMessage(), 'from' => $from, 'browser' => $e->inBrowser()], 422);
+        }
 
         return new WP_REST_Response([
-            'carve' => $result->value,
+            'carve' => $result['value'],
             'from' => $from,
-            'report' => $result->report(),
+            'report' => $result['report'],
         ], 200);
     }
 

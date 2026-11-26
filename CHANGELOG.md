@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+The plugin moves to Carve 0.2: carve-php, carve-js and carve-grammars on their `next2` commits. Source written for 0.1 needs the 0.2 upgrade tool (`carve2 upgrade`); see the Carve spec's `UPGRADING.md`.
+
+### Breaking
+
+- Posts, comments, previews and the visual editor render Carve 0.2: headings are written `= Title`, underline, strike and highlight are braced only (`{_u_}`, `{~s~}`, `{=m=}`), wiki links are `:wiki[Page]` and citations `:cite[key]`.
+- The `wpcarve_converter` action is gone; register carve-php 0.2 extension definitions through the new `wpcarve_extensions` filter.
+- Markdown, Djot and BBCode paste, file import and bulk migration answer "not available yet" until carve-php 0.2 imports them (carve-php#5237, #5242, #5251); HTML works.
+- Torchlight highlighting, details, spoiler, code group, list table, semantic spans, heading numbers, CSL citations and media embeds render their plain fallback until the 0.2 engines provide them (carve-php#5250, #5252, carve-php-media-embed#23); their settings stay.
+- The soft-break mode, tab normalization and smart-quote locale settings have no 0.2 engine option and no effect.
+- The visual editor round-trips through HTML until carve-grammars has a 0.2 Tiptap kit (carve-grammars#906).
+
+### Improvements
+
+- Table of contents, `::: toc`, heading permalinks, external link attributes, heading level shift and wiki links are rebuilt on the 0.2 engine.
+
 ## [0.1.13] - 2026-11-12
 
 Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.24 and carve-php-media-embed 0.1.7.
