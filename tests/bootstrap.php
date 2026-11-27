@@ -359,6 +359,22 @@ if (!function_exists('is_main_query')) {
     }
 }
 
+if (!function_exists('wp_link_pages')) {
+    function wp_link_pages(array $args = []): string
+    {
+        return (string)($GLOBALS['_wpcarve_test_page_links'] ?? '');
+    }
+}
+
+if (!function_exists('post_password_required')) {
+    function post_password_required(mixed $post = null): bool
+    {
+        $post = $post instanceof WP_Post ? $post : get_post();
+
+        return $post !== null && $post->post_password !== '' && empty($GLOBALS['_wpcarve_test_password_ok']);
+    }
+}
+
 if (!function_exists('is_feed')) {
     function is_feed(): bool
     {
