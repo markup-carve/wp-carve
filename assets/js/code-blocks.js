@@ -93,6 +93,7 @@
 				if ( ! pre.classList.contains( 'line-numbers' ) && ! figure?.classList.contains( 'line-numbers' ) ) {
 					return;
 				}
+				pre.classList.add( 'line-numbers' );
 				const gutter = document.createElement( 'span' );
 				gutter.className = 'wpcarve-line-numbers';
 				gutter.setAttribute( 'aria-hidden', 'true' );

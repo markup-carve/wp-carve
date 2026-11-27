@@ -1668,6 +1668,7 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 .wpcarve pre code .wpcarve-code-line,
 .wpcarve pre code .wpcarve-line-highlight {
 	display: block;
+	min-height: 1lh;
 }
 
 .wpcarve pre code .wpcarve-line-highlight,

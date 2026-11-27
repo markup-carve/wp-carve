@@ -22,6 +22,18 @@ test('plain code and its gutter highlight the Carve line ranges', () => {
 	win.close();
 });
 
+test('empty code rows keep a line box beside the gutter', () => {
+	const win = render('class="line-numbers" data-highlight="3"', 'one\n\nthree\n');
+	const rows = win.document.querySelectorAll('code > span');
+	assert.equal(rows.length, 3);
+	assert.equal(rows[1].innerHTML, '');
+	const style = win.document.createElement('style');
+	style.textContent = styles;
+	win.document.head.appendChild(style);
+	assert.equal(win.getComputedStyle(rows[1]).minHeight, '1lh');
+	win.close();
+});
+
 test('highlight works without a gutter and invalid input highlights nothing', () => {
 	const win = render('data-highlight="2"');
 	assert.equal(win.document.querySelectorAll('code .wpcarve-line-highlight').length, 1);
@@ -40,6 +52,7 @@ test('captioned fallback code reads options on its figure', () => {
 	assert.equal(win.document.querySelectorAll('code .wpcarve-line-highlight').length, 4);
 	assert.equal(win.document.querySelectorAll('.wpcarve-line-numbers .wpcarve-line-highlight').length, 4);
 	assert.equal(win.document.querySelector('.wpcarve-line-numbers').style.counterReset, 'ln 41');
+	assert.ok(win.document.querySelector('pre').classList.contains('line-numbers'));
 	win.close();
 });
 
