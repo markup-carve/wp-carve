@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.13
+Stable tag: 0.2.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -43,6 +43,15 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.2.0 =
+* Breaking: posts, comments, previews and the visual editor render Carve 0.2. Run the 0.2 upgrade tool (`carve2 upgrade`) on content written for 0.1.
+* Breaking: the `wpcarve_converter` action is gone; register extensions through the `wpcarve_extensions` filter.
+* Breaking: BBCode paste and import convert in the block editor instead of on the server.
+* The visual editor loads and writes Carve directly through the carve-grammars 0.2 Tiptap kit.
+* Markdown, Djot, BBCode and HTML paste, import and migration work on Carve 0.2.
+* Settings > Content > Extensions toggles tabs, details, spoiler, code group, list table, image fence and semantic span.
+* Soft breaks, the smart-quote locale, tab width, Torchlight, heading numbers, citations and media embeds work on the 0.2 engine.
 
 = 0.1.13 =
 * Breaking: a `---` on the first line with no closer is frontmatter to the end of the post; write `***` for a thematic break.
