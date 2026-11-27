@@ -61,13 +61,14 @@
 
 			// Copy button (icon).
 			const btn = document.createElement( 'button' );
+			let copyText = null;
 			btn.type = 'button';
 			btn.className = 'wpcarve-copy';
 			btn.setAttribute( 'aria-label', 'Copy code' );
 			btn.title = 'Copy code';
 			btn.innerHTML = ICON_COPY;
 			btn.addEventListener( 'click', function () {
-				navigator.clipboard.writeText( code.innerText ).then( function () {
+				navigator.clipboard.writeText( copyText ?? code.innerText ).then( function () {
 					btn.innerHTML = ICON_DONE;
 					btn.classList.add( 'is-copied' );
 					setTimeout( function () {
@@ -86,6 +87,7 @@
 					return ranges.some( function ( range ) { return line >= range[ 0 ] && line <= range[ 1 ]; } );
 				};
 				if ( ranges.length ) {
+					copyText = code.textContent;
 					code.innerHTML = code.innerHTML.replace( /\n$/, '' ).split( '\n' ).map( function ( content, index ) {
 						return selected( index + 1 ) ? '<span class="wpcarve-line-highlight">' + content + '</span>' : '<span class="wpcarve-code-line">' + content + '</span>';
 					} ).join( '' );

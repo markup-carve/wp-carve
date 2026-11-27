@@ -34,6 +34,16 @@ test('empty code rows keep a line box beside the gutter', () => {
 	win.close();
 });
 
+test('copy keeps blank rows and the trailing newline after highlighting', async () => {
+	const win = render('data-highlight="3"', 'one\n\nthree\n');
+	let copied = null;
+	win.navigator.clipboard.writeText = async (text) => { copied = text; };
+	win.document.querySelector('.wpcarve-copy').click();
+	await Promise.resolve();
+	assert.equal(copied, 'one\n\nthree\n');
+	win.close();
+});
+
 test('highlight works without a gutter and invalid input highlights nothing', () => {
 	const win = render('data-highlight="2"');
 	assert.equal(win.document.querySelectorAll('code .wpcarve-line-highlight').length, 1);
