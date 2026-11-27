@@ -12,7 +12,7 @@
     "require": {
         "php": ">=8.2",
         "league/commonmark": "^2.9.2",
-        "markup-carve/carve-grammars": "dev-main#5875ac2fa8a7b73d0cd0cfd29206e5a68a96bfb3",
+        "markup-carve/carve-grammars": "dev-main#cd7f05fa6f413238efa532392b5eed130ee09bb7",
         "markup-carve/carve-php": "dev-main#c82c14f20e85479a5f44da1f5bc281ccd20e8236",
         "markup-carve/carve-php-media-embed": "dev-main#27498d470f6c4dd8bffd6cee271ef9af5811dca7",
         "php-collective/djot": "^0.1.35",
