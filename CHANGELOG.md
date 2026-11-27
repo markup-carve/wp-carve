@@ -7,20 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-The plugin moves to Carve 0.2: carve-php, carve-js and carve-grammars on their `next2` commits. Source written for 0.1 needs the 0.2 upgrade tool (`carve2 upgrade`); see the Carve spec's `UPGRADING.md`.
+## [0.2.0] - 2026-11-27
+
+The plugin moves to Carve 0.2: the server renderer runs carve-php 0.2, and the preview and editors run carve-js 0.2 with carve-grammars 0.2. Source written for 0.1 needs the 0.2 upgrade tool (`carve2 upgrade`); see the Carve spec's `UPGRADING.md`.
 
 ### Breaking
 
-- Posts, comments, previews and the visual editor render Carve 0.2: headings are written `= Title`, underline, strike and highlight are braced only (`{_u_}`, `{~s~}`, `{=m=}`), wiki links are `:wiki[Page]` and citations `:cite[key]`.
-- The `wpcarve_converter` action is gone; register carve-php 0.2 extension definitions through the new `wpcarve_extensions` filter.
-- Markdown, Djot and BBCode paste, file import and bulk migration answer "not available yet" until carve-php 0.2 imports them (carve-php#5237, #5242, #5251); HTML works.
-- Torchlight highlighting, details, spoiler, code group, list table, semantic spans, heading numbers, CSL citations and media embeds render their plain fallback until the 0.2 engines provide them (carve-php#5250, #5252, carve-php-media-embed#23); their settings stay.
-- The soft-break mode, tab normalization and smart-quote locale settings have no 0.2 engine option and no effect.
-- The visual editor round-trips through HTML until carve-grammars has a 0.2 Tiptap kit (carve-grammars#906).
+- Posts, comments, previews and the visual editor render Carve 0.2: headings are written `= Title`, underline, strike and highlight are braced only (`{_u_}`, `{~s~}`, `{=m=}`), wiki links are `:wiki[Page]` and citations `:cite[key]` (#220).
+- The `wpcarve_converter` action is gone; register carve-php 0.2 extension definitions through the new `wpcarve_extensions` filter (#220).
+- BBCode paste and import convert in the block editor through carve-js; the server answers BBCode with 422 and `browser: true` (#227).
+- The heading level shift reaches the engine as its `headingShift` option, and a heading shifted past level 6 renders as `<div role="heading" aria-level="7">` (#236).
 
 ### Improvements
 
-- Table of contents, `::: toc`, heading permalinks, external link attributes, heading level shift and wiki links are rebuilt on the 0.2 engine.
+- The visual editor runs on the carve-grammars 0.2 Tiptap kit: it loads and writes Carve directly, and its admonition, details, spoiler and embed toolbar commands insert real Carve (#222).
+- Markdown and Djot paste, file import and bulk migration import through carve-php 0.2; Markdown reads GitHub Flavored Markdown (#223).
+- Details, spoilers, list tables, heading numbers and citations with an external bibliography render through the 0.2 engine (#223).
+- A new Settings > Content > Extensions group toggles tabs, details, spoiler, code group, list table, image fence and semantic span by name, on the server and in the preview alike (#227).
+- The soft-break, smart-quote locale and tab width settings take effect again, Torchlight highlights through the engine's code block renderer, and excerpts use the engine's plain writer (#227).
+- `:youtube[...]`, `:vimeo[...]` and `:media[...]` embeds render and lint again when media embeds are on (#228).
+- Table of contents, `::: toc`, heading permalinks, external link attributes and wiki links are rebuilt on the 0.2 engine (#220).
+- Headings shifted past h6 get heading styles on the front end and in the editor previews, and muted editor headings stay readable on the dark preview (#237).
+
+**Full Changelog**: https://github.com/markup-carve/wp-carve/compare/0.1.13...0.2.0
 
 ## [0.1.13] - 2026-11-12
 
