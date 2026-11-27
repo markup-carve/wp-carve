@@ -46,7 +46,7 @@ class Pagination
 
     /**
      * Whole-post source with the markers taken out, for renders that show the
-     * post as one piece (excerpts). Unremoved, a marker renders as visible
+     * post as one piece (feeds, excerpts). Unremoved, a marker renders as visible
      * `<!--nextpage-->` text because raw HTML is off.
      */
     public static function withoutMarkers(string $source): string

@@ -294,6 +294,14 @@ $carve_check(
     $carve_snippet($carve_page_two),
 );
 $carve_check('the nextpage marker never renders as text', !str_contains($carve_page_one . $carve_page_two, 'nextpage'));
+$GLOBALS['wp_query']->is_feed = true;
+$carve_page_feed = $carve_page_render($postId, 1);
+$GLOBALS['wp_query']->is_feed = false;
+$carve_check(
+    'a feed carries every page of a nextpage post, without the marker',
+    str_contains($carve_page_feed, 'First page text.') && str_contains($carve_page_feed, 'Second page text.') && !str_contains($carve_page_feed, 'nextpage'),
+    $carve_snippet($carve_page_feed),
+);
 wp_update_post(['ID' => $postId, 'post_password' => 'carve-secret']);
 $carve_protected = $carve_page_render($postId, 1);
 $carve_check(

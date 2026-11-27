@@ -422,7 +422,8 @@ class Plugin
         // serve exactly the markup this avoids, and writing to it would put
         // feed markup on the page.
         if (function_exists('is_feed') && is_feed()) {
-            $rendered = $this->converter->toHtml($pageSource ?? $post->post_content, 'feed', null, $safe, includes: $includes);
+            // A feed item carries the whole post; it has no page links.
+            $rendered = $this->converter->toHtml(Pagination::withoutMarkers((string)$post->post_content), 'feed', null, $safe, includes: $includes);
         } elseif ($pageSource !== null) {
             // The cache holds the whole post, not one page of it.
             $rendered = $this->converter->toHtml($pageSource, 'post', null, $safe, includes: $includes);
