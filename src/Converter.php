@@ -73,11 +73,19 @@ class Converter
     private ArrayObject $diffBlocks;
 
     /**
+     * Attributes carried by a captioned code block's figure.
+     *
+     * @var \ArrayObject<string, array<string, mixed>>
+     */
+    private ArrayObject $captionCodeAttrs;
+
+    /**
      * @param array<string, mixed> $settings Resolved plugin settings.
      */
     public function __construct(private array $settings)
     {
         $this->diffBlocks = new ArrayObject();
+        $this->captionCodeAttrs = new ArrayObject();
     }
 
     public static function fromSettings(): self
@@ -298,12 +306,22 @@ class Converter
         $transforms = [];
         if (!empty($this->settings['torchlight_enabled']) && !$forText && $base !== 'editor') {
             $diffBlocks = $this->diffBlocks;
-            $transforms[] = new DocumentTransform('wpcarve.diffFigures', static function (Node $doc) use ($diffBlocks): Node {
+            $captionCodeAttrs = $this->captionCodeAttrs;
+            $transforms[] = new DocumentTransform('wpcarve.diffFigures', static function (Node $doc) use ($diffBlocks, $captionCodeAttrs): Node {
                 $diffBlocks->exchangeArray([]);
-                self::walk($doc, static function (Node $node) use ($diffBlocks): void {
+                $captionCodeAttrs->exchangeArray([]);
+                self::walk($doc, static function (Node $node) use ($diffBlocks, $captionCodeAttrs): void {
                     $attrs = $node->f['attrs'] ?? null;
-                    if ($node->type === 'code_block' && isset($node->f['caption']) && $attrs instanceof Attrs && in_array('diff', $attrs->classes, true)) {
-                        $diffBlocks[$node->file . ':' . $node->end] = true;
+                    if ($node->type === 'code_block' && isset($node->f['caption']) && $attrs instanceof Attrs) {
+                        $key = $node->file . ':' . $node->end;
+                        $pairs = ['class' => implode(' ', $attrs->classes)];
+                        foreach ($attrs->pairs as [$name, $value]) {
+                            $pairs[$name] = $value;
+                        }
+                        $captionCodeAttrs[$key] = $pairs;
+                        if (in_array('diff', $attrs->classes, true)) {
+                            $diffBlocks[$key] = true;
+                        }
                     }
                 });
 
@@ -842,7 +860,7 @@ class Converter
             $extensions[] = new MediaEmbedExtension();
         }
         if (!empty($this->settings['torchlight_enabled']) && !$isEditor && !$forText && class_exists(TorchlightExtension::class)) {
-            $options['codeBlockRenderer'] = self::torchlightRenderer($this->diffBlocks, new TorchlightExtension(
+            $options['codeBlockRenderer'] = self::torchlightRenderer($this->diffBlocks, $this->captionCodeAttrs, new TorchlightExtension(
                 (string)($this->settings['torchlight_theme'] ?? 'github-light'),
                 (bool)($this->settings['torchlight_line_numbers'] ?? false),
                 (string)($this->settings['torchlight_theme_dark'] ?? ''),
@@ -884,12 +902,13 @@ class Converter
      * null to keep the engine's block.
      *
      * @param \ArrayObject<string, true> $diffBlocks
+     * @param \ArrayObject<string, array<string, mixed>> $captionCodeAttrs
      * @param \WpCarve\Extension\TorchlightExtension $torchlight
      */
-    private static function torchlightRenderer(ArrayObject $diffBlocks, TorchlightExtension $torchlight): Closure
+    private static function torchlightRenderer(ArrayObject $diffBlocks, ArrayObject $captionCodeAttrs, TorchlightExtension $torchlight): Closure
     {
-        return static function (Node $node, string $html) use ($diffBlocks, $torchlight): ?string {
-            $attrs = [];
+        return static function (Node $node, string $html) use ($diffBlocks, $captionCodeAttrs, $torchlight): ?string {
+            $attrs = $captionCodeAttrs[$node->file . ':' . $node->end] ?? [];
             $own = $node->f['attrs'] ?? null;
             if ($own instanceof Attrs) {
                 if ($own->classes !== []) {

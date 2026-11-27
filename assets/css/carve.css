@@ -1648,6 +1648,17 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	content: counter(ln);
 }
 
+.wpcarve pre code .wpcarve-code-line,
+.wpcarve pre code .wpcarve-line-highlight {
+	display: block;
+}
+
+.wpcarve pre code .wpcarve-line-highlight,
+.wpcarve-line-numbers .wpcarve-line-highlight {
+	background: rgba(255, 209, 102, 0.22);
+	box-shadow: inset 3px 0 0 #e0a800;
+}
+
 /* ---- Code groups (tabbed code blocks, CSS-only via radio inputs) ---- */
 .wpcarve .code-group {
 	display: flex;

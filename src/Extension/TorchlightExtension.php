@@ -95,7 +95,8 @@ class TorchlightExtension
             [$code, $diffMarkers] = self::stripDiffMarkers($code);
         }
         $gutter = in_array('line-numbers', $classes, true) || $this->showLineNumbers;
-        $start = isset($attrs['data-line-start']) ? (int)$attrs['data-line-start'] : 1;
+        $startValue = (string)($attrs['data-line-start'] ?? '1');
+        $start = preg_match('/^[1-9][0-9]*$/D', $startValue) === 1 ? (int)$startValue : 1;
         $overrides = ['withGutter' => $gutter];
         if ($start !== 1) {
             $overrides['lineNumbersStart'] = $start;
@@ -136,12 +137,46 @@ class TorchlightExtension
             if ($diffMarkers !== []) {
                 $html = self::restoreDiffMarkers($html, $diffMarkers);
             }
+            $html = self::highlightLines($html, (string)($attrs['data-highlight'] ?? ''));
 
             return rtrim($this->reapplyPreAttributes($html, $language, $classes, $attrs, $diffMarkers !== [] ? ['has-diff'] : []), "\n") . "\n";
         } catch (Throwable) {
             // Unknown grammar / theme: keep the engine's plain output.
             return null;
         }
+    }
+
+    private static function highlightLines(string $html, string $value): string
+    {
+        if (preg_match('/^[1-9][0-9]*(?:-[1-9][0-9]*)?(?:,[1-9][0-9]*(?:-[1-9][0-9]*)?)*$/D', $value) !== 1) {
+            return $html;
+        }
+
+        $ranges = [];
+        foreach (explode(',', $value) as $part) {
+            $ends = array_map('intval', explode('-', $part));
+            $ranges[] = [$ends[0], end($ends)];
+        }
+        $line = 0;
+
+        return preg_replace_callback(
+            '/<div\b(?P<before>[^>]*?)class=(?P<quote>[\'"])(?P<classes>[^\'"]*)(?P=quote)(?P<after>[^>]*)>/s',
+            static function (array $m) use ($ranges, &$line): string {
+                if (!in_array('line', preg_split('/\s+/', $m['classes']) ?: [], true)) {
+                    return $m[0];
+                }
+
+                $line++;
+                foreach ($ranges as [$first, $last]) {
+                    if ($line >= $first && $line <= $last) {
+                        return '<div' . $m['before'] . 'class=' . $m['quote'] . $m['classes'] . ' line-highlight' . $m['quote'] . $m['after'] . '>';
+                    }
+                }
+
+                return $m[0];
+            },
+            $html,
+        ) ?? $html;
     }
 
     /**
