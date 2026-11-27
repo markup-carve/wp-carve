@@ -31,6 +31,31 @@ class TorchlightExtensionTest extends TestCase
         $this->assertStringContainsString('data-line-start="3"', $html);
     }
 
+    public function testCodeLineOptionsHighlightTheRequestedRows(): void
+    {
+        foreach ([false, true] as $captioned) {
+            $source = "{.line-numbers data-line-start=42 data-highlight=1,3-5}\n```php \"src/app.php\"\na();\nb();\nc();\nd();\ne();\n```\n";
+            if ($captioned) {
+                $source .= "^ Listing #: sample\n";
+            }
+            $html = $this->render($source, 'github-light');
+            $this->assertSame(4, substr_count($html, 'line-highlight'), $html);
+            $this->assertStringContainsString('data-highlight="1,3-5"', $html);
+            $this->assertStringContainsString('data-line-start="42"', $html);
+        }
+    }
+
+    public function testInvalidLineOptionsDoNotHighlightOrChangeTheStart(): void
+    {
+        $html = (string)(new TorchlightExtension(theme: 'github-light'))->highlight("a();\nb();\n", 'php', [
+            'class' => 'line-numbers',
+            'data-line-start' => 'auto',
+            'data-highlight' => '1,b',
+        ]);
+        $this->assertStringNotContainsString('line-highlight', $html);
+        $this->assertStringContainsString('class="line-number">1</span>', $html);
+    }
+
     public function testHighlightStripsAndRestoresDiffMarkers(): void
     {
         $html = (string)(new TorchlightExtension(theme: 'github-light'))->highlight("- old();\n+ fresh();\n", 'php', [], true);

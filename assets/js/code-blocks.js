@@ -15,12 +15,23 @@
 	const ICON_DONE =
 		'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
+	function highlightedLines( value ) {
+		if ( ! /^[1-9]\d*(?:-[1-9]\d*)?(?:,[1-9]\d*(?:-[1-9]\d*)?)*$/.test( value || '' ) ) {
+			return [];
+		}
+		return value.split( ',' ).map( function ( part ) {
+			const ends = part.split( '-' ).map( Number );
+			return [ ends[ 0 ], ends[ ends.length - 1 ] ];
+		} );
+	}
+
 	ready( function () {
 		document.querySelectorAll( '.wpcarve pre > code' ).forEach( function ( code ) {
 			const pre = code.parentElement;
 			if ( ! pre || pre.dataset.carveEnhanced ) {
 				return;
 			}
+				const figure = pre.parentElement?.tagName === 'FIGURE' ? pre.parentElement : null;
 			pre.dataset.carveEnhanced = '1';
 
 			// Surface the language as data-lang so the pill shows it. Torchlight
@@ -50,13 +61,14 @@
 
 			// Copy button (icon).
 			const btn = document.createElement( 'button' );
+			let copyText = null;
 			btn.type = 'button';
 			btn.className = 'wpcarve-copy';
 			btn.setAttribute( 'aria-label', 'Copy code' );
 			btn.title = 'Copy code';
 			btn.innerHTML = ICON_COPY;
 			btn.addEventListener( 'click', function () {
-				navigator.clipboard.writeText( code.innerText ).then( function () {
+				navigator.clipboard.writeText( copyText ?? code.innerText ).then( function () {
 					btn.innerHTML = ICON_DONE;
 					btn.classList.add( 'is-copied' );
 					setTimeout( function () {
@@ -68,13 +80,35 @@
 			wrap.appendChild( btn );
 
 			// Plain Carve fallback line numbers; Torchlight renders its own gutter.
-			if ( pre.classList.contains( 'line-numbers' ) && ! code.classList.contains( 'torchlight' ) ) {
+			if ( ! code.classList.contains( 'torchlight' ) ) {
 				const lines = code.innerHTML.replace( /\n$/, '' ).split( '\n' ).length;
+				const ranges = highlightedLines( pre.dataset.highlight ?? figure?.dataset.highlight );
+				const selected = function ( line ) {
+					return ranges.some( function ( range ) { return line >= range[ 0 ] && line <= range[ 1 ]; } );
+				};
+				if ( ranges.length ) {
+					copyText = code.textContent;
+					code.innerHTML = code.innerHTML.replace( /\n$/, '' ).split( '\n' ).map( function ( content, index ) {
+						return selected( index + 1 ) ? '<span class="wpcarve-line-highlight">' + content + '</span>' : '<span class="wpcarve-code-line">' + content + '</span>';
+					} ).join( '' );
+				}
+				if ( ! pre.classList.contains( 'line-numbers' ) && ! figure?.classList.contains( 'line-numbers' ) ) {
+					return;
+				}
+				pre.classList.add( 'line-numbers' );
 				const gutter = document.createElement( 'span' );
 				gutter.className = 'wpcarve-line-numbers';
 				gutter.setAttribute( 'aria-hidden', 'true' );
+				const start = pre.dataset.lineStart ?? figure?.dataset.lineStart ?? '';
+				if ( /^[1-9]\d*$/.test( start ) ) {
+					gutter.style.counterReset = 'ln ' + ( Number( start ) - 1 );
+				}
 				for ( let i = 1; i <= lines; i++ ) {
-					gutter.appendChild( document.createElement( 'span' ) );
+					const number = document.createElement( 'span' );
+					if ( selected( i ) ) {
+						number.className = 'wpcarve-line-highlight';
+					}
+					gutter.appendChild( number );
 				}
 				pre.insertBefore( gutter, code );
 			}
