@@ -320,7 +320,7 @@ class Plugin
     public function maybeRenderExcerpt(string $excerpt): string
     {
         $post = get_post();
-        if (!$post || !$this->typeEnabled($post)) {
+        if (!$post || !$this->typeEnabled($post) || post_password_required($post)) {
             return $excerpt;
         }
         $src = '';
@@ -401,6 +401,10 @@ class Plugin
     {
         $post = get_post();
         if (!$post || !get_post_meta($post->ID, '_wpcarve_enabled', true) || !$this->typeEnabled($post)) {
+            return $content;
+        }
+        // $content is core's password form here; rendering the source would show the post to anyone.
+        if (post_password_required($post)) {
             return $content;
         }
 

@@ -35,6 +35,7 @@ Carve blocks retain rendered content when the plugin is unavailable, and deactiv
 ### Fixes
 
 - A whole-post Carve post split with `<!--nextpage-->` shows one page at a time; before, every page showed the whole post with the marker as text. Excerpts drop the marker.
+- A password-protected whole-post Carve post shows WordPress's password form again; before, the Carve render replaced it with the post text, so anyone could read it.
 - Carve blocks save fallback HTML so published content remains visible when the plugin is inactive (#198).
 - Captioned `{.diff}` fences get diff rows, with and without Torchlight; the class sits on the figure (#207).
 - Editor highlighting colors the caption marker and caption text with the shared palette's caption roles (#207).

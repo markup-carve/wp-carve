@@ -294,6 +294,13 @@ $carve_check(
     $carve_snippet($carve_page_two),
 );
 $carve_check('the nextpage marker never renders as text', !str_contains($carve_page_one . $carve_page_two, 'nextpage'));
+wp_update_post(['ID' => $postId, 'post_password' => 'carve-secret']);
+$carve_protected = $carve_page_render($postId, 1);
+$carve_check(
+    'a password-protected Carve post shows the password form, not its text',
+    str_contains($carve_protected, 'post-password-form') && !str_contains($carve_protected, 'First page text.'),
+    $carve_snippet($carve_protected),
+);
 wp_delete_post($postId, true);
 
 // --- Comment safe mode strips dangerous HTML ---------------------------------

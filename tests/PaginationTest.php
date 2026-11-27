@@ -80,6 +80,23 @@ class PaginationTest extends TestCase
         $this->assertStringNotContainsString('nextpage', $excerpt);
     }
 
+    public function testAProtectedPostKeepsThePasswordForm(): void
+    {
+        wpcarve_test_set_post(self::POST, ['post_content' => self::SOURCE, 'post_password' => 'secret']);
+        $form = '<form class="post-password-form"></form>';
+        $plugin = $this->plugin();
+
+        $this->assertSame($form, $plugin->maybeRenderPost($form));
+        $this->assertSame('protected', $plugin->maybeRenderExcerpt('protected'));
+
+        $GLOBALS['_wpcarve_test_password_ok'] = true;
+        try {
+            $this->assertStringContainsString('First page.', $plugin->maybeRenderPost($form));
+        } finally {
+            unset($GLOBALS['_wpcarve_test_password_ok']);
+        }
+    }
+
     private function render(): string
     {
         return $this->plugin()->maybeRenderPost('');
