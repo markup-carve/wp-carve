@@ -424,9 +424,11 @@ class Plugin
         if (function_exists('is_feed') && is_feed()) {
             // A feed item carries the whole post; it has no page links.
             $rendered = $this->converter->toHtml(Pagination::withoutMarkers((string)$post->post_content), 'feed', null, $safe, includes: $includes);
-        } elseif ($pageSource !== null) {
-            // The cache holds the whole post, not one page of it.
-            $rendered = $this->converter->toHtml($pageSource, 'post', null, $safe, includes: $includes);
+        } elseif (str_contains((string)$post->post_content, Pagination::MARKER)) {
+            // The cache holds the raw whole post. A lone leading marker leaves
+            // WordPress with one page, so no page source, but still a marker.
+            $source = $pageSource ?? Pagination::withoutMarkers((string)$post->post_content);
+            $rendered = $this->converter->toHtml($source, 'post', null, $safe, includes: $includes);
         } else {
             $cached = RenderCache::read($post->ID, $safe);
             $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe, includes: $includes);

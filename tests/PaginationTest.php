@@ -69,6 +69,18 @@ class PaginationTest extends TestCase
         $this->assertStringNotContainsString('Other post', $html);
     }
 
+    public function testALoneLeadingMarkerNeverRendersAsText(): void
+    {
+        // WordPress drops a leading marker and keeps a single page, so it
+        // sets no page globals for this post.
+        wpcarve_test_set_post(self::POST, ['post_content' => "<!--nextpage-->\n\nOnly page."]);
+
+        $html = $this->render();
+
+        $this->assertStringContainsString('Only page.', $html);
+        $this->assertStringNotContainsString('nextpage', $html);
+    }
+
     public function testTheExcerptDropsTheMarker(): void
     {
         $plugin = $this->plugin();
