@@ -329,7 +329,7 @@ class Plugin
             // rather than shown with its markers.
             $src = (string)$post->post_excerpt;
         } elseif (get_post_meta($post->ID, '_wpcarve_enabled', true)) {
-            $src = (string)$post->post_content;
+            $src = Pagination::withoutMarkers((string)$post->post_content);
         } elseif (self::postHasCarveBlock($post)) {
             // Block posts previously fell through to core, which drops the
             // dynamic block entirely (empty excerpt) - or, when the comment
@@ -406,6 +406,7 @@ class Plugin
 
         $safe = self::safeForAuthor((int)$post->post_author);
         $includes = IncludePolicy::reportForPost($post);
+        $pageSource = Pagination::currentPageSource($post);
 
         // A feed reader runs none of this plugin's JavaScript, so the
         // interactive render hands it empty hydration containers where the
@@ -417,7 +418,10 @@ class Plugin
         // serve exactly the markup this avoids, and writing to it would put
         // feed markup on the page.
         if (function_exists('is_feed') && is_feed()) {
-            $rendered = $this->converter->toHtml($post->post_content, 'feed', null, $safe, includes: $includes);
+            $rendered = $this->converter->toHtml($pageSource ?? $post->post_content, 'feed', null, $safe, includes: $includes);
+        } elseif ($pageSource !== null) {
+            // The cache holds the whole post, not one page of it.
+            $rendered = $this->converter->toHtml($pageSource, 'post', null, $safe, includes: $includes);
         } else {
             $cached = RenderCache::read($post->ID, $safe);
             $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe, includes: $includes);

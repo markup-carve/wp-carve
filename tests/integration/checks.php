@@ -266,6 +266,36 @@ $carve_check(
 );
 wp_delete_post($postId, true);
 
+// --- A <!--nextpage--> post shows one page at a time --------------------------
+$postId = wp_insert_post([
+    'post_title' => 'Carve paginated',
+    'post_status' => 'publish',
+    'post_content' => "First page text.\n\n<!--nextpage-->\n\nSecond page text.",
+]);
+update_post_meta($postId, '_wpcarve_enabled', '1');
+$carve_page_render = static function (int $id, int $page): string {
+    set_query_var('page', $page);
+    $GLOBALS['post'] = get_post($id);
+    setup_postdata($GLOBALS['post']);
+
+    return (string)apply_filters('the_content', get_the_content());
+};
+$carve_page_one = $carve_page_render($postId, 1);
+$carve_page_two = $carve_page_render($postId, 2);
+set_query_var('page', '');
+$carve_check(
+    'page 1 of a nextpage post shows only page 1',
+    str_contains($carve_page_one, 'First page text.') && !str_contains($carve_page_one, 'Second page text.'),
+    $carve_snippet($carve_page_one),
+);
+$carve_check(
+    'page 2 of a nextpage post shows only page 2',
+    str_contains($carve_page_two, 'Second page text.') && !str_contains($carve_page_two, 'First page text.'),
+    $carve_snippet($carve_page_two),
+);
+$carve_check('the nextpage marker never renders as text', !str_contains($carve_page_one . $carve_page_two, 'nextpage'));
+wp_delete_post($postId, true);
+
 // --- Comment safe mode strips dangerous HTML ---------------------------------
 if (class_exists(\WpCarve\Converter::class)) {
     $converter = new \WpCarve\Converter([]);
