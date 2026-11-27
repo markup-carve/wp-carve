@@ -411,6 +411,7 @@ class Plugin
         $safe = self::safeForAuthor((int)$post->post_author);
         $includes = IncludePolicy::reportForPost($post);
         $pageSource = Pagination::currentPageSource($post);
+        $pageLinks = '';
 
         // A feed reader runs none of this plugin's JavaScript, so the
         // interactive render hands it empty hydration containers where the
@@ -429,6 +430,7 @@ class Plugin
             // WordPress with one page, so no page source, but still a marker.
             $source = $pageSource ?? Pagination::withoutMarkers((string)$post->post_content);
             $rendered = $this->converter->toHtml($source, 'post', null, $safe, includes: $includes);
+            $pageLinks = $pageSource !== null ? Pagination::pageLinksIn($content) : '';
         } else {
             $cached = RenderCache::read($post->ID, $safe);
             $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe, includes: $includes);
@@ -437,7 +439,7 @@ class Plugin
         // Carve already produced block HTML; keep wpautop away from it.
         remove_filter('the_content', 'wpautop');
 
-        return $this->wrap($rendered);
+        return $this->wrap($rendered) . $pageLinks;
     }
 
     /**

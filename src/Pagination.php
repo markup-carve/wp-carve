@@ -45,6 +45,18 @@ class Pagination
     }
 
     /**
+     * The page links core put at the end of $content, or ''. The post-content
+     * block appends wp_link_pages() before the_content runs; a classic theme
+     * prints them from its template instead, so they must not be added there.
+     */
+    public static function pageLinksIn(string $content): string
+    {
+        $links = (string)wp_link_pages(['echo' => 0]);
+
+        return $links !== '' && str_ends_with($content, $links) ? $links : '';
+    }
+
+    /**
      * Whole-post source with the markers taken out, for renders that show the
      * post as one piece (feeds, excerpts). Unremoved, a marker renders as visible
      * `<!--nextpage-->` text because raw HTML is off.

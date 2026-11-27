@@ -359,6 +359,13 @@ if (!function_exists('is_main_query')) {
     }
 }
 
+if (!function_exists('wp_link_pages')) {
+    function wp_link_pages(array $args = []): string
+    {
+        return (string)($GLOBALS['_wpcarve_test_page_links'] ?? '');
+    }
+}
+
 if (!function_exists('post_password_required')) {
     function post_password_required(mixed $post = null): bool
     {

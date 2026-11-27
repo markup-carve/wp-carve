@@ -56,6 +56,28 @@ class PaginationTest extends TestCase
         $this->assertStringNotContainsString('nextpage', $first . $second);
     }
 
+    public function testPageLinksAppendedBeforeTheFilterAreKept(): void
+    {
+        $GLOBALS['pages'] = ["# Chapter\n\nFirst page.", 'Second page.'];
+        $GLOBALS['multipage'] = 1;
+        $GLOBALS['id'] = self::POST;
+        $GLOBALS['page'] = 1;
+        $links = '<p class="post-nav-links">Pages: 1 <a href="/x/2/">2</a></p>';
+        $GLOBALS['_wpcarve_test_page_links'] = $links;
+        try {
+            // The post-content block: the chunk plus core's links.
+            $block = $this->plugin()->maybeRenderPost("# Chapter\n\nFirst page." . $links);
+            // A classic theme: links printed later by the template.
+            $classic = $this->plugin()->maybeRenderPost("# Chapter\n\nFirst page.");
+        } finally {
+            unset($GLOBALS['_wpcarve_test_page_links']);
+        }
+
+        $this->assertStringEndsWith($links, $block);
+        $this->assertSame(1, substr_count($block, 'post-nav-links'));
+        $this->assertStringNotContainsString('post-nav-links', $classic);
+    }
+
     public function testPagesOfAnotherPostAreIgnored(): void
     {
         $GLOBALS['pages'] = ['Other post, page one.', 'Other post, page two.'];

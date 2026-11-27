@@ -294,6 +294,14 @@ $carve_check(
     $carve_snippet($carve_page_two),
 );
 $carve_check('the nextpage marker never renders as text', !str_contains($carve_page_one . $carve_page_two, 'nextpage'));
+set_query_var('page', 1);
+setup_postdata(get_post($postId));
+$carve_page_block = (string)apply_filters('the_content', get_the_content() . wp_link_pages(['echo' => 0]));
+$carve_check(
+    'page links the post-content block appends survive the render',
+    str_contains($carve_page_block, 'post-nav-links') && !str_contains($carve_page_block, 'Second page text.'),
+    $carve_snippet($carve_page_block),
+);
 $GLOBALS['wp_query']->is_feed = true;
 $carve_page_feed = $carve_page_render($postId, 1);
 $GLOBALS['wp_query']->is_feed = false;
