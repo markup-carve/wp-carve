@@ -31,6 +31,7 @@
 			if ( ! pre || pre.dataset.carveEnhanced ) {
 				return;
 			}
+				const figure = pre.parentElement?.tagName === 'FIGURE' ? pre.parentElement : null;
 			pre.dataset.carveEnhanced = '1';
 
 			// Surface the language as data-lang so the pill shows it. Torchlight
@@ -80,7 +81,7 @@
 			// Plain Carve fallback line numbers; Torchlight renders its own gutter.
 			if ( ! code.classList.contains( 'torchlight' ) ) {
 				const lines = code.innerHTML.replace( /\n$/, '' ).split( '\n' ).length;
-				const ranges = highlightedLines( pre.dataset.highlight );
+				const ranges = highlightedLines( pre.dataset.highlight ?? figure?.dataset.highlight );
 				const selected = function ( line ) {
 					return ranges.some( function ( range ) { return line >= range[ 0 ] && line <= range[ 1 ]; } );
 				};
@@ -89,13 +90,13 @@
 						return selected( index + 1 ) ? '<span class="wpcarve-line-highlight">' + content + '</span>' : '<span class="wpcarve-code-line">' + content + '</span>';
 					} ).join( '' );
 				}
-				if ( ! pre.classList.contains( 'line-numbers' ) ) {
+				if ( ! pre.classList.contains( 'line-numbers' ) && ! figure?.classList.contains( 'line-numbers' ) ) {
 					return;
 				}
 				const gutter = document.createElement( 'span' );
 				gutter.className = 'wpcarve-line-numbers';
 				gutter.setAttribute( 'aria-hidden', 'true' );
-				const start = pre.dataset.lineStart || '';
+				const start = pre.dataset.lineStart ?? figure?.dataset.lineStart ?? '';
 				if ( /^[1-9]\d*$/.test( start ) ) {
 					gutter.style.counterReset = 'ln ' + ( Number( start ) - 1 );
 				}

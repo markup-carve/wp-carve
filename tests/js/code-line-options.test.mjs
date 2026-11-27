@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { Window } from 'happy-dom';
 
 const script = await readFile(new URL('../../assets/js/code-blocks.js', import.meta.url), 'utf8');
+const styles = await readFile(new URL('../../assets/css/carve.css', import.meta.url), 'utf8');
 
 function render(attributes, code = 'one\ntwo\nthree\nfour\nfive\n') {
 	const win = new Window({ url: 'http://localhost/' });
@@ -29,4 +30,24 @@ test('highlight works without a gutter and invalid input highlights nothing', ()
 	const invalid = render('class="line-numbers" data-highlight="1,x"');
 	assert.equal(invalid.document.querySelectorAll('.wpcarve-line-highlight').length, 0);
 	invalid.close();
+});
+
+test('captioned fallback code reads options on its figure', () => {
+	const win = new Window({ url: 'http://localhost/' });
+	win.document.body.innerHTML = '<div class="wpcarve"><figure class="line-numbers" data-line-start="42" data-highlight="1,3-5"><pre><code>one\ntwo\nthree\nfour\nfive\n</code></pre><figcaption>Sample</figcaption></figure></div>';
+	win.eval(script);
+	win.document.dispatchEvent(new win.Event('DOMContentLoaded'));
+	assert.equal(win.document.querySelectorAll('code .wpcarve-line-highlight').length, 4);
+	assert.equal(win.document.querySelectorAll('.wpcarve-line-numbers .wpcarve-line-highlight').length, 4);
+	assert.equal(win.document.querySelector('.wpcarve-line-numbers').style.counterReset, 'ln 41');
+	win.close();
+});
+
+test('dark dual-theme rows keep the selected line wash visible', () => {
+	const win = new Window({ url: 'http://localhost/' });
+	win.document.body.innerHTML = `<style>${styles}</style><div class="wpcarve"><pre><code class="phiki-themes torchlight"><div class="line line-highlight"><span class="token">a</span></div></code></pre></div>`;
+	win.document.documentElement.dataset.theme = 'dark';
+	assert.equal(win.getComputedStyle(win.document.querySelector('.line-highlight')).backgroundColor, 'rgba(255, 209, 102, 0.22)');
+	assert.equal(win.getComputedStyle(win.document.querySelector('.line-highlight .token')).backgroundColor, 'transparent');
+	win.close();
 });

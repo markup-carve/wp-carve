@@ -1573,6 +1573,23 @@ body[data-wpcarve-document-mode="split"] .wpcarve-scroll-sync {
 	background-color: var(--phiki-dark-background) !important;
 }
 
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes .line.line-highlight {
+		background-color: rgba(255, 209, 102, 0.22) !important;
+	}
+	:root:not([data-theme="light"]) .wpcarve pre code.phiki-themes .line.line-highlight span:not(.diff-marker):not(.line-number) {
+		background-color: transparent !important;
+	}
+}
+
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes .line.line-highlight {
+	background-color: rgba(255, 209, 102, 0.22) !important;
+}
+
+:root[data-theme="dark"] .wpcarve pre code.phiki-themes .line.line-highlight span:not(.diff-marker):not(.line-number) {
+	background-color: transparent !important;
+}
+
 .wpcarve pre code.torchlight {
 	display: block;
 	min-width: max-content;
