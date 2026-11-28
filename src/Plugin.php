@@ -320,7 +320,7 @@ class Plugin
     public function maybeRenderExcerpt(string $excerpt): string
     {
         $post = get_post();
-        if (!$post || !$this->typeEnabled($post)) {
+        if (!$post || !$this->typeEnabled($post) || post_password_required($post)) {
             return $excerpt;
         }
         $src = '';
@@ -329,7 +329,7 @@ class Plugin
             // rather than shown with its markers.
             $src = (string)$post->post_excerpt;
         } elseif (get_post_meta($post->ID, '_wpcarve_enabled', true)) {
-            $src = (string)$post->post_content;
+            $src = Pagination::withoutMarkers((string)$post->post_content);
         } elseif (self::postHasCarveBlock($post)) {
             // Block posts previously fell through to core, which drops the
             // dynamic block entirely (empty excerpt) - or, when the comment
@@ -403,9 +403,15 @@ class Plugin
         if (!$post || !get_post_meta($post->ID, '_wpcarve_enabled', true) || !$this->typeEnabled($post)) {
             return $content;
         }
+        // $content is core's password form here; rendering the source would show the post to anyone.
+        if (post_password_required($post)) {
+            return $content;
+        }
 
         $safe = self::safeForAuthor((int)$post->post_author);
         $includes = IncludePolicy::reportForPost($post);
+        $pageSource = Pagination::currentPageSource($post);
+        $pageLinks = '';
 
         // A feed reader runs none of this plugin's JavaScript, so the
         // interactive render hands it empty hydration containers where the
@@ -417,7 +423,14 @@ class Plugin
         // serve exactly the markup this avoids, and writing to it would put
         // feed markup on the page.
         if (function_exists('is_feed') && is_feed()) {
-            $rendered = $this->converter->toHtml($post->post_content, 'feed', null, $safe, includes: $includes);
+            // A feed item carries the whole post; it has no page links.
+            $rendered = $this->converter->toHtml(Pagination::withoutMarkers((string)$post->post_content), 'feed', null, $safe, includes: $includes);
+        } elseif (str_contains((string)$post->post_content, Pagination::MARKER)) {
+            // The cache holds the raw whole post. A lone leading marker leaves
+            // WordPress with one page, so no page source, but still a marker.
+            $source = $pageSource ?? Pagination::withoutMarkers((string)$post->post_content);
+            $rendered = $this->converter->toHtml($source, 'post', null, $safe, includes: $includes);
+            $pageLinks = $pageSource !== null ? Pagination::pageLinksIn($content) : '';
         } else {
             $cached = RenderCache::read($post->ID, $safe);
             $rendered = $cached ?? $this->converter->toHtml($post->post_content, 'post', null, $safe, includes: $includes);
@@ -426,7 +439,7 @@ class Plugin
         // Carve already produced block HTML; keep wpautop away from it.
         remove_filter('the_content', 'wpautop');
 
-        return $this->wrap($rendered);
+        return $this->wrap($rendered) . $pageLinks;
     }
 
     /**

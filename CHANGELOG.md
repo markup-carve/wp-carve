@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-11-28
+
+A security and pagination fix for whole-post Carve posts.
+
+### Fixes
+
+- A password-protected whole-post Carve post shows WordPress's password form again; before, the Carve render replaced it with the post text, so anyone could read it.
+- A whole-post Carve post split with `<!--nextpage-->` shows one page at a time, and block themes keep the page links; before, every page showed the whole post with the marker as text. Feeds and excerpts keep the whole post and drop the marker.
+
 ## [0.1.13] - 2026-11-12
 
 Carve blocks retain rendered content when the plugin is unavailable, and deactivation can convert them to standard WordPress blocks. Rendering untrusted content now has configurable budgets. The server renderer, preview and editors move to the carve 0.1.14 engines: carve-php 0.1.17, carve 0.1.17, carve-grammars 0.1.24 and carve-php-media-embed 0.1.7.

@@ -4,7 +4,7 @@ Tags: carve, markup, markdown, djot, editor
 Requires at least: 6.3
 Tested up to: 7.1
 Requires PHP: 8.2
-Stable tag: 0.1.13
+Stable tag: 0.1.14
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -43,6 +43,10 @@ Installing from source (GitHub) instead? Run `composer install --no-dev`, option
 4. The Carve Markup settings screen.
 
 == Changelog ==
+
+= 0.1.14 =
+* Security: a password-protected post written in whole-post Carve mode shows the password form again instead of its text.
+* Fixed: a Carve post split with `<!--nextpage-->` shows one page at a time and keeps its page links; feeds and excerpts no longer show the marker.
 
 = 0.1.13 =
 * Breaking: a `---` on the first line with no closer is frontmatter to the end of the post; write `***` for a thematic break.
